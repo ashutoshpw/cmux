@@ -7,8 +7,8 @@ This is a source-backed plan. DNS, provider accounts, secrets, existing fork cus
 | Component | Required input/action | Completion evidence |
 | --- | --- | --- |
 | DNS and TLS | Control w3dev.app; add primary/staging/artifact/Worker/publication hosts; verify nested wildcard certificate requirements | Provider domain status and HTTPS certificate checks for every enabled host |
-| Vercel | Create owned project(s) linked to ashutoshpw/cmux with web/ root directory; register domains; set production/preview branch policy and required limits/crons | Fork project/team IDs, Git linkage and exact deployment SHA/domain receipts |
-| Auth | Create owned production and development/staging Stack/Hexclave projects; configure public/server keys, OAuth providers, approved origins/callback URLs and sender domains | Web, macOS and iOS resolve the same project for a given environment; verified login and issuer/JWKS receipts |
+| Vercel | Use team_bhbVYR6BqVYMXKwAp7F1k5ib / prj_3z4VuRVvSvlm5LYNnEuqHa4FKKtn; deploy with W3Dev/vercel-deploy and literal workflow IDs; verify web/ root, domain, cron settings and duplicate Git triggers | Supplied IDs match live project/team; exact action/deployment SHA/domain receipts |
+| Auth | Use adopted Better Auth Organization and OAuth Provider/PKCE; provision matching production/staging database, email, provider and callback settings | Web, native apps and Workers agree on the chosen auth contract; verified login and issuer/JWKS receipts |
 | PostgreSQL | Provision owned production and staging databases, preferably retaining current PlanetScale PostgreSQL architecture; set CMUX_DB_DRIVER=url | Correct database identity and protected migration receipts; no upstream cmux organization/db default in active tools |
 | Freestyle | Owned API credential or supported Stack-token/team credential; private networks, verified publication zone and new snapshots | Snapshot IDs work under this credential; create/attach/exec and ownership checks succeed |
 | Cloudflare Workers | Owned account/API token, presence and Iroh Workers, Durable Object namespaces and ownership DB binding | Account/project/source/namespace metadata and protocol health on fork endpoints |
@@ -41,9 +41,10 @@ Resolve all values for production and staging separately; fill actual identities
 | CMUX_WEB_BASE_URL (presence Worker) | https://cmux.w3dev.app; same trusted default in Worker code |
 | DASHBOARD_ALLOWED_ORIGINS (Iroh Worker) | Exact new origin; no upstream origin entries |
 | CMUX_IROH_MINT_URL | Explicit owned minting service |
-| NEXT_PUBLIC_STACK_PROJECT_ID / NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY | Owned production public config; match generated native config |
-| STACK_SECRET_SERVER_KEY / STACK_WEBHOOK_SECRET | Matching owned project server/webhook secrets |
-| Stack/Hexclave API URL variables | Consistent SDK/REST provider host; issuer/JWKS treated separately and verified |
+| BETTER_AUTH_URL / BETTER_AUTH_SECRET | Canonical fork origin and stable secret of at least 32 characters |
+| RESEND_API_KEY / CMUX_AUTH_FROM_EMAIL | Fork mail delivery and verified sender |
+| CMUX_AUTH_SERVICE_KEY | Dedicated secret for live Iroh ticket session/member authority; never a public client setting |
+| CMUX_OAUTH_CLIENT_ID / CMUXOAuthClientID | Exact registered client ID for each tagged native callback; release client IDs seeded by protected migration |
 | DATABASE_URL / CMUX_DB_DRIVER | Owned production PostgreSQL / url |
 | FREESTYLE_API_KEY or supported alternative credential group | Owned provider account that owns promoted snapshots |
 | CRON_SECRET | New fork cron secret, required before scheduling |
@@ -51,11 +52,11 @@ Resolve all values for production and staging separately; fill actual identities
 | CMUX_APNS_* / APPLE_IAP_* | Match owned bundle/app/team identities |
 | Vercel/GitHub/Cloudflare/R2/signing settings | Explicit fork targets; remove active --scope manaflow and upstream fallback identity |
 
-CMUX_APP_ORIGIN and CMUX_TEAM_INVITE_ORIGIN are read by current team code; a general canonical contract and its central validation still need to be implemented. Setting these env keys alone does not change production native pins or other hardcoded links.
+CMUX_APP_ORIGIN and CMUX_TEAM_INVITE_ORIGIN are read by current team code; a general canonical contract and its central validation are implemented in web/services/deployment/origin.ts. Setting these env keys alone does not change production native pins or other hardcoded links.
 
 Provider project keys can be inlined into public frontend/native build artifacts; provider secret/server keys cannot. NEXT_PUBLIC values are build inputs, so changing Vercel runtime settings requires a rebuild to update the browser bundle.
 
-Webhook routes to register include /api/webhooks/stack and the actual selected Stripe endpoints under web/app/api/stripe. Verify the event lists, signing secrets and delivery behavior from current code; do not blindly configure every copied upstream webhook.
+Stack webhooks are retired with 410. Register the actual selected Stripe endpoints under web/app/api/stripe. Verify the event lists, signing secrets and delivery behavior from current code; do not blindly configure every copied upstream webhook.
 
 ## Decisions to record before release
 
@@ -81,3 +82,7 @@ If existing fork users or VMs must move, replace the fresh-state assumption with
 | Request Host can influence some generated URLs | Centralize trusted production origin and test host-spoof/open-redirect cases |
 | Existing Vercel branch policy deploys main only | Configure a usable fork staging/preview route with authentication protection |
 | Fresh Iroh DO namespaces differ from upgraded namespaces | Separate first deployment from upgrades; preserve established fork state |
+
+## Confirmed Vercel workflow
+
+See [vercel-workflow.md](vercel-workflow.md) for the required action, exact hardcoded identifiers, secret handling, root alignment, deployment triggers and acceptance evidence. Hosting is Vercel; Better Auth implementation is in progress.
