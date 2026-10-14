@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
+import { legalMetadata } from "../legal-metadata";
+import { getCurrentYear } from "@/app/lib/current-year";
 
-export const metadata: Metadata = {
-  title: "Terms of Service — cmux",
-  description: "Terms of service for cmux",
-};
+export const metadata: Metadata = legalMetadata(
+  "/terms-of-service",
+  "Terms of Service — cmux",
+  "Terms of service for the cmux website and macOS application",
+);
 
-export default function TermsOfServicePage() {
+export default async function TermsOfServicePage() {
+  const currentYear = await getCurrentYear();
+
   return (
     <>
       <h1>Terms of Service</h1>
-      <p>Last revised on: December 2, 2025</p>
+      <p>Last revised on: March 18, 2026</p>
 
       <p>
         The website located at{" "}
-        <a href="https://cmux.dev">cmux.dev</a> (the
+        <a href="https://cmux.com">cmux.com</a> (the
         &ldquo;Site&rdquo;) and the cmux desktop application (the
         &ldquo;Application&rdquo;) are copyrighted works belonging to Manaflow
         (&ldquo;Company&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;, and
@@ -160,7 +165,7 @@ export default function TermsOfServicePage() {
       <p>
         You have the right to opt out of this arbitration agreement by sending
         written notice to{" "}
-        <a href="mailto:founders@manaflow.com">founders@manaflow.com</a> within 30
+        <a href="mailto:founders@cmux.com">founders@cmux.com</a> within 30
         days of first becoming subject to it.
       </p>
 
@@ -176,11 +181,11 @@ export default function TermsOfServicePage() {
       <h2>10. Contact</h2>
       <p>
         Questions about these Terms should be sent to{" "}
-        <a href="mailto:founders@manaflow.com">founders@manaflow.com</a>.
+        <a href="mailto:founders@cmux.com">founders@cmux.com</a>.
       </p>
 
       <p>
-        Copyright &copy; 2025 Manaflow. All rights reserved.
+        Copyright &copy; {currentYear} Manaflow. All rights reserved.
       </p>
     </>
   );

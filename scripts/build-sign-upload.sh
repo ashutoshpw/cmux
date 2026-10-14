@@ -49,6 +49,7 @@ TAG="$1"
 SIGN_HASH="A050CC7E193C8221BDBA204E731B046CDCCC1B30"
 ENTITLEMENTS="cmux.entitlements"
 APP_PATH="build/Build/Products/Release/cmux.app"
+GHOSTTYKIT_CRASH_REPORT_SUBDIR="cmux/crash"
 
 # --- Pre-flight ---
 source ~/.secrets/cmuxterm.env
@@ -58,21 +59,35 @@ for tool in zig xcodebuild create-dmg xcrun codesign ditto gh; do
 done
 echo "Pre-flight checks passed"
 
-# --- Build GhosttyKit (if needed) ---
-if [ ! -d "GhosttyKit.xcframework" ]; then
-  echo "Building GhosttyKit..."
-  cd ghostty && zig build -Demit-xcframework=true -Demit-macos-app=false -Dxcframework-target=universal -Doptimize=ReleaseFast && cd ..
-  rm -rf GhosttyKit.xcframework
-  cp -R ghostty/macos/GhosttyKit.xcframework GhosttyKit.xcframework
-else
-  echo "GhosttyKit.xcframework exists, skipping build"
-fi
+# --- Build GhosttyKit ---
+echo "Building GhosttyKit..."
+rm -rf GhosttyKit.xcframework ghostty/macos/GhosttyKit.xcframework
+(
+  cd ghostty
+  zig build -Dcrash-report-subdir="$GHOSTTYKIT_CRASH_REPORT_SUBDIR" -Dsentry=false -Demit-xcframework=true -Demit-macos-app=false -Dxcframework-target=universal -Doptimize=ReleaseFast
+)
+cp -R ghostty/macos/GhosttyKit.xcframework GhosttyKit.xcframework
 
 # --- Build app (Release, unsigned) ---
 echo "Building app..."
 rm -rf build/
 xcodebuild -scheme cmux -configuration Release -derivedDataPath build CODE_SIGNING_ALLOWED=NO build 2>&1 | tail -5
 echo "Build succeeded"
+
+HELPER_PATH="$APP_PATH/Contents/Resources/bin/ghostty"
+if [ ! -x "$HELPER_PATH" ]; then
+  echo "Ghostty theme picker helper not found at $HELPER_PATH" >&2
+  exit 1
+fi
+
+# Submit the independently signed Computer Use helper now. Apple can process
+# its first ticket while this script finishes bundle metadata and signing.
+COMPUTER_USE_NOTARY_STATE="build/computer-use-notarization.state"
+./scripts/ci/notarize-computer-use-helper.sh \
+  --start "$COMPUTER_USE_NOTARY_STATE" \
+  "$APP_PATH" \
+  "$ENTITLEMENTS" \
+  "$SIGN_HASH"
 
 # --- Inject Sparkle keys ---
 echo "Injecting Sparkle keys..."
@@ -84,18 +99,23 @@ APP_PLIST="$APP_PATH/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Add :SUFeedURL string https://github.com/manaflow-ai/cmux/releases/latest/download/appcast.xml" "$APP_PLIST"
 echo "Sparkle keys injected"
 
+# cmux is a non-sandboxed app. Sparkle's sandbox-only XPC services make the
+# installer handoff wait for an agent connection that never arrives.
+./scripts/remove-sparkle-sandbox-xpc-services.sh "$APP_PATH"
+
 # --- Codesign ---
 echo "Codesigning..."
-CLI_PATH="$APP_PATH/Contents/Resources/bin/cmux"
-if [ -f "$CLI_PATH" ]; then
-  /usr/bin/codesign --force --options runtime --timestamp --sign "$SIGN_HASH" --entitlements "$ENTITLEMENTS" "$CLI_PATH"
-fi
-/usr/bin/codesign --force --options runtime --timestamp --sign "$SIGN_HASH" --entitlements "$ENTITLEMENTS" --deep "$APP_PATH"
-/usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_PATH"
+CMUX_SIGN_MODE=all-except-computer-use \
+  ./scripts/sign-cmux-bundle.sh "$APP_PATH" "$ENTITLEMENTS" "$SIGN_HASH"
 echo "Codesign verified"
 
 # --- Notarize app ---
 echo "Notarizing app..."
+./scripts/ci/notarize-computer-use-helper.sh \
+  --finish "$COMPUTER_USE_NOTARY_STATE" \
+  "$APP_PATH" \
+  "$ENTITLEMENTS" \
+  "$SIGN_HASH"
 ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" cmux-notary.zip
 xcrun notarytool submit cmux-notary.zip \
   --apple-id "$APPLE_ID" --team-id "$APPLE_TEAM_ID" --password "$APPLE_APP_SPECIFIC_PASSWORD" --wait
@@ -106,6 +126,7 @@ echo "App notarized"
 
 # --- Create and notarize DMG ---
 echo "Creating DMG..."
+./scripts/verify-app-bundle-licenses.sh "$APP_PATH"
 rm -f cmux-macos.dmg
 create-dmg --codesign "$SIGN_HASH" cmux-macos.dmg "$APP_PATH"
 echo "Notarizing DMG..."
@@ -118,13 +139,19 @@ echo "DMG notarized"
 # --- Generate Sparkle appcast ---
 echo "Generating appcast..."
 ./scripts/sparkle_generate_appcast.sh cmux-macos.dmg "$TAG" appcast.xml
+# Stable installs from CI releases are thin and read appcast-<arch>.xml. This
+# script builds only the universal DMG, so both per-arch feeds carry the
+# universal item: thin installs update to it, and the next CI release moves
+# them back onto their architecture.
+cp appcast.xml appcast-arm64.xml
+cp appcast.xml appcast-x86_64.xml
 
 # --- Create GitHub release (if needed) and upload ---
 if gh release view "$TAG" >/dev/null 2>&1; then
   echo "Release $TAG already exists"
   EXISTING_ASSETS="$(gh release view "$TAG" --json assets --jq '.assets[].name' || true)"
   HAS_CONFLICTING_ASSET="false"
-  for asset in cmux-macos.dmg appcast.xml; do
+  for asset in cmux-macos.dmg appcast.xml appcast-arm64.xml appcast-x86_64.xml; do
     if printf '%s\n' "$EXISTING_ASSETS" | grep -Fxq "$asset"; then
       HAS_CONFLICTING_ASSET="true"
       break
@@ -139,14 +166,14 @@ if gh release view "$TAG" >/dev/null 2>&1; then
 
   if [[ "$ALLOW_OVERWRITE" == "true" ]]; then
     echo "Uploading with overwrite enabled for existing release $TAG..."
-    gh release upload "$TAG" cmux-macos.dmg appcast.xml --clobber
+    gh release upload "$TAG" cmux-macos.dmg appcast.xml appcast-arm64.xml appcast-x86_64.xml --clobber
   else
     echo "Uploading to existing release $TAG..."
-    gh release upload "$TAG" cmux-macos.dmg appcast.xml
+    gh release upload "$TAG" cmux-macos.dmg appcast.xml appcast-arm64.xml appcast-x86_64.xml
   fi
 else
   echo "Creating release $TAG and uploading..."
-  gh release create "$TAG" cmux-macos.dmg appcast.xml --title "$TAG" --notes "See CHANGELOG.md for details"
+  gh release create "$TAG" cmux-macos.dmg appcast.xml appcast-arm64.xml appcast-x86_64.xml --title "$TAG" --notes "See CHANGELOG.md for details"
 fi
 
 # --- Verify ---
@@ -174,7 +201,7 @@ cask "cmux" do
     strategy :github_latest
   end
 
-  depends_on macos: ">= :ventura"
+  depends_on macos: :sonoma
 
   app "cmux.app"
   binary "#{appdir}/cmux.app/Contents/Resources/bin/cmux"

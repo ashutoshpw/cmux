@@ -9,7 +9,9 @@ from __future__ import annotations
 import glob
 import os
 import plistlib
+import re
 import shutil
+import signal
 import subprocess
 import tempfile
 import time
@@ -19,6 +21,13 @@ JUNK_APP_COUNT = 40000
 RSS_LIMIT_KB = 64 * 1024
 TIMEOUT_SECONDS = 10.0
 EXPECTED_STDOUT = "cmux 9.9.9 (999)"
+# The first launch of a new executable can pay a one-time system check before
+# main runs (about 3 s on the owned CI Macs, more on a busy host). One untimed
+# launch absorbs it, and a regression is slow on every attempt, so a single
+# stall on a loaded host is retried rather than failed. Memory does not depend
+# on host load, so a memory failure is never retried.
+WARMUP_TIMEOUT_SECONDS = 120
+ATTEMPTS = 3
 
 
 def resolve_cmux_cli() -> str:
@@ -96,62 +105,55 @@ def run_with_limits(cli_path: str, *args: str) -> dict[str, object]:
     env.pop("CMUX_COMMIT", None)
 
     proc = subprocess.Popen(
-        [cli_path, *args],
+        ["/usr/bin/time", "-l", cli_path, *args],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,
         env=env,
+        # Its own group, so a timeout stops cmux and not only /usr/bin/time.
+        start_new_session=True,
     )
 
     started = time.time()
-    peak_rss_kb = 0
-    failure_reason: str | None = None
-
-    while True:
-        exit_code = proc.poll()
-        if exit_code is not None:
-            stdout, stderr = proc.communicate()
-            return {
-                "exit_code": exit_code,
-                "stdout": stdout.strip(),
-                "stderr": stderr.strip(),
-                "elapsed": time.time() - started,
-                "peak_rss_kb": peak_rss_kb,
-                "failure_reason": None,
-            }
-
+    try:
+        stdout, stderr = proc.communicate(timeout=TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
         try:
-            rss_kb = int(
-                subprocess.check_output(
-                    ["ps", "-o", "rss=", "-p", str(proc.pid)],
-                    text=True,
-                ).strip()
-                or "0"
-            )
-        except subprocess.CalledProcessError:
-            rss_kb = 0
-
-        peak_rss_kb = max(peak_rss_kb, rss_kb)
+            os.killpg(proc.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass  # it exited in the moment after the timeout
+        stdout, stderr = proc.communicate()
         elapsed = time.time() - started
+        return {
+            "exit_code": proc.returncode,
+            "stdout": stdout.strip(),
+            "stderr": stderr.strip(),
+            "elapsed": elapsed,
+            "peak_rss_kb": 0,
+            "failure_reason": f"timeout exceeded ({elapsed:.2f}s > {TIMEOUT_SECONDS:.2f}s)",
+        }
 
-        if rss_kb > RSS_LIMIT_KB:
-            failure_reason = f"rss limit exceeded ({rss_kb} KB > {RSS_LIMIT_KB} KB)"
-        elif elapsed > TIMEOUT_SECONDS:
-            failure_reason = f"timeout exceeded ({elapsed:.2f}s > {TIMEOUT_SECONDS:.2f}s)"
+    elapsed = time.time() - started
+    peak_rss_kb = 0
+    rss_match = re.search(r"(\d+)\s+maximum resident set size", stderr)
+    if rss_match:
+        peak_rss_raw = int(rss_match.group(1))
+        peak_rss_kb = peak_rss_raw if peak_rss_raw <= RSS_LIMIT_KB * 16 else peak_rss_raw // 1024
 
-        if failure_reason:
-            proc.kill()
-            stdout, stderr = proc.communicate()
-            return {
-                "exit_code": proc.returncode,
-                "stdout": stdout.strip(),
-                "stderr": stderr.strip(),
-                "elapsed": elapsed,
-                "peak_rss_kb": peak_rss_kb,
-                "failure_reason": failure_reason,
-            }
+    failure_reason: str | None = None
+    if peak_rss_kb > RSS_LIMIT_KB:
+        failure_reason = f"rss limit exceeded ({peak_rss_kb} KB > {RSS_LIMIT_KB} KB)"
+    elif elapsed > TIMEOUT_SECONDS:
+        failure_reason = f"timeout exceeded ({elapsed:.2f}s > {TIMEOUT_SECONDS:.2f}s)"
 
-        time.sleep(0.05)
+    return {
+        "exit_code": proc.returncode,
+        "stdout": stdout.strip(),
+        "stderr": stderr.strip(),
+        "elapsed": elapsed,
+        "peak_rss_kb": peak_rss_kb,
+        "failure_reason": failure_reason,
+    }
 
 
 def main() -> int:
@@ -163,7 +165,15 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="cmux-version-memory-guard-") as root:
         fixture_cli = build_fixture(root, cli_path)
-        result = run_with_limits(fixture_cli, "--version")
+        # `--help` returns before the version lookup this guard is about.
+        try:
+            subprocess.run([fixture_cli, "--help"], capture_output=True, timeout=WARMUP_TIMEOUT_SECONDS)
+        except (OSError, subprocess.SubprocessError):
+            pass
+        for _ in range(ATTEMPTS):
+            result = run_with_limits(fixture_cli, "--version")
+            if not str(result["failure_reason"] or "").startswith("timeout exceeded"):
+                break
 
     if result["failure_reason"]:
         print("FAIL: `cmux --version` exceeded runtime guard")

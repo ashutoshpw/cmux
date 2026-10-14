@@ -1,17 +1,95 @@
 import Foundation
 import Combine
 import AppKit
+import CmuxFoundation
 
 /// Type of panel content
-public enum PanelType: String, Codable, Sendable {
+public enum PanelType: String, Codable, CaseIterable, Sendable {
     case terminal
     case browser
     case markdown
+    case filePreview = "filepreview"
+    case rightSidebarTool
+    case customSidebar
+    case simulator
+    case agentSession
+    case project
+    case extensionBrowser
+    case workspaceTodo
+    case coderouterGuide
+    case notifications
+    case cloudVMLoading
+    case mobilePairing
+    case accountSignIn
+    case cloudVPNSetup
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        if let type = Self(rawValue: rawValue) {
+            self = type
+            return
+        }
+        if rawValue.lowercased() == Self.filePreview.rawValue {
+            self = .filePreview
+            return
+        }
+        if rawValue.lowercased() == Self.rightSidebarTool.rawValue.lowercased() {
+            self = .rightSidebarTool
+            return
+        }
+        if rawValue.lowercased() == Self.customSidebar.rawValue.lowercased() {
+            self = .customSidebar
+            return
+        }
+        if rawValue.lowercased() == Self.agentSession.rawValue.lowercased() {
+            self = .agentSession
+            return
+        }
+        if rawValue.lowercased() == Self.workspaceTodo.rawValue.lowercased() {
+            self = .workspaceTodo
+            return
+        }
+        if rawValue.lowercased() == Self.coderouterGuide.rawValue.lowercased() {
+            self = .coderouterGuide
+            return
+        }
+        if rawValue.lowercased() == Self.notifications.rawValue.lowercased() {
+            self = .notifications
+            return
+        }
+        if rawValue.lowercased() == Self.cloudVMLoading.rawValue.lowercased() {
+            self = .cloudVMLoading
+            return
+        }
+        if rawValue.lowercased() == Self.mobilePairing.rawValue.lowercased() {
+            self = .mobilePairing
+            return
+        }
+        if rawValue.lowercased() == Self.accountSignIn.rawValue.lowercased() {
+            self = .accountSignIn
+            return
+        }
+        if rawValue.lowercased() == Self.cloudVPNSetup.rawValue.lowercased() {
+            self = .cloudVPNSetup
+            return
+        }
+        throw DecodingError.dataCorruptedError(
+            in: container,
+            debugDescription: "Unknown panel type: \(rawValue)"
+        )
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(rawValue)
+    }
 }
 
 public enum TerminalPanelFocusIntent: Equatable {
     case surface
     case findField
+    case textBoxInput
 }
 
 public enum BrowserPanelFocusIntent: Equatable {
@@ -20,16 +98,157 @@ public enum BrowserPanelFocusIntent: Equatable {
     case findField
 }
 
+public enum FilePreviewPanelFocusIntent: Hashable {
+    case textEditor
+    case pdfCanvas
+    case pdfThumbnails
+    case pdfOutline
+    case imageCanvas
+    case mediaPlayer
+    case quickLook
+}
+
+public enum ProjectPanelFocusIntent: Hashable {
+    case navigator
+    case detail
+}
+
 public enum PanelFocusIntent: Equatable {
     case panel
     case terminal(TerminalPanelFocusIntent)
     case browser(BrowserPanelFocusIntent)
+    case filePreview(FilePreviewPanelFocusIntent)
+    case project(ProjectPanelFocusIntent)
+}
+
+public enum WorkspaceAttentionFlashReason: String, Equatable, Sendable {
+    case navigation
+    case userInitiated
+    case notificationArrival
+    case notificationDismiss
+    case unreadIndicatorDismiss
+    case debug
+}
+
+/// The built-in attention color used when no configured override is valid.
+enum WorkspaceAttentionFlashAccent: Equatable, Sendable {
+    case cmuxAccent
+
+    func strokeColor(accent: CmuxAccentColor) -> NSColor {
+        switch self {
+        case .cmuxAccent:
+            return accent.dynamicNSColor
+        }
+    }
+}
+
+struct WorkspaceAttentionFlashPresentation: Equatable, Sendable {
+    let accent: WorkspaceAttentionFlashAccent
+    let glowOpacity: Double
+    let glowRadius: CGFloat
+}
+
+struct WorkspaceAttentionPersistentState: Equatable, Sendable {
+    var unreadPanelIDs: Set<UUID> = []
+    var focusedReadPanelID: UUID?
+    var manualUnreadPanelIDs: Set<UUID> = []
+
+    var indicatorPanelIDs: Set<UUID> {
+        var ids = unreadPanelIDs.union(manualUnreadPanelIDs)
+        if let focusedReadPanelID {
+            ids.insert(focusedReadPanelID)
+        }
+        return ids
+    }
+
+    func hasCompetingIndicator(for panelID: UUID) -> Bool {
+        indicatorPanelIDs.contains(where: { $0 != panelID })
+    }
+}
+
+struct WorkspaceAttentionFlashDecision: Equatable, Sendable {
+    let panelID: UUID
+    let reason: WorkspaceAttentionFlashReason
+    let isAllowed: Bool
+}
+
+enum WorkspaceAttentionCoordinator {
+    static let notificationRingStyle = WorkspaceAttentionFlashPresentation(
+        accent: .cmuxAccent,
+        glowOpacity: 0.35,
+        glowRadius: 3
+    )
+
+    static let flashRingStyle = WorkspaceAttentionFlashPresentation(
+        accent: .cmuxAccent,
+        glowOpacity: 0.6,
+        glowRadius: 6
+    )
+
+    static func flashStyle(for reason: WorkspaceAttentionFlashReason) -> WorkspaceAttentionFlashPresentation {
+        switch reason {
+        case .navigation, .userInitiated, .notificationArrival, .notificationDismiss, .unreadIndicatorDismiss, .debug:
+            return flashRingStyle
+        }
+    }
+
+    static func decideFlash(
+        targetPanelID: UUID,
+        reason: WorkspaceAttentionFlashReason,
+        persistentState: WorkspaceAttentionPersistentState
+    ) -> WorkspaceAttentionFlashDecision {
+        let isAllowed: Bool
+        switch reason {
+        case .navigation:
+            isAllowed = !persistentState.hasCompetingIndicator(for: targetPanelID)
+        case .userInitiated, .notificationArrival, .notificationDismiss, .unreadIndicatorDismiss, .debug:
+            isAllowed = true
+        }
+
+        return WorkspaceAttentionFlashDecision(
+            panelID: targetPanelID,
+            reason: reason,
+            isAllowed: isAllowed
+        )
+    }
 }
 
 enum FocusFlashCurve: Equatable {
     case easeIn
     case easeOut
 }
+
+enum PanelOverlayRingMetrics {
+    static let inset: CGFloat = 2
+    static let cornerRadius: CGFloat = 6
+    static let lineWidth: CGFloat = .paneIndicatorStrokeWidth
+
+    static func pathRect(in bounds: CGRect) -> CGRect {
+        bounds.insetBy(dx: inset, dy: inset)
+    }
+}
+
+#if DEBUG
+func cmuxFlashDebugID(_ id: UUID?) -> String {
+    guard let id else { return "nil" }
+    return String(id.uuidString.prefix(6))
+}
+
+func cmuxFlashDebugRect(_ rect: CGRect?) -> String {
+    guard let rect else { return "nil" }
+    return String(
+        format: "%.1f,%.1f %.1fx%.1f",
+        rect.origin.x,
+        rect.origin.y,
+        rect.size.width,
+        rect.size.height
+    )
+}
+
+func cmuxFlashDebugBool(_ value: Bool) -> Int {
+    value ? 1 : 0
+}
+#endif
 
 struct FocusFlashSegment: Equatable {
     let delay: TimeInterval
@@ -38,15 +257,37 @@ struct FocusFlashSegment: Equatable {
     let curve: FocusFlashCurve
 }
 
-enum FocusFlashPattern {
-    static let values: [Double] = [0, 1, 0, 1, 0]
-    static let keyTimes: [Double] = [0, 0.25, 0.5, 0.75, 1]
-    static let duration: TimeInterval = 0.9
-    static let curves: [FocusFlashCurve] = [.easeOut, .easeIn, .easeOut, .easeIn]
-    static let ringInset: Double = 6
-    static let ringCornerRadius: Double = 10
+/// The attention flash shape. One short pulse by default: enough to say where
+/// focus or attention landed without replaying a blink on every move between
+/// panes. `notifications.paneFlashDoubleBlink` restores the older double blink.
+struct FocusFlashPattern: Equatable {
+    let values: [Double]
+    let keyTimes: [Double]
+    let duration: TimeInterval
+    let curves: [FocusFlashCurve]
 
-    static var segments: [FocusFlashSegment] {
+    static let pulse = FocusFlashPattern(
+        values: [0, 1, 0],
+        keyTimes: [0, 0.3, 1],
+        duration: 0.6,
+        curves: [.easeOut, .easeIn]
+    )
+    static let doubleBlink = FocusFlashPattern(
+        values: [0, 1, 0, 1, 0],
+        keyTimes: [0, 0.25, 0.5, 0.75, 1],
+        duration: 0.9,
+        curves: [.easeOut, .easeIn, .easeOut, .easeIn]
+    )
+
+    /// The shape the user has chosen, read when a flash starts.
+    static var current: FocusFlashPattern {
+        NotificationPaneFlashSettings.usesDoubleBlink() ? doubleBlink : pulse
+    }
+
+    static let ringInset: Double = Double(PanelOverlayRingMetrics.inset)
+    static let ringCornerRadius: Double = Double(PanelOverlayRingMetrics.cornerRadius)
+
+    var segments: [FocusFlashSegment] {
         let stepCount = min(curves.count, values.count - 1, keyTimes.count - 1)
         return (0..<stepCount).map { index in
             let startTime = keyTimes[index]
@@ -59,6 +300,37 @@ enum FocusFlashPattern {
             )
         }
     }
+
+    func opacity(at elapsed: TimeInterval) -> Double {
+        guard elapsed >= 0, elapsed <= duration else { return 0 }
+
+        for index in 0..<min(curves.count, values.count - 1, keyTimes.count - 1) {
+            let startTime = keyTimes[index] * duration
+            let endTime = keyTimes[index + 1] * duration
+            if elapsed > endTime {
+                continue
+            }
+
+            let segmentDuration = max(endTime - startTime, 0.0001)
+            let rawProgress = max(0, min(1, (elapsed - startTime) / segmentDuration))
+            let curvedProgress = Self.interpolatedProgress(rawProgress, curve: curves[index])
+            let startOpacity = values[index]
+            let endOpacity = values[index + 1]
+            return startOpacity + ((endOpacity - startOpacity) * curvedProgress)
+        }
+
+        return values.last ?? 0
+    }
+
+    private static func interpolatedProgress(_ progress: Double, curve: FocusFlashCurve) -> Double {
+        switch curve {
+        case .easeIn:
+            return progress * progress
+        case .easeOut:
+            let inverse = 1 - progress
+            return 1 - (inverse * inverse)
+        }
+    }
 }
 
 /// Protocol for all panel types (terminal, browser, etc.)
@@ -66,6 +338,9 @@ enum FocusFlashPattern {
 public protocol Panel: AnyObject, Identifiable, ObservableObject where ID == UUID {
     /// Unique identifier for this panel
     var id: UUID { get }
+
+    /// Box that owns this panel's restart-stable surface identity.
+    var stableSurfaceIdentity: PanelStableSurfaceIdentity { get }
 
     /// The type of panel
     var panelType: PanelType { get }
@@ -88,8 +363,11 @@ public protocol Panel: AnyObject, Identifiable, ObservableObject where ID == UUI
     /// Unfocus the panel
     func unfocus()
 
+    /// Read the panel's live user selection without changing focus or UI state.
+    func readSurfaceSelection() async -> SurfaceSelectionReadResult
+
     /// Trigger a focus flash animation for this panel.
-    func triggerFlash()
+    func triggerFlash(reason: WorkspaceAttentionFlashReason)
 
     /// Capture the panel-local focus target that should be restored later.
     func captureFocusIntent(in window: NSWindow?) -> PanelFocusIntent
@@ -116,6 +394,11 @@ public protocol Panel: AnyObject, Identifiable, ObservableObject where ID == UUI
 extension Panel {
     public var displayIcon: String? { nil }
     public var isDirty: Bool { false }
+
+    /// Captures the panel's current selection without changing focus or state.
+    public func readSurfaceSelection() async -> SurfaceSelectionReadResult {
+        .unsupported
+    }
 
     func captureFocusIntent(in window: NSWindow?) -> PanelFocusIntent {
         _ = window
@@ -148,5 +431,9 @@ extension Panel {
         _ = intent
         _ = window
         return false
+    }
+
+    func triggerFlash() {
+        triggerFlash(reason: .navigation)
     }
 }

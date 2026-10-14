@@ -20,6 +20,7 @@ export const locales = [
   "th",
   "tr",
   "km",
+  "uk",
 ] as const;
 
 export type Locale = (typeof locales)[number];
@@ -44,10 +45,15 @@ export const localeNames: Record<Locale, string> = {
   th: "ไทย",
   tr: "Türkçe",
   km: "ភាសាខ្មែរ",
+  uk: "Українська",
 };
 
 export const routing = defineRouting({
   locales,
   defaultLocale: "en",
   localePrefix: "as-needed",
+  // Route-level metadata owns hreflang because some pages intentionally support
+  // only a subset of locales. A global Link header advertises localized URLs
+  // that return 404 for those pages.
+  alternateLinks: false,
 });

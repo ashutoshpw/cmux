@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
+import { legalMetadata } from "../legal-metadata";
 
-export const metadata: Metadata = {
-  title: "EULA — cmux",
-  description: "End-User License Agreement for cmux",
-};
+export const metadata: Metadata = legalMetadata(
+  "/eula",
+  "EULA — cmux",
+  "End-User License Agreement for the cmux macOS application",
+);
 
 export default function EulaPage() {
   return (
     <>
       <h1>EULA</h1>
-      <p>Last updated: December 2, 2025</p>
+      <p>Last updated: March 18, 2026</p>
 
       <p>
         Please read this End-User License Agreement carefully before
@@ -198,7 +200,7 @@ export default function EulaPage() {
       <ul>
         <li>
           Email us at{" "}
-          <a href="mailto:founders@manaflow.com">founders@manaflow.com</a>
+          <a href="mailto:founders@cmux.com">founders@cmux.com</a>
         </li>
       </ul>
     </>
