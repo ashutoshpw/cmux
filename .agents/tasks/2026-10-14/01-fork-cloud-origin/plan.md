@@ -31,7 +31,7 @@ Use a validated, nonsecret deployment manifest with generated inputs for existin
 - [ ] P5 publication: Build, verify and publish fork-owned artifacts, images and relays using actual provider/signing configuration.
 - [x] Add .github/workflows/deploy-vercel.yml using W3Dev/vercel-deploy with the exact hardcoded Vercel team/project IDs; validate builds and prevent duplicate deployment triggers.
 - [x] P6 source: Update product destinations and translations; run local verification.
-- [ ] P6 delivery: Finish independent repair reviews and publish a draft fork PR against the snapshot baseline.
+- [x] P6 delivery: Finish independent repair reviews and publish draft fork PR [#1](https://github.com/ashutoshpw/cmux/pull/1) against the snapshot baseline.
 - [ ] P7: Deploy to fork staging, verify authenticated journeys, promote the same revision, and release fork clients.
 - [ ] P8: Record production receipts and prove upstream outage cannot activate an old destination.
 
