@@ -68,14 +68,14 @@ import Testing
             online: false,
             lastSeenAt: 1_000
         )
-        futureOne.bundleId = "com.cmuxterm.app.debug.future-one"
+        futureOne.bundleId = "app.w3dev.cmux.debug.future-one"
         var other = instance(
             deviceId: "mac-a",
             tag: "other",
             online: true,
             lastSeenAt: 9_000
         )
-        other.bundleId = "com.cmuxterm.app.debug.other"
+        other.bundleId = "app.w3dev.cmux.debug.other"
         var map = PresenceMap()
         map.apply(snapshot([futureOne, other]))
 

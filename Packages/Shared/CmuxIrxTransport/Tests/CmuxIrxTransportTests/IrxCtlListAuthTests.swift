@@ -72,7 +72,7 @@ struct IrxCtlListAuthWireTests {
                 "bindings": [
                   {
                     "bindingId": "b-1",
-                    "clientNamespace": "com.cmuxterm.app",
+                    "clientNamespace": "app.w3dev.cmux",
                     "deviceId": "d-1",
                     "endpointId": "aabb",
                     "homeRelayUrl": "https://usw1.relay.cmux.dev/",
@@ -120,7 +120,7 @@ struct IrxCtlListAuthWireTests {
                 "bindings": [
                   {
                     "bindingId": "b-1",
-                    "clientNamespace": "com.cmuxterm.app",
+                    "clientNamespace": "app.w3dev.cmux",
                     "endpointId": "ccdd"
                   }
                 ]
@@ -152,7 +152,7 @@ struct IrxCtlListAuthWireTests {
                 "grantVerificationKeys": [{"alg":"EdDSA","keyId":"k1","publicKey":"pk1"}],
                 "bindings": [{
                   "bindingId": "b-1",
-                  "clientNamespace": "com.cmuxterm.app",
+                  "clientNamespace": "app.w3dev.cmux",
                   "deviceId": "d-1",
                   "endpointId": "ccdd",
                   "homeRelayUrl": "https://usw1.relay.cmux.dev/"
@@ -166,7 +166,7 @@ struct IrxCtlListAuthWireTests {
             from: fact, receivedAt: receivedAt)
         #expect(payload.bindings.count == 1)
         #expect(payload.bindings[0].bindingID == "b-1")
-        #expect(payload.bindings[0].clientNamespace == "com.cmuxterm.app")
+        #expect(payload.bindings[0].clientNamespace == "app.w3dev.cmux")
         #expect(payload.bindings[0].homeRelayURL == "https://usw1.relay.cmux.dev/")
         #expect(payload.grantVerificationKeys.count == 1)
         #expect(payload.relayFleet == ["https://usw1.relay.cmux.dev/"])

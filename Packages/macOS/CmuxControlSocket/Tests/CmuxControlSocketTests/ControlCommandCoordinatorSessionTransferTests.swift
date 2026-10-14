@@ -18,7 +18,7 @@ struct ControlCommandCoordinatorSessionTransferTests {
     @Test func importFromChannelForwardsSourceAndReportsWindows() throws {
         let context = FakeSessionTransferControlCommandContext()
         context.importResolution = .restored(
-            sourcePath: "/support/cmux/session-com.cmuxterm.app.nightly.json",
+            sourcePath: "/support/cmux/session-app.w3dev.cmux.nightly.json",
             windowCount: 2,
             heldBackResumeCount: 0,
             droppedRemoteWorkspaceCount: 0
@@ -32,7 +32,7 @@ struct ControlCommandCoordinatorSessionTransferTests {
         }
         #expect(context.importSources == [.channel("nightly")])
         #expect(payload["restored"] == .bool(true))
-        #expect(payload["source_path"] == .string("/support/cmux/session-com.cmuxterm.app.nightly.json"))
+        #expect(payload["source_path"] == .string("/support/cmux/session-app.w3dev.cmux.nightly.json"))
         #expect(payload["window_count"] == .int(2))
         #expect(payload["trusted"] == .bool(true))
         #expect(payload["held_back_resume_count"] == .int(0))

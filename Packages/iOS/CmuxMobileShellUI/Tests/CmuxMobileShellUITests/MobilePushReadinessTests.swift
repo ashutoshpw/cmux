@@ -20,7 +20,7 @@ import Testing
                 backendState: .awaitingDeviceToken
             ),
             mac: nil,
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.awaitingDeviceToken))
@@ -56,7 +56,7 @@ import Testing
                 backendState: .registrationRequired
             ),
             mac: nil,
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.backendRegistrationRequired))
@@ -70,10 +70,10 @@ import Testing
             mac: .init(
                 forwardingEnabled: true,
                 mode: .always,
-                apiOrigin: "https://cmux.com",
+                apiOrigin: "https://cmux.w3dev.app",
                 accountVerified: true
             ),
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.systemPermissionDenied))
@@ -91,7 +91,7 @@ import Testing
             authorization: authorization,
             registration: .disabled,
             mac: nil,
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(
@@ -109,7 +109,7 @@ import Testing
             authorization: .notDetermined,
             registration: .disabled,
             mac: nil,
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.phoneOptInDisabled))
@@ -121,7 +121,7 @@ import Testing
             authorization: .authorized,
             registration: registered,
             mac: nil,
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.macStatusUnavailable))
@@ -137,7 +137,7 @@ import Testing
                 backendState: .deviceTokenRegistrationFailed
             ),
             mac: nil,
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.deviceTokenRegistrationFailed))
@@ -153,7 +153,7 @@ import Testing
                 backendState: .failed(.deviceLimitReached(limit: 200))
             ),
             mac: nil,
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.deviceLimitReached(limit: 200)))
@@ -173,10 +173,10 @@ import Testing
             mac: .init(
                 forwardingEnabled: true,
                 mode: .always,
-                apiOrigin: "https://cmux.com",
+                apiOrigin: "https://cmux.w3dev.app",
                 accountVerified: true
             ),
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .limited(mode: .always, authorization: authorization))
@@ -206,11 +206,11 @@ import Testing
             mac: .init(
                 forwardingEnabled: true,
                 mode: .always,
-                apiOrigin: "https://cmux.com",
+                apiOrigin: "https://cmux.w3dev.app",
                 accountVerified: true
             ),
             systemSettings: settings,
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(
@@ -239,11 +239,11 @@ import Testing
             mac: .init(
                 forwardingEnabled: true,
                 mode: .always,
-                apiOrigin: "https://cmux.com",
+                apiOrigin: "https://cmux.w3dev.app",
                 accountVerified: true
             ),
             systemSettings: settings,
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(
@@ -271,11 +271,11 @@ import Testing
             mac: .init(
                 forwardingEnabled: true,
                 mode: .always,
-                apiOrigin: "https://cmux.com",
+                apiOrigin: "https://cmux.w3dev.app",
                 accountVerified: true
             ),
             systemSettings: settings,
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .ready(mode: .always))
@@ -297,10 +297,10 @@ import Testing
                 mode: .always,
                 admission: .allowed,
                 queuePersistence: queuePersistence,
-                apiOrigin: "https://cmux.com",
+                apiOrigin: "https://cmux.w3dev.app",
                 accountVerified: true
             ),
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(
@@ -321,10 +321,10 @@ import Testing
                 mode: .always,
                 admission: .allowed,
                 queuePersistence: .unknown,
-                apiOrigin: "https://cmux.com",
+                apiOrigin: "https://cmux.w3dev.app",
                 accountVerified: true
             ),
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(
@@ -343,10 +343,10 @@ import Testing
                 forwardingEnabled: true,
                 mode: .always,
                 admission: .unknown,
-                apiOrigin: "https://cmux.com",
+                apiOrigin: "https://cmux.w3dev.app",
                 accountVerified: true
             ),
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.macAdmissionUnavailable))
@@ -359,7 +359,7 @@ import Testing
             registration: registered,
             mac: nil,
             macAccountMismatch: true,
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.macAccountMismatch))
@@ -373,10 +373,10 @@ import Testing
             mac: .init(
                 forwardingEnabled: false,
                 mode: .onlyWhenAway,
-                apiOrigin: "https://cmux.com",
+                apiOrigin: "https://cmux.w3dev.app",
                 accountVerified: true
             ),
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.macForwardingDisabled))
@@ -393,7 +393,7 @@ import Testing
                 apiOrigin: "http://localhost:4381",
                 accountVerified: true
             ),
-            phoneAPIOrigin: "https://cmux-staging.vercel.app"
+            phoneAPIOrigin: "https://staging.cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.apiOriginMismatch))
@@ -432,10 +432,10 @@ import Testing
             mac: .init(
                 forwardingEnabled: true,
                 mode: .onlyWhenAway,
-                apiOrigin: "https://cmux.com/",
+                apiOrigin: "https://cmux.w3dev.app/",
                 accountVerified: true
             ),
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .ready(mode: .onlyWhenAway))
@@ -449,10 +449,10 @@ import Testing
                 forwardingEnabled: true,
                 mode: .onlyWhenAway,
                 admission: .suppressedMacActive,
-                apiOrigin: "https://cmux.com",
+                apiOrigin: "https://cmux.w3dev.app",
                 accountVerified: true
             ),
-            phoneAPIOrigin: "https://cmux.com"
+            phoneAPIOrigin: "https://cmux.w3dev.app"
         )
 
         #expect(readiness == .blocked(.macCurrentlyActive))

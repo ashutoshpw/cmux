@@ -36,9 +36,9 @@ export function recentlyModifiedUrls(
 
 export function indexNowPayload(urls: readonly string[]) {
   return {
-    host: "cmux.com",
+    host: "cmux.w3dev.app",
     key: indexNowKey,
-    keyLocation: `https://cmux.com/${indexNowKey}.txt`,
+    keyLocation: `https://cmux.w3dev.app/${indexNowKey}.txt`,
     urlList: [...urls],
   };
 }

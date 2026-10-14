@@ -2,7 +2,7 @@ internal import CMUXMobileCore
 import Foundation
 import OSLog
 
-private let independentEventLog = Logger(subsystem: "dev.cmux.ios", category: "independent-events")
+private let independentEventLog = Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "independent-events")
 
 extension MobileCoreRPCSession {
     /// Negotiates the optional event lane at most once for a subscription ID.

@@ -1,5 +1,5 @@
 // Live smoke for Cloud VM publications against the Freestyle account that
-// owns the generated zone (cmux.sh). Run from web/ with the account's key in
+// owns the generated zone (vm.cmux.w3dev.app). Run from web/ with the account's key in
 // the environment; the key is never printed:
 //
 //   FREESTYLE_API_KEY=... bun --env-file=/dev/null run scripts/vm-publication-smoke.ts
@@ -32,10 +32,10 @@ const run = <A>(effect: Effect.Effect<A, unknown>) => Effect.runPromise(effect a
 
 // ---------------- phase 1: read-only ----------------
 const domains = await client.domains.list();
-log("domains.list", { count: domains.length, hasCmuxSh: domains.some((d) => d.domain === "cmux.sh"), sample: domains.slice(0, 5).map((d) => d.domain) });
+log("domains.list", { count: domains.length, hasCmuxSh: domains.some((d) => d.domain === "vm.cmux.w3dev.app"), sample: domains.slice(0, 5).map((d) => d.domain) });
 
 const certificates = await client.domains.certificates.list();
-const wildcard = certificates.find((c) => c.domain === "cmux.sh" && c.wildcard);
+const wildcard = certificates.find((c) => c.domain === "vm.cmux.w3dev.app" && c.wildcard);
 log("certificates.list", { count: certificates.length, cmuxShWildcard: wildcard ?? null });
 
 const page1 = await client.tls.rules.list({ limit: 2, offset: 0 });
@@ -56,8 +56,8 @@ log("tls.forwardAuth.list", {
 const vms = await client.vms.list();
 log("vms.list", { count: vms.vms?.length ?? (vms as unknown as unknown[]).length ?? null });
 
-log("provider.getWildcardCertificateStatus(cmux.sh)", await run(provider.getWildcardCertificateStatus("cmux.sh")));
-log("provider.getCertificateStatus(generated name)", await run(provider.getCertificateStatus(`${friendlyPublicationLabel()}.cmux.sh`)));
+log("provider.getWildcardCertificateStatus(vm.cmux.w3dev.app)", await run(provider.getWildcardCertificateStatus("vm.cmux.w3dev.app")));
+log("provider.getCertificateStatus(generated name)", await run(provider.getCertificateStatus(`${friendlyPublicationLabel()}.vm.cmux.w3dev.app`)));
 
 if (process.env.SMOKE_MUTATE !== "1") {
   log("done", { mutations: "skipped (SMOKE_MUTATE!=1)" });
@@ -84,7 +84,7 @@ try {
   log("provider.completeDomainVerification (proof missing)", await run(provider.completeDomainVerification(verification.id)));
 
   // (b) Forward-auth singleton create/adopt/delete through the provider.
-  const smokeAuthUrl = `https://cmux.com/api/freestyle/forward-auth-smoke-${rand}`;
+  const smokeAuthUrl = `https://cmux.w3dev.app/api/freestyle/forward-auth-smoke-${rand}`;
   const ensured = await run(provider.ensureSharedForwardAuth({
     existingForwardAuthId: null,
     url: smokeAuthUrl,
@@ -121,7 +121,7 @@ try {
   );
   log("vm listener", { stdout: started.stdout?.trim().slice(0, 200), stderr: started.stderr?.trim().slice(0, 200) });
 
-  const hostname = `cmux-smoke-${friendlyPublicationLabel()}.cmux.sh`;
+  const hostname = `cmux-smoke-${friendlyPublicationLabel()}.vm.cmux.w3dev.app`;
   const reconciled = await run(provider.reconcileTlsRule(null, { hostname, providerVmId: vmId, port: 3000 }));
   cleanup.push(async () => {
     const swept = await run(provider.deletePublicationTlsRules([{

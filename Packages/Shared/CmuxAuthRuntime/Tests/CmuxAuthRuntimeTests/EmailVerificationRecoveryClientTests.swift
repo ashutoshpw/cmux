@@ -5,9 +5,9 @@ import Testing
 @Suite struct EmailVerificationRecoveryClientTests {
     @Test func postsNormalizedEmailToRecoveryEndpoint() async throws {
         let client = EmailVerificationRecoveryClient(
-            apiBaseURL: "https://cmux.com/",
+            apiBaseURL: "https://cmux.w3dev.app/",
             load: { request in
-                #expect(request.url?.absoluteString == "https://cmux.com/api/auth/email-verification")
+                #expect(request.url?.absoluteString == "https://cmux.w3dev.app/api/auth/email-verification")
                 #expect(request.httpMethod == "POST")
                 #expect(request.value(forHTTPHeaderField: "Content-Type") == "application/json")
                 let body = try #require(request.httpBody)
@@ -38,7 +38,7 @@ import Testing
             (503, EmailVerificationRecoveryRequestError.unavailable),
         ] {
             let client = EmailVerificationRecoveryClient(
-                apiBaseURL: "https://cmux.com",
+                apiBaseURL: "https://cmux.w3dev.app",
                 load: { request in
                     (
                         Data(),
@@ -60,9 +60,9 @@ import Testing
 
     @Test func postsBillingRecoveryToTheDedicatedEndpoint() async throws {
         let client = EmailVerificationRecoveryClient(
-            apiBaseURL: "https://cmux.com",
+            apiBaseURL: "https://cmux.w3dev.app",
             load: { request in
-                #expect(request.url?.absoluteString == "https://cmux.com/api/billing/recover")
+                #expect(request.url?.absoluteString == "https://cmux.w3dev.app/api/billing/recover")
                 #expect(request.httpMethod == "POST")
                 let body = try #require(request.httpBody)
                 let object = try #require(

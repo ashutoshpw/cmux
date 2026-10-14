@@ -1280,13 +1280,13 @@ final class MultiWindowNotificationsUITests: XCTestCase {
 
     private func expectedSocketCandidates(includeGlobalFallback: Bool) -> [String] {
         var candidates = [socketPath]
-        let taggedDebugSocket = "/tmp/cmux-debug-\(launchTag).sock"
+        let taggedDebugSocket = "/tmp/cmux-w3dev-debug-\(launchTag).sock"
         if !taggedDebugSocket.isEmpty {
             candidates.append(taggedDebugSocket)
         }
         if includeGlobalFallback {
             candidates.append(contentsOf: discoverTmpSocketCandidates(limit: 12))
-            candidates.append("/tmp/cmux-debug.sock")
+            candidates.append("/tmp/cmux-w3dev-debug.sock")
             candidates.append(stableSocketPath())
             candidates.append("/tmp/cmux.sock")
         }

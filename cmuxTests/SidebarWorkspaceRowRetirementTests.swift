@@ -9,7 +9,7 @@ import Testing
 struct SidebarWorkspaceRowRetirementTests {
     @Test
     func tableRetirementInvalidatesDescriptionLinkAccessibility() async throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let model = SidebarWorkspaceRowSuspensionTests.makeModel(
             customDescription: "[cmux](\(url.absoluteString))"
         )

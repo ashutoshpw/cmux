@@ -19,7 +19,7 @@ public final class CloudSystemVPNPreferences: CloudSystemVPNManaging {
     private var manager: NETunnelProviderManager?
     private var observation: Task<Void, Never>?
     private var cancelActiveOperation: (() -> Void)?
-    private let log = Logger(subsystem: "dev.cmux.ios", category: "cloud-system-vpn")
+    private let log = Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "cloud-system-vpn")
 
     /// The provider configuration's schema; the extension refuses others.
     public static let schemaVersion = 1

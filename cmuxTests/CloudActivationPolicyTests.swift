@@ -146,13 +146,13 @@ struct CloudActivationPolicyTests {
                 home: home,
                 interfaceName: "cmux-t",
                 purpose: .browser,
-                bundleIdentifier: "com.cmuxterm.app.tests"
+                bundleIdentifier: "app.w3dev.cmux.tests"
             )
             terminal = VMTunnelManager(
                 home: home,
                 interfaceName: "cmux-t",
                 purpose: .terminal,
-                bundleIdentifier: "com.cmuxterm.app.tests"
+                bundleIdentifier: "app.w3dev.cmux.tests"
             )
             policy = CloudActivationPolicy.live(
                 defaults: defaults,

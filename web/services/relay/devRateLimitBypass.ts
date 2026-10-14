@@ -1,7 +1,7 @@
 import { DEVELOPMENT_STACK_PROJECT_ID } from "../auth/stackProject";
 
-const IOS_DEVELOPMENT_NAMESPACE = /^dev\.cmux\.ios\.[A-Za-z0-9._-]+$/;
-const MAC_DEVELOPMENT_NAMESPACE = /^mac:com\.cmuxterm\.app\.debug\.[A-Za-z0-9._-]+$/;
+const IOS_DEVELOPMENT_NAMESPACE = /^app\.w3dev\.cmux\.ios\.debug\.[A-Za-z0-9._-]+$/;
+const MAC_DEVELOPMENT_NAMESPACE = /^mac:app\.w3dev\.cmux\.debug\.[A-Za-z0-9._-]+$/;
 const STACK_TEAM_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/;
 
 export { DEVELOPMENT_STACK_PROJECT_ID };
@@ -10,6 +10,8 @@ export type DevRelayRateLimitBypassEnv = {
   readonly CMUX_IROH_DEV_RATE_LIMIT_BYPASS_ENABLED?: string;
   readonly CMUX_IROH_DEV_RATE_LIMIT_BYPASS_TEAM_IDS?: string;
   readonly NEXT_PUBLIC_STACK_PROJECT_ID?: string;
+  readonly CMUX_APP_ORIGIN?: string;
+  readonly VERCEL_ENV?: string;
 };
 
 /**
@@ -45,7 +47,7 @@ export function isAuthorizedDevRelayRateLimitBypass(input: {
 }): boolean {
   const env = input.env ?? process.env;
   if (env.CMUX_IROH_DEV_RATE_LIMIT_BYPASS_ENABLED !== "1") return false;
-  if (env.NEXT_PUBLIC_STACK_PROJECT_ID !== DEVELOPMENT_STACK_PROJECT_ID) return false;
+  if (env.VERCEL_ENV === "production" || env.CMUX_APP_ORIGIN !== DEVELOPMENT_STACK_PROJECT_ID) return false;
   if (!isDevelopmentRelayClientNamespace(input.clientNamespace)) return false;
   const allowedTeamIds = parseDevRelayRateLimitBypassTeamIds(
     env.CMUX_IROH_DEV_RATE_LIMIT_BYPASS_TEAM_IDS,

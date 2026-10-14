@@ -1,3 +1,5 @@
+import { isUpstreamServiceHost, trustedApplicationOrigin } from "../../services/deployment/origin";
+import { deployment } from "../../services/deployment/config";
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import {
@@ -43,7 +45,7 @@ export const GO_CHECKOUT_URL = withExternalBrowserIntent(GO_CHECKOUT_PATH);
 export const MAX_CHECKOUT_URL = withExternalBrowserIntent(MAX_CHECKOUT_PATH);
 export const TEAM_CHECKOUT_URL = withExternalBrowserIntent(TEAM_CHECKOUT_PATH);
 
-const DEFAULT_APP_PRICING_CHECKOUT_URL = "https://cmux.com/api/billing/checkout";
+const DEFAULT_APP_PRICING_CHECKOUT_URL = `${deployment.productionOrigin}/api/billing/checkout`;
 const APP_PRICING_RELAY_TTL_SECONDS = 5 * 60;
 const APP_PRICING_RELAY_CLOCK_SKEW_SECONDS = 30;
 
@@ -265,7 +267,7 @@ function firstSearchParam(value: SearchParamValue): string | null {
 function appPricingCheckoutEntryURL(requestOrigin: string | null): string {
   if (requestOrigin) {
     try {
-      return new URL(CHECKOUT_PATH, requestOrigin).toString();
+      return new URL(CHECKOUT_PATH, trustedApplicationOrigin(requestOrigin)).toString();
     } catch {
       return DEFAULT_APP_PRICING_CHECKOUT_URL;
     }
@@ -278,7 +280,7 @@ function configuredAppPricingCheckoutURL(): URL | null {
   if (!configured) return null;
   try {
     const target = new URL(configured);
-    if (target.username || target.password || !target.hostname) return null;
+    if (target.username || target.password || !target.hostname || isUpstreamServiceHost(target.hostname)) return null;
     if (target.protocol === "https:") return target;
     if (
       target.protocol === "http:" &&

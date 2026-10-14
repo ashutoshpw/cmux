@@ -85,7 +85,7 @@ function domain(
   return {
     id: `domain-${kind}`,
     ownerUserId: "owner-1",
-    hostname: kind === "generated" ? "generated123.cmux.sh" : "preview.example.com",
+    hostname: kind === "generated" ? "generated123.vm.cmux.w3dev.app" : "preview.example.com",
     kind,
     provider: "freestyle",
     providerVerificationId: kind === "custom" ? "verification-1" : null,
@@ -107,7 +107,7 @@ function publication(
     ownerUserId: "owner-1",
     vmId: "db-vm-1",
     domainId: "domain-generated",
-    hostname: "generated123.cmux.sh",
+    hostname: "generated123.vm.cmux.w3dev.app",
     hostnameClaimedAt: NOW,
     port: 3_000,
     accessMode,
@@ -337,13 +337,13 @@ describe("Cloud VM publication workflows", () => {
     await attempt({});
     await attempt({ generatedDomain: "Preview.Example.Org." });
     expect(reserved).toHaveLength(2);
-    expect(reserved[0]).toBe("hello--lawrence--3000.cmux.sh");
+    expect(reserved[0]).toBe("hello--lawrence--3000.vm.cmux.w3dev.app");
     expect(reserved[1]).toBe("hello--lawrence--3000.preview.example.org");
 
     for (const hostname of [
-      "cmux.sh",
-      "taken.cmux.sh",
-      "deep.taken.cmux.sh",
+      "vm.cmux.w3dev.app",
+      "taken.vm.cmux.w3dev.app",
+      "deep.taken.vm.cmux.w3dev.app",
       "free.style.dev",
     ]) {
       const result = await attempt({ hostname });
@@ -357,8 +357,8 @@ describe("Cloud VM publication workflows", () => {
     expect(reserved).toHaveLength(2);
 
     // A customer zone that merely contains the generated zone's labels is theirs.
-    await attempt({ hostname: "cmux.sh.example.com" });
-    expect(reserved).toEqual([reserved[0], reserved[1], "cmux.sh.example.com"]);
+    await attempt({ hostname: "vm.cmux.w3dev.app.example.com" });
+    expect(reserved).toEqual([reserved[0], reserved[1], "vm.cmux.w3dev.app.example.com"]);
 
     const misconfigured = await attempt({ generatedDomain: "not a zone" });
     expect(misconfigured._tag === "Left" ? misconfigured.left : null).toMatchObject({
@@ -1474,7 +1474,7 @@ describe("Cloud VM publication workflows", () => {
 
     const reserved = await Effect.runPromise(Effect.either(verifyCustomDomain({
       principal: { userId: "owner-1", teamIds: [] },
-      hostname: "taken.cmux.sh",
+      hostname: "taken.vm.cmux.w3dev.app",
       now: NOW,
     }).pipe(
       Effect.provideService(CloudVmPublicationRepository, repository),
@@ -2183,8 +2183,8 @@ describe("Cloud VM publication REST adapters", () => {
   test("keeps list and mutation response envelopes stable", async () => {
     const dto = {
       id: "10000000-0000-4000-8000-000000000001",
-      hostname: "generated123.cmux.sh",
-      url: "https://generated123.cmux.sh",
+      hostname: "generated123.vm.cmux.w3dev.app",
+      url: "https://generated123.vm.cmux.w3dev.app",
       domainKind: "generated" as const,
       vmId: "vm-provider-1",
       port: 3_000,
@@ -2218,7 +2218,7 @@ describe("Cloud VM publication REST adapters", () => {
   });
 
   test("completes bare generated labels and leaves ids and hostnames alone", () => {
-    expect(publicationReference("prickly-lavender-minnow", {})).toBe("prickly-lavender-minnow.cmux.sh");
+    expect(publicationReference("prickly-lavender-minnow", {})).toBe("prickly-lavender-minnow.vm.cmux.w3dev.app");
     expect(publicationReference(" app.example.com ", {})).toBe("app.example.com");
     expect(publicationReference("00000000-0000-4000-8000-000000000001", {}))
       .toBe("00000000-0000-4000-8000-000000000001");
@@ -2266,10 +2266,10 @@ describe("Cloud VM publication REST adapters", () => {
     expect(await response.json()).toEqual({ domains: [dto] });
   });
 
-  test("mints generated names under cmux.sh unless the deployment overrides the zone", () => {
-    expect(publicationGeneratedDomain({})).toBe("cmux.sh");
+  test("mints generated names under vm.cmux.w3dev.app unless the deployment overrides the zone", () => {
+    expect(publicationGeneratedDomain({})).toBe("vm.cmux.w3dev.app");
     expect(publicationGeneratedDomain({ CMUX_VM_PUBLICATION_GENERATED_DOMAIN: "   " }))
-      .toBe("cmux.sh");
+      .toBe("vm.cmux.w3dev.app");
     expect(publicationGeneratedDomain({
       CMUX_VM_PUBLICATION_GENERATED_DOMAIN: " preview.cmux.dev ",
     })).toBe("preview.cmux.dev");

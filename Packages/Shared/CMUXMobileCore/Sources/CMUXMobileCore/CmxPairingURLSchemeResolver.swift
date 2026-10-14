@@ -54,8 +54,8 @@ public struct CmxPairingURLSchemeResolver: Sendable {
         if macInstanceTag == nil || macInstanceTag?.isEmpty == true {
             return CmxPairingURLScheme(
                 iOSBundleIdentifier: isDevelopmentBuild
-                    ? "dev.cmux.ios"
-                    : "com.cmux.app"
+                    ? "app.w3dev.cmux.ios.debug"
+                    : "app.w3dev.cmux.ios"
             )
         }
         guard let namespace = MobileIOSAppNamespace(

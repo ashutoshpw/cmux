@@ -4,7 +4,7 @@ import CmuxMobileShellModel
 import os
 
 nonisolated private let secondaryPromotionLog = Logger(
-    subsystem: "com.cmuxterm.app",
+    subsystem: "app.w3dev.cmux",
     category: "MobileSecondaryPromotion"
 )
 

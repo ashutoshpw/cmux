@@ -1,3 +1,4 @@
+import { forkDeployment } from "../deployment/config";
 import { accountAccessForIdentity } from "./accountAccess";
 
 export type NoAccountFamily = "codex" | "claude" | "opencode";
@@ -22,7 +23,7 @@ export function noAccountConfiguredMessage(
 ): string {
   const { name, hostAdd, vmAdd } = FAMILY[family];
   if (accountAccessForIdentity(identity).kind === "vm" && identity.teamId !== identity.stackUserId) {
-    return `No ${name} account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at coderouter.dev, or add one here with ${vmAdd} (accounts added on a Cloud machine are shared with its team).`;
+    return `No ${name} account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at ${forkDeployment.productionOrigin}/dashboard/coderouter, or add one here with ${vmAdd} (accounts added on a Cloud machine are shared with its team).`;
   }
-  return `No ${name} account is configured for this team or shared with this caller. Add one with ${hostAdd} or at coderouter.dev.`;
+  return `No ${name} account is configured for this team or shared with this caller. Add one with ${hostAdd} or at ${forkDeployment.productionOrigin}/dashboard/coderouter.`;
 }

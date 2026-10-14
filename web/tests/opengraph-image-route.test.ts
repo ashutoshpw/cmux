@@ -21,7 +21,7 @@ import middleware from "../proxy";
 import { fontSupportsCodePoint } from "./font-cmap";
 
 function renderLocaleOpenGraphImage(locale: string): Promise<Response> {
-  return GET(new Request(`https://cmux.com/${locale}/opengraph-image`), {
+  return GET(new Request(`https://cmux.w3dev.app/${locale}/opengraph-image`), {
     params: Promise.resolve({ locale }),
   });
 }
@@ -46,7 +46,7 @@ describe("Open Graph image discovery", () => {
 
   test("rejects unsupported locale image routes", async () => {
     const response = await GET(
-      new Request("https://cmux.com/xx/opengraph-image"),
+      new Request("https://cmux.w3dev.app/xx/opengraph-image"),
       { params: Promise.resolve({ locale: "xx" }) },
     );
 
@@ -60,7 +60,7 @@ describe("Open Graph image discovery", () => {
       "/browser-opengraph-image",
       "/browser-opengraph-image/",
     ]) {
-      const response = middleware(new NextRequest(`https://cmux.com${path}`));
+      const response = middleware(new NextRequest(`https://cmux.w3dev.app${path}`));
 
       expect(response.headers.get("x-middleware-rewrite")).toBeNull();
       expect(response.headers.get("location")).toBeNull();
@@ -86,7 +86,7 @@ describe("Open Graph image discovery", () => {
     const response = await getBrowserImage();
     const body = new Uint8Array(await response.arrayBuffer());
 
-    expect(advertisedUrl).toBe("https://cmux.com/browser-opengraph-image");
+    expect(advertisedUrl).toBe("https://cmux.w3dev.app/browser-opengraph-image");
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toBe("image/png");
     expect([...body.slice(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
@@ -212,12 +212,12 @@ describe("Open Graph image discovery", () => {
       authorImage: "/avatars/lawrencecchen.jpg",
     });
 
-    expect(article.image).toBe("https://cmux.com/ja/opengraph-image");
+    expect(article.image).toBe("https://cmux.w3dev.app/ja/opengraph-image");
     expect(article.author).toEqual({
       "@type": "Person",
       name: "Lawrence Chen",
       url: "https://x.com/lawrencecchen",
-      image: "https://cmux.com/avatars/lawrencecchen.jpg",
+      image: "https://cmux.w3dev.app/avatars/lawrencecchen.jpg",
     });
   });
 });

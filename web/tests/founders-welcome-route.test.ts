@@ -208,17 +208,14 @@ describe("founders welcome route", () => {
     expect(resendSend).toHaveBeenCalledTimes(1);
     expect(sentEmails[0].payload.subject).toBe("Welcome to cmux Pro 🎉");
     expect(sentEmails[0].payload.from).toBe(
-      "Austin Wang <austin@manaflow.ai>",
+      "cmux W3Dev <support@w3dev.app>",
     );
     expect(sentEmails[0].payload.to).toEqual(["customer@example.com"]);
-    expect(sentEmails[0].payload.cc).toEqual([
-      "austin@manaflow.ai",
-      "lawrence@manaflow.ai",
-    ]);
-    expect(sentEmails[0].payload.replyTo).toBe("austin@manaflow.ai");
+    expect(sentEmails[0].payload.cc).toEqual([]);
+    expect(sentEmails[0].payload.replyTo).toBe("support@w3dev.app");
     expect(sentEmails[0].payload.text).toContain("Thanks for joining cmux Pro!");
     expect(sentEmails[0].payload.text).toContain(
-      "Sign up for TestFlight: https://cmux.com/dashboard/testflight",
+      "Sign up for TestFlight: https://cmux.w3dev.app/dashboard/testflight",
     );
     expect(sentEmails[0].payload.headers["X-Entity-Ref-ID"]).toBe(
       "founders-welcome/cs_test_pro",

@@ -23,7 +23,7 @@ struct MobileSSHTmuxServerRestartTests {
         let pipe = MobileSSHTmuxSeedOrderTests.Pipe()
         let control = MobileSSHTmuxControlClient(
             sessionName: "work",
-            groupedSessionName: "work-cmux-ios-test",
+            groupedSessionName: "work-cmux-w3dev-ios-test",
             channel: pipe
         )
         control.startPump()

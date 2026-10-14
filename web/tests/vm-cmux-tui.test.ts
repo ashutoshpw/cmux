@@ -24,10 +24,10 @@ import {
 
 const SHA = "c7a3155341a85a2f10a873d69a041bdf1855ec059a802e58e0779a7a6bdec607";
 const COMMIT = "5a4780614cecd8e8ef040a24478f928ef31cc4ae";
-const MANIFEST = `https://files.cmux.com/cmux-tui/${COMMIT}/manifest.json`;
-const URL = `https://files.cmux.com/cmux-tui/${COMMIT}/cmux-tui-x86_64-unknown-linux-musl`;
+const MANIFEST = `https://files.cmux.w3dev.app/cmux-tui/${COMMIT}/manifest.json`;
+const URL = `https://files.cmux.w3dev.app/cmux-tui/${COMMIT}/cmux-tui-x86_64-unknown-linux-musl`;
 const HOOK_SHA = "9f2e4c1a7b3d5e6f0a1b2c3d4e5f60718293a4b5c6d7e8f9a0b1c2d3e4f5a6b7";
-const HOOK_URL = `https://files.cmux.com/cmux-tui/${COMMIT}/cmux-tui-hook-x86_64-unknown-linux-musl`;
+const HOOK_URL = `https://files.cmux.w3dev.app/cmux-tui/${COMMIT}/cmux-tui-hook-x86_64-unknown-linux-musl`;
 
 function withEnv(values: Record<string, string | undefined>, run: () => void) {
   const previous: Record<string, string | undefined> = {};
@@ -49,7 +49,7 @@ function withEnv(values: Record<string, string | undefined>, run: () => void) {
 describe("cmux-tui daemon source", () => {
   test("follows the rolling latest manifest unless a deployment pins one", () => {
     withEnv({ CMUX_VM_CMUX_TUI_MANIFEST_URL: undefined }, () =>
-      expect(cmuxTuiManifestUrl()).toBe("https://files.cmux.com/cmux-tui/latest/manifest.json"));
+      expect(cmuxTuiManifestUrl()).toBe("https://files.cmux.w3dev.app/cmux-tui/latest/manifest.json"));
     withEnv({ CMUX_VM_CMUX_TUI_MANIFEST_URL: MANIFEST }, () => expect(cmuxTuiManifestUrl()).toBe(MANIFEST));
     withEnv({ CMUX_VM_CMUX_TUI_MANIFEST_URL: "http://files.cmux.com/x/manifest.json" }, () =>
       expect(() => cmuxTuiManifestUrl()).toThrow(/https/));
@@ -71,7 +71,7 @@ describe("cmux-tui daemon source", () => {
   });
 
   test("pins binaries from the manifest commit when the manifest uses latest", () => {
-    const source = parseCmuxTuiManifest("https://files.cmux.com/cmux-tui/latest/manifest.json", {
+    const source = parseCmuxTuiManifest("https://files.cmux.w3dev.app/cmux-tui/latest/manifest.json", {
       commit: COMMIT,
       binaries: {
         "cmux-tui-x86_64-unknown-linux-musl": SHA,
@@ -100,7 +100,7 @@ describe("cmux-tui daemon source", () => {
 
 describe("cmux-tui install and daemon commands", () => {
   test("installs into the daemon's own home, verifies the pin before and after download, and probes the binary", () => {
-    const command = cmuxTuiInstallCommand({ url: URL, sha256: SHA, commit: COMMIT, builtAt: null, hookUrl: "https://files.cmux.com/cmux-tui/test/cmux-tui-hook-x86_64-unknown-linux-musl", hookSha256: "1".repeat(64) });
+    const command = cmuxTuiInstallCommand({ url: URL, sha256: SHA, commit: COMMIT, builtAt: null, hookUrl: "https://files.cmux.w3dev.app/cmux-tui/test/cmux-tui-hook-x86_64-unknown-linux-musl", hookSha256: "1".repeat(64) });
     // One runtime selection, shared with the daemon launch, so install and
     // launch can never disagree about where the binary lives.
     expect(command).toContain(cmuxTuiLayoutSelector());
@@ -159,14 +159,14 @@ describe("cmux-tui install and daemon commands", () => {
   // Regression: `sha256sum -c -s` is BusyBox-only. GNU coreutils (the xfce-vnc desktop
   // image) rejects `-s` ("invalid option -- 's'"), which failed every create with a 502.
   test("the pin check never uses the BusyBox-only sha256sum -s flag", () => {
-    const command = cmuxTuiInstallCommand({ url: URL, sha256: SHA, commit: COMMIT, builtAt: null, hookUrl: "https://files.cmux.com/cmux-tui/test/cmux-tui-hook-x86_64-unknown-linux-musl", hookSha256: "1".repeat(64) });
+    const command = cmuxTuiInstallCommand({ url: URL, sha256: SHA, commit: COMMIT, builtAt: null, hookUrl: "https://files.cmux.w3dev.app/cmux-tui/test/cmux-tui-hook-x86_64-unknown-linux-musl", hookSha256: "1".repeat(64) });
     expect(command).not.toMatch(/sha256sum[^|&;]*\s-s\b/);
     expect(command).not.toContain("--status");
     expect(command).toContain("sha256sum -c >/dev/null 2>&1");
   });
 
   test("the pin check reads the same binary the daemon runs", () => {
-    const command = cmuxTuiPinCheckCommand({ url: URL, sha256: SHA, commit: COMMIT, builtAt: null, hookUrl: "https://files.cmux.com/cmux-tui/test/cmux-tui-hook-x86_64-unknown-linux-musl", hookSha256: "1".repeat(64) });
+    const command = cmuxTuiPinCheckCommand({ url: URL, sha256: SHA, commit: COMMIT, builtAt: null, hookUrl: "https://files.cmux.w3dev.app/cmux-tui/test/cmux-tui-hook-x86_64-unknown-linux-musl", hookSha256: "1".repeat(64) });
     expect(command).toContain(cmuxTuiLayoutSelector());
     expect(command).toContain('test -x "$CMUX_TUI_BIN"');
     expect(command).toContain(`'${SHA}' "$CMUX_TUI_BIN" | sha256sum -c`);

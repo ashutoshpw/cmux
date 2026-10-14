@@ -8,7 +8,7 @@
 # The heavy GhosttyKit + Swift Release compile runs on a leased fleet Mac (the
 # same maclease pool/exclusions reload-cloud-ios uses, m1ultra excluded). The
 # fleet builds an UNSIGNED Release archive for the beta bundle id
-# (dev.cmux.app.beta): no signing material ever lands on the shared Macs (they
+# (app.w3dev.cmux.ios.beta): no signing material ever lands on the shared Macs (they
 # also run GitHub Actions, i.e. arbitrary PR code). The archive is downloaded
 # locally and handed to ios/scripts/upload-testflight.sh --archive-path, which
 # does the local export, re-sign with the Apple Distribution cert (re-adding
@@ -49,14 +49,14 @@ REPO_ROOT="$(cd "$IOS_DIR/.." && pwd)"
 # production-level artifacts. These values are exported for the cloud archive
 # serializer and repeated as xcodebuild settings in the local fallback.
 export CMUX_IOS_AUTH_ENV=production
-export CMUX_API_BASE_URL=https://cmux.com
-export CMUX_IROH_BROKER_BASE_URL=https://cmux.com
-export CMUX_PRESENCE_BASE_URL=https://presence.cmux.dev
+export CMUX_API_BASE_URL=https://cmux.w3dev.app
+export CMUX_IROH_BROKER_BASE_URL=https://cmux.w3dev.app
+export CMUX_PRESENCE_BASE_URL=https://presence.cmux.w3dev.app
 PRODUCTION_RUNTIME_BUILD_ARGS=(
   CMUX_IOS_AUTH_ENV=production
-  CMUX_API_BASE_URL=https://cmux.com
-  CMUX_IROH_BROKER_BASE_URL=https://cmux.com
-  CMUX_PRESENCE_BASE_URL=https://presence.cmux.dev
+  CMUX_API_BASE_URL=https://cmux.w3dev.app
+  CMUX_IROH_BROKER_BASE_URL=https://cmux.w3dev.app
+  CMUX_PRESENCE_BASE_URL=https://presence.cmux.w3dev.app
 )
 
 LANE="beta"
@@ -80,7 +80,7 @@ WAIT_SECONDS="${CLOUD_TESTFLIGHT_WAIT:-1200}"
 # Force a local Release archive on this Mac instead of the fleet (offline cloud,
 # or deliberate). Also the automatic fallback when no hq cloud script is found.
 FORCE_LOCAL="${CLOUD_TESTFLIGHT_FORCE_LOCAL:-0}"
-BETA_BUNDLE_ID="${IOS_BETA_BUNDLE_ID:-dev.cmux.app.beta}"
+BETA_BUNDLE_ID="${IOS_BETA_BUNDLE_ID:-app.w3dev.cmux.ios.beta}"
 
 err() { printf 'cloud-testflight: %s\n' "$*" >&2; }
 die() { err "$*"; exit 1; }
@@ -96,8 +96,8 @@ Build an UNSIGNED Release archive for cmux iOS on a leased fleet Mac, download
 it, then export/re-sign/verify/upload via upload-testflight.sh.
 
   --lane <beta|appstore>
-                     Distribution lane. beta (default) = dev.cmux.app.beta;
-                     appstore = com.cmux.app (public App Store record). Both
+                     Distribution lane. beta (default) = app.w3dev.cmux.ios.beta;
+                     appstore = app.w3dev.cmux.ios (public App Store record). Both
                      archive an unsigned Release build with display name "cmux"
                      on the fleet; upload-testflight.sh picks the matching
                      provisioning profile and uploads to that record's
@@ -155,11 +155,11 @@ done
 LANE_DISPLAY_NAME=""
 case "$LANE" in
   beta)
-    : "${BETA_BUNDLE_ID:=dev.cmux.app.beta}"
+    : "${BETA_BUNDLE_ID:=app.w3dev.cmux.ios.beta}"
     export CMUX_CRASH_REPORTING_ENABLED="YES"
     ;;
   appstore|prod)
-    BETA_BUNDLE_ID="com.cmux.app"
+    BETA_BUNDLE_ID="app.w3dev.cmux.ios"
     LANE_DISPLAY_NAME="cmux"
     [[ "$TAG" == "beta" ]] && TAG="appstore"
     # The App Store lane ships with crash reporting on, matching beta.
@@ -173,6 +173,18 @@ case "$LANE" in
     die "unsupported lane: $LANE (expected beta or appstore)"
     ;;
 esac
+OAUTH_CHANNEL="${BETA_BUNDLE_ID#app.w3dev.cmux.ios}"
+OAUTH_CHANNEL="${OAUTH_CHANNEL//./-}"
+if [[ "$BETA_BUNDLE_ID" != app.w3dev.cmux.ios* ]]; then
+  : "${CMUX_OAUTH_CLIENT_ID:?Register and set the custom OAuth client ID}"
+  : "${CMUX_OAUTH_CALLBACK_SCHEME:?Register and set the custom OAuth callback scheme}"
+fi
+export CMUX_OAUTH_CLIENT_ID="${CMUX_OAUTH_CLIENT_ID:-cmux-w3dev-ios$OAUTH_CHANNEL}"
+export CMUX_OAUTH_CALLBACK_SCHEME="${CMUX_OAUTH_CALLBACK_SCHEME:-cmux-w3dev-ios$OAUTH_CHANNEL}"
+PRODUCTION_RUNTIME_BUILD_ARGS+=(
+  "CMUX_OAUTH_CLIENT_ID=$CMUX_OAUTH_CLIENT_ID"
+  "CMUX_OAUTH_CALLBACK_SCHEME=$CMUX_OAUTH_CALLBACK_SCHEME"
+)
 [[ "$TAG" =~ ^[A-Za-z0-9._-]+$ ]] || die "invalid tag: $TAG"
 # Validate the override eagerly: a malformed value (or a flag swallowed by
 # `--marketing-version --external`) must fail here, not as a silent no-op or
@@ -220,8 +232,8 @@ resolve_appstore_extension_profile() {
   [[ -n "${IOS_APPSTORE_EXTENSION_PROVISIONING_PROFILE_NAME:-}" ]] && return 0
 
   local team_id plistbuddy app_bundle_identifier extension_bundle_identifier
-  team_id="${IOS_APPSTORE_TEAM_ID:-7WLXT3NR37}"
-  app_bundle_identifier="${IOS_APPSTORE_BUNDLE_ID:-${IOS_APPSTORE_BUNDLE_IDENTIFIER:-com.cmux.app}}"
+  team_id="${IOS_APPSTORE_TEAM_ID:?Set IOS_APPSTORE_TEAM_ID to the fork Apple team ID}"
+  app_bundle_identifier="${IOS_APPSTORE_BUNDLE_ID:-${IOS_APPSTORE_BUNDLE_IDENTIFIER:-app.w3dev.cmux.ios}}"
   extension_bundle_identifier="${app_bundle_identifier}.NotificationService"
   export IOS_APPSTORE_BUNDLE_IDENTIFIER="$app_bundle_identifier"
   export IOS_APPSTORE_EXTENSION_BUNDLE_IDENTIFIER="$extension_bundle_identifier"

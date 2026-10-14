@@ -161,6 +161,7 @@ async function callerAccessToken(request: Request, stack: TeamStackApp): Promise
 }
 
 function codeFailure(failure: InvitationCodeFailure): Error {
+  if (failure === "seat_limit") return new TeamApiError("seat_limit", 409);
   if (failure === "email_mismatch") return new TeamApiError("email_mismatch", 409);
   if (failure === "invalid") return new TeamApiError("invitation_invalid", 410);
   return new TeamServiceUnavailableError("Stack invitation code request failed");

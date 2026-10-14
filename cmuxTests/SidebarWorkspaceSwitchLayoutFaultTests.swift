@@ -51,7 +51,7 @@ struct SidebarWorkspaceSwitchLayoutFaultTests {
             // query: once it is readable, every earlier layout fault from the
             // workload is readable too. This avoids sleeping for log flushes.
             let sentinel = "cmux.issue-9612.layout-workload-complete.\(UUID().uuidString)"
-            Logger(subsystem: "com.cmuxterm.tests", category: "layout").notice(
+            Logger(subsystem: "app.w3dev.cmux.tests", category: "layout").notice(
                 "\(sentinel, privacy: .public)"
             )
             let observedSentinel = try await Self.waitForLogMessage(sentinel, since: logStart)
@@ -86,7 +86,7 @@ struct SidebarWorkspaceSwitchLayoutFaultTests {
         let deadline = clock.now.advanced(by: .seconds(5))
         let predicate = NSPredicate(
             format: "subsystem == %@ AND category == %@ AND composedMessage == %@",
-            "com.cmuxterm.tests",
+            "app.w3dev.cmux.tests",
             "layout",
             expected
         )

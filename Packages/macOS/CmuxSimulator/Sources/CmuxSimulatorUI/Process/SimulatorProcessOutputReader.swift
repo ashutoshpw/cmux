@@ -3,7 +3,7 @@ import Foundation
 import os
 
 nonisolated private let outputReaderLogger = Logger(
-    subsystem: "com.cmuxterm.app",
+    subsystem: "app.w3dev.cmux",
     category: "SimulatorProcessOutputReader"
 )
 

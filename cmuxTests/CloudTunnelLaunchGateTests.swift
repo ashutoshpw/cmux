@@ -15,7 +15,7 @@ import Testing
 /// eager controller so an inherited tunnel is adopted or stopped.
 @Suite
 struct CloudTunnelLaunchGateTests {
-    private static let extensionID = "com.cmuxterm.app.tests.tunnel"
+    private static let extensionID = "app.w3dev.cmux.tests.tunnel"
     private static let networkExtension = CloudTunnelBackend.networkExtension(extensionBundleIdentifier: extensionID)
     private static let use = CloudPrivateNetworkUse(machineID: "vm-1", purpose: .attach)
 

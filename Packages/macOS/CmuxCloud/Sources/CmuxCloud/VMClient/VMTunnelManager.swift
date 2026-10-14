@@ -110,7 +110,7 @@ public struct VMTunnelManager: Sendable {
     ///
     /// The bundle identifier is the durable identity because deployment URLs
     /// are not: a tagged DEBUG bundle can point at localhost today and
-    /// `https://cmux.com` tomorrow. Names are limited to 15 characters, the
+    /// `https://cmux.w3dev.app` tomorrow. Names are limited to 15 characters, the
     /// maximum accepted by wg-quick on macOS. The optional environment is used
     /// for the base DEBUG bundle, whose launch tag is otherwise only present in
     /// `CMUX_TAG`.
@@ -176,7 +176,7 @@ public struct VMTunnelManager: Sendable {
     /// remains the production source of tunnel isolation.
     private static func legacyInterfaceName(forAPIBaseURL url: URL) -> String {
         let host = (url.host ?? "").lowercased()
-        if host.isEmpty || host == "cmux.com" || host.hasSuffix(".cmux.com") { return "cmux" }
+        if host.isEmpty || host == "cmux.w3dev.app" || host.hasSuffix(".cmux.w3dev.app") { return "cmux" }
         if host == "localhost" || host == "127.0.0.1" || host == "::1" { return "cmux-local" }
         if host.contains("staging") { return "cmux-staging" }
         return "cmux-dev"
@@ -518,7 +518,7 @@ public struct VMTunnelManager: Sendable {
         if id.contains("nightly") { return "nightly" }
         if id.contains("staging") { return "staging" }
         if id.hasSuffix(".rc") { return "rc" }
-        if id == "com.cmuxterm.app" { return "stable" }
+        if id == "app.w3dev.cmux" { return "stable" }
         return "dev"
     }
 }

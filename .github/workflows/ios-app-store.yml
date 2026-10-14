@@ -34,6 +34,11 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  CMUX_APPLE_TEAM_ID: ${{ vars.CMUX_APPLE_TEAM_ID }}
+  IOS_DEVELOPMENT_TEAM: ${{ vars.CMUX_APPLE_TEAM_ID }}
+  IOS_APPSTORE_TEAM_ID: ${{ vars.CMUX_APPLE_TEAM_ID }}
+
 jobs:
   # Proof of concept for capability-based runner selection. This job needs a
   # macOS host with iOS runtimes and a working simctl; which vendor supplies
@@ -162,13 +167,14 @@ jobs:
           security import "$CERT_PATH" -k "$KEYCHAIN_NAME" -P "$IOS_DISTRIBUTION_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -T /usr/bin/security
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
           security list-keychains -d user -s "$KEYCHAIN_NAME"
+          [[ "$CMUX_APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]] || { echo "Set CMUX_APPLE_TEAM_ID to the fork signing team" >&2; exit 1; }
           IOS_DISTRIBUTION_IDENTITY="$(
             security find-identity -v -p codesigning "$KEYCHAIN_NAME" |
-              sed -n 's/.*"\(Apple Distribution: .* (7WLXT3NR37)\)".*/\1/p' |
+              awk -F'"' -v team="$CMUX_APPLE_TEAM_ID" '/Apple Distribution:/ && index($2, "(" team ")") { print $2; exit }'  |
               head -n 1
           )"
           if [ -z "$IOS_DISTRIBUTION_IDENTITY" ]; then
-            echo "No Apple Distribution identity for team 7WLXT3NR37 was found in the imported certificate" >&2
+            echo "No Apple Distribution identity for team $CMUX_APPLE_TEAM_ID was found in the imported certificate" >&2
             exit 1
           fi
           echo "IOS_DISTRIBUTION_IDENTITY=$IOS_DISTRIBUTION_IDENTITY" >> "$GITHUB_ENV"
@@ -362,7 +368,7 @@ jobs:
           {
             echo "### iOS App Store production"
             echo
-            echo "- lane: \`appstore\` (bundle id \`com.cmux.app\`)"
+            echo "- lane: \`appstore\` (bundle id \`app.w3dev.cmux.ios\`)"
             echo "- signing: manual (CI-imported iOS distribution cert + App Store profile)"
             echo "- build number (CFBundleVersion): \`${FINAL_BUILD_NUMBER}\`"
             echo "- submit for review: \`${INPUT_SUBMIT_FOR_REVIEW}\`"

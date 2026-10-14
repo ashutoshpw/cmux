@@ -10,11 +10,11 @@
 - Distribution uses distinct fork app identities and callback schemes.
 - Hosting uses Vercel. Production deployment uses W3Dev/vercel-deploy with hardcoded team_bhbVYR6BqVYMXKwAp7F1k5ib / prj_3z4VuRVvSvlm5LYNnEuqHa4FKKtn; see vercel-workflow.md.
 - Better Auth Organization and OAuth Provider/PKCE adopted for web, macOS, iOS, and Workers.
-- All delegation and reviews use gpt-6.1-sol per user request.
+- Every delegation and review explicitly requests gpt-6.1-sol per user instruction; actual runtime model metadata is unobservable.
 
 ## Current implementation receipt
 
-The isolated fork-cloud-origin worktree is based on cdbe99596fe13784ec5ea24d2e1c720a8f67f5cb. Its only implementation commit is be30ba2987c, containing the failing team-origin regression and task documents. Production source changes are now in progress. Provider configuration and deployment have not been changed; nothing has been pushed. Better Auth and plugins are pinned to 1.7.7. The original session-save rebase remains untouched.
+The isolated fork-cloud-origin worktree is based on cdbe99596fe13784ec5ea24d2e1c720a8f67f5cb. Commits be30ba2987c and ff768b84c40 contain the failing origin regression and deployment contract. Better Auth and plugins are installed and pinned to 1.7.7; web, native and Worker integration source is implemented with local verification and independent review repairs in progress. Provider configuration and deployment have not been changed. The original session-save rebase remains untouched. See implementation.md for evidence and release gates.
 
 ## Better Auth fit
 
@@ -68,20 +68,20 @@ Use the Better Auth CLI to generate the schema for the selected plugins, then re
 - Native composition roots and callback handlers: fork identity and OAuth login/refresh/revocation.
 - workers/presence and workers/iroh-v2: identity and project/environment scope verification.
 
-## Decisions before restarting
+## Release configuration to record
 
-1. Select Better Auth versus continuing with Stack/Hexclave.
-2. Select initial login methods (recommend email sign-in plus one social provider if desired).
-3. Select native OAuth/OIDC architecture and token/revocation policy.
+1. Better Auth is selected; keep package and plugin versions aligned.
+2. Email code, magic link, password, MFA and passkey source flows are implemented. Configure owned email; social providers are enabled only when their complete credential pairs are configured.
+3. Authorization Code/S256 PKCE, exact native callbacks and live revocation are implemented; verify signed native journeys.
 4. Confirm owned hosting/database/email accounts and fresh-user versus existing-fork-user state.
 5. Decide initial billing/VM credit behavior and organization roles.
 6. Register final fork app identities, callbacks and public OAuth clients.
 
-If Better Auth is selected, revise the main migration plan and tests around these contracts before production edits. Owned Vercel/Cloudflare/Freestyle/storage/signing setup is still required for the corresponding Cloud features; changing auth providers does not provision those services.
+Better Auth is adopted. Owned Vercel/Cloudflare/Freestyle/storage/signing setup is still required for the corresponding Cloud features; changing auth providers does not provision those services.
 
 ## Documentation evidence
 
-Official documentation was fetched on 2026-10-14. The documentation index reports the current stable line as 1.7; no Better Auth dependency has been installed in this repo. Pin an actual compatible package/plugin version before implementation.
+Official documentation was fetched on 2026-10-14. Installed Better Auth and OAuth Provider/Passkey versions are pinned to 1.7.7; actual PostgreSQL behavior is exercised locally.
 
 - [Installation](https://better-auth.com/docs/installation) — hosting, secret, base URL, database and Next.js handler.
 - [Drizzle adapter](https://better-auth.com/docs/adapters/drizzle) — PostgreSQL adapter and schema generation/migration.

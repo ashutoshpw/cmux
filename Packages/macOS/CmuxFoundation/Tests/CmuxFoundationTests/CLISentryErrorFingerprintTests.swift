@@ -8,9 +8,9 @@ import Testing
         #expect(fingerprint.kind(forMessage: "Command timed out") == "command-timed-out")
         #expect(fingerprint.kind(forMessage: "Not connected") == "not-connected")
         #expect(fingerprint.kind(forMessage: "Socket read error") == "socket-read-error")
-        #expect(fingerprint.kind(forMessage: "Socket not found at /tmp/cmux.sock") == "socket-not-found")
+        #expect(fingerprint.kind(forMessage: "Socket not found at /tmp/cmux-w3dev.sock") == "socket-not-found")
         #expect(fingerprint.kind(
-            forMessage: "Failed to connect to socket at /tmp/cmux.sock (Connection refused, errno 61)"
+            forMessage: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Connection refused, errno 61)"
         ) == "socket-connect-failed")
         #expect(fingerprint.kind(
             forMessage: "Failed to write to socket (Broken pipe, errno 32)"
@@ -24,15 +24,15 @@ import Testing
     /// a denied agent-hook loop reports once per window, not once per hook.
     @Test func classifiesSocketConnectPolicyDenialAsThrottled() {
         let kind = fingerprint.kind(
-            forMessage: "Failed to connect to socket at /tmp/cmux.sock (Operation not permitted, errno 1)"
+            forMessage: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Operation not permitted, errno 1)"
         )
         #expect(kind == "socket-connect-denied")
         #expect(kind.map(CLISentryErrorFingerprint.throttledKinds.contains) == true)
         #expect(fingerprint.kind(
-            forMessage: "Failed to connect to socket at /tmp/cmux.sock (Connection refused, errno 61)"
+            forMessage: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Connection refused, errno 61)"
         ) == "socket-connect-failed")
         #expect(fingerprint.kind(
-            forMessage: "Failed to connect to socket at /tmp/cmux.sock (Timed out, errno 10)"
+            forMessage: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Timed out, errno 10)"
         ) == "socket-connect-failed")
     }
 

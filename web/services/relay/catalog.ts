@@ -32,6 +32,9 @@ export type RelayPolicySigningKey = {
 };
 
 export function configuredRelayCatalog(): RelayCatalog {
+  if (MANAGED_IROH_RELAY_CATALOG.relays.length === 0) {
+    throw new RelayConfigurationError({ code: "catalog_not_configured" });
+  }
   return parseRelayCatalog(JSON.stringify(MANAGED_IROH_RELAY_CATALOG));
 }
 

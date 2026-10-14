@@ -15,6 +15,6 @@ export default function robots(): MetadataRoute.Robots {
       },
       { userAgent: "*", allow: "/" },
     ],
-    sitemap: "https://cmux.com/sitemap.xml",
+    sitemap: "https://cmux.w3dev.app/sitemap.xml",
   };
 }

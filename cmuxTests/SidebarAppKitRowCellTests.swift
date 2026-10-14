@@ -661,7 +661,7 @@ struct SidebarAppKitRowCellTests {
     /// the sidebar selection fill, so the URL was unreadable on the active row.
     @Test(arguments: [nil, "#8A2BE2", "#F2C14E"] as [String?])
     func activeRowLinkRastersInTheRowForegroundNotSystemLinkColor(_ selectionHex: String?) throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let defaults = Self.makeDefaults()
         if let selectionHex {
             defaults.set(selectionHex, forKey: "sidebarSelectionColorHex")
@@ -719,7 +719,7 @@ struct SidebarAppKitRowCellTests {
 
     @Test
     func inactiveRowLinkKeepsSystemLinkColorAndUnderline() throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let model = Self.makeModel(isActive: false, customDescription: url.absoluteString)
         let cell = Self.configuredCell(model: model)
         Self.layoutCell(cell, model: model)
@@ -740,7 +740,7 @@ struct SidebarAppKitRowCellTests {
 
     @Test
     func customWorkspaceDescriptionColorOverridesRowStateAndLinkColor() throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let defaults = Self.makeDefaults()
         let key = SettingCatalog().sidebar.workspaceDescriptionColorHex.userDefaultsKey
         defaults.set("#A6E3A1", forKey: key)
@@ -773,7 +773,7 @@ struct SidebarAppKitRowCellTests {
     func inactiveDarkDescriptionRastersSemanticColorsAfterLightConfiguration() throws {
         let lightAppearance = try #require(NSAppearance(named: .aqua))
         let darkAppearance = try #require(NSAppearance(named: .darkAqua))
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let model = Self.makeModel(
             isActive: false,
             customDescription: "Plain **bold** [cmux](\(url.absoluteString))"
@@ -874,7 +874,7 @@ struct SidebarAppKitRowCellTests {
     @Test
     func accessibilityLinkIdentitySurvivesSelectedRowReconfigurationWithoutResizing() throws {
         let workspaceID = UUID()
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let initialModel = Self.makeModel(
             workspaceId: workspaceID,
             isActive: false,
@@ -934,7 +934,7 @@ struct SidebarAppKitRowCellTests {
     func workspaceIdentityChangeAndReuseInvalidateMatchingLinkProxy() throws {
         let firstWorkspaceID = UUID()
         let secondWorkspaceID = UUID()
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let initialModel = Self.makeModel(
             workspaceId: firstWorkspaceID,
             customDescription: url.absoluteString
@@ -985,7 +985,7 @@ struct SidebarAppKitRowCellTests {
 
     @Test
     func rightAlignedAccessibilityLinkFrameMatchesPointerHitRegion() throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .right
         let source = NSAttributedString(
@@ -1027,7 +1027,7 @@ struct SidebarAppKitRowCellTests {
 
     @Test
     func accessibilityLinkFrameResolvesOnDemandBeforeViewLayout() throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let source = NSAttributedString(
             string: "cmux",
             attributes: [.link: url]
@@ -1056,7 +1056,7 @@ struct SidebarAppKitRowCellTests {
 
     @Test
     func attachedRowDefersAccessibilityLinkProxyUntilAccessibilityQuery() throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let source = NSAttributedString(
             string: "cmux",
             attributes: [.link: url]
@@ -1120,7 +1120,7 @@ struct SidebarAppKitRowCellTests {
 
     @Test
     func truncatedLinkIsRemovedFromAccessibilityAndCannotActivate() throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let prefix = "A long visible prefix that pushes the link away "
         let source = NSMutableAttributedString(string: prefix + "cmux")
         source.addAttribute(
@@ -1164,7 +1164,7 @@ struct SidebarAppKitRowCellTests {
 
     @Test
     func multilineLastLineTruncationHidesLinkFromAccessibilityAndPointer() throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let font = NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
         let filler = String(repeating: "a", count: 500)
         let probeStorage = NSTextStorage(string: filler, attributes: [.font: font])
@@ -1419,7 +1419,7 @@ struct SidebarAppKitRowCellTests {
     /// link-color override.
     @Test(arguments: [true, false])
     func metadataMarkdownBlockLinkIsRowOwnedInBothSelectionStates(_ isActive: Bool) throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let model = Self.makeModel(
             isActive: isActive,
             metadataBlocks: [Self.metadataBlock("Docs [cmux](\(url.absoluteString))")]

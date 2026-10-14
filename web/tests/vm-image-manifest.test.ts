@@ -1,5 +1,8 @@
 import { describe, expect, test } from "bun:test";
 import path from "node:path";
+import { VmImageConfigError } from "../services/vms/errors";
+import { resolveVmImage, listVmImageManifestEntries, listVmImageKinds } from "../services/vms/images/resolver";
+import upstreamManifest from "../services/vms/images/upstream-manifest.json";
 import { runChild } from "./helpers/run-child";
 import {
   DEVBOX_SOURCE_SCHEMA,
@@ -47,31 +50,23 @@ const passedEntry = (overrides: Partial<DevboxManifestEntry> = {}): DevboxManife
 });
 
 describe("checked-in image manifest", () => {
-  test("holds its invariants", () => {
-    expect(imageManifestProblems(readImageManifest())).toEqual([]);
+  test("the fork has an explicit unprovisioned catalog with no selectable provider images", () => {
+    const manifest = readImageManifest();
+    expect(manifest.provisioningStatus).toBe("unprovisioned");
+    expect(imageManifestProblems(manifest)).toEqual([]);
+    expect(devboxImageLadderProblems(manifest)).toEqual([]);
+    expect(listVmImageManifestEntries()).toEqual([]);
+    expect(listVmImageKinds("freestyle")).toEqual([]);
+    expect(() => resolveVmImage("freestyle", undefined, { VERCEL_ENV: "production" })).toThrow(VmImageConfigError);
   });
 
-  test("every defaultForKind entry is a validated image", () => {
-    for (const entry of readImageManifest().images) {
-      if (entry.defaultForKind) {
-        expect({ version: entry.version, validationStatus: entry.validationStatus })
-          .toEqual({ version: entry.version, validationStatus: "passed" });
+  test("historical upstream image ids and versions cannot bypass the unprovisioned gate", () => {
+    for (const entry of upstreamManifest.images) {
+      for (const requested of [entry.imageId, entry.version]) {
+        expect(() => resolveVmImage("freestyle", requested, { CMUX_VM_ALLOW_UNMANIFESTED_IMAGES: "1" })).toThrow(VmImageConfigError);
       }
     }
-  });
-
-  test("has a complete, shape-correct base and desktop ladder", () => {
-    expect(devboxImageLadderProblems(readImageManifest())).toEqual([]);
-  });
-
-  test("every default was baked from this checkout's devbox sources", () => {
-    // The manifest is the only source of truth for the image users get, so
-    // main must not describe a machine the promoted default is not: every
-    // default carries the Dockerfile's CMUX_IMAGE_EPOCH and, once recorded,
-    // the digest of the files and pins the bake took from this checkout. A
-    // pin or template change lands together with its promotion, and a
-    // rollback reverts the promotion commit whole (sources included).
-    expect(devboxSourceDriftProblems(readImageManifest())).toEqual([]);
+    expect(imageManifestProblems(readImageManifest(path.join(import.meta.dirname, "../services/vms/images/upstream-manifest.json")))).toEqual([]);
   });
 });
 
@@ -159,7 +154,7 @@ describe("devboxSourceDriftProblems", () => {
 
 describe("devboxImageLadderProblems", () => {
   test("rejects splitting a shared snapshot or dropping its desktop layer", () => {
-    const manifest = readImageManifest();
+    const manifest = readImageManifest(path.join(import.meta.dirname, "../services/vms/images/upstream-manifest.json"));
     const split = {
       ...manifest,
       images: manifest.images.map((entry) => entry.kind === "base" && entry.defaultForKind
@@ -173,7 +168,7 @@ describe("devboxImageLadderProblems", () => {
   });
 
   test("rejects a missing size and a wrong shape", () => {
-    const manifest = readImageManifest();
+    const manifest = readImageManifest(path.join(import.meta.dirname, "../services/vms/images/upstream-manifest.json"));
     const base = manifest.images.filter((entry) => {
       const isBaseDefault =
         entry.provider === "freestyle" &&

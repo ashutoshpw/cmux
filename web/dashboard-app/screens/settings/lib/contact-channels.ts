@@ -1,4 +1,4 @@
-import { strictEmailSchema } from "@hexclave/shared/dist/schema-fields";
+import { z } from "zod";
 
 /** The contact-channel fields the settings rules read. */
 export type EmailChannelFacts = {
@@ -85,7 +85,7 @@ export function emailRowActions(
 
 export type NewEmailError = "required" | "invalid" | "duplicate";
 
-const strictEmail = strictEmailSchema(undefined);
+const strictEmail = z.email();
 
 /**
  * Validate an email before `createContactChannel`, using Hexclave's strict
@@ -97,7 +97,7 @@ export function validateNewEmail(
 ): NewEmailError | null {
   const email = value.trim();
   if (email.length === 0) return "required";
-  if (!strictEmail.isValidSync(email)) return "invalid";
+  if (!strictEmail.safeParse(email).success) return "invalid";
   const lower = email.toLowerCase();
   if (existing.some((channel) => channel.value.toLowerCase() === lower)) return "duplicate";
   return null;

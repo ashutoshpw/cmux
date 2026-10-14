@@ -509,7 +509,7 @@ public struct AutomationSection: View {
                     .accessibilityIdentifier("SettingsCanonicalAgentScratchToggle")
             }
             SettingsCardDivider()
-            SettingsCardNote(String(localized: "settings.automation.canonicalAgentScratch.note", defaultValue: "Opt in to organize new Claude, Codex, and OpenCode panel scratch files under ~/.local/state/cmux/agent-artifacts. Provider transcripts and existing files are not moved."))
+            SettingsCardNote(String(localized: "settings.automation.canonicalAgentScratch.note", defaultValue: "Opt in to organize new Claude, Codex, and OpenCode panel scratch files under ~/.local/state/cmux-w3dev/agent-artifacts. Provider transcripts and existing files are not moved."))
         }
     }
     @ViewBuilder

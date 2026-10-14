@@ -7,7 +7,7 @@ import CmuxCloudTui
 @Suite struct CloudTuiPackageSurfaceTests {
     @Test func shellQuoteLeavesSafeWordsAndQuotesTheRest() {
         #expect(CloudTuiCommandLine.shellQuote("") == "''")
-        #expect(CloudTuiCommandLine.shellQuote("/tmp/cmux.sock") == "/tmp/cmux.sock")
+        #expect(CloudTuiCommandLine.shellQuote("/tmp/cmux-w3dev.sock") == "/tmp/cmux-w3dev.sock")
         #expect(CloudTuiCommandLine.shellQuote("it's") == "'it'\\''s'")
     }
 

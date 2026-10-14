@@ -2,7 +2,7 @@ public import Foundation
 import SQLite3
 import os
 
-private let syncStoreLog = Logger(subsystem: "com.cmuxterm.app", category: "CmuxSyncStore")
+private let syncStoreLog = Logger(subsystem: "app.w3dev.cmux", category: "CmuxSyncStore")
 
 /// Local-first sync store: one raw-SQLite3 database backing the generic sync
 /// substrate (DESIGN.md §4). This is a deliberate clone of
@@ -32,7 +32,7 @@ public actor CmuxSyncStore: CmuxSyncStoring {
             appropriateFor: nil,
             create: true
         )
-        let dir = appSupport.appendingPathComponent("cmux", isDirectory: true)
+        let dir = appSupport.appendingPathComponent("cmux-w3dev", isDirectory: true)
         if !fileManager.fileExists(atPath: dir.path) {
             try fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
         }

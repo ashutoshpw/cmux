@@ -15,19 +15,19 @@ struct MobileHostIdentityTests {
     @Test func appInstanceTagDistinguishesReleaseChannelsAndTaggedDevBuilds() {
         #expect(MobileHostIdentity.instanceTag(
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app"
+            bundleIdentifier: "app.w3dev.cmux"
         ) == "default")
         #expect(MobileHostIdentity.instanceTag(
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app.nightly"
+            bundleIdentifier: "app.w3dev.cmux.nightly"
         ) == "nightly")
         #expect(MobileHostIdentity.instanceTag(
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app.staging"
+            bundleIdentifier: "app.w3dev.cmux.staging"
         ) == "staging")
         #expect(MobileHostIdentity.instanceTag(
             environment: ["CMUX_TAG": "future-one"],
-            bundleIdentifier: "com.cmuxterm.app.debug.future-one"
+            bundleIdentifier: "app.w3dev.cmux.debug.future-one"
         ) == "future-one")
     }
 
@@ -41,25 +41,25 @@ struct MobileHostIdentityTests {
         )
 
         #expect(store.availableNamespaces.map(\.bundleIdentifier) == [
-            "com.cmux.app",
-            "dev.cmux.app.beta",
-            "dev.cmux.app.internal",
-            "dev.cmux.app.demo",
+            "app.w3dev.cmux.ios",
+            "app.w3dev.cmux.ios.beta",
+            "app.w3dev.cmux.ios.internal",
+            "app.w3dev.cmux.ios.demo",
         ])
-        #expect(store.selectedNamespace?.bundleIdentifier == "com.cmux.app")
+        #expect(store.selectedNamespace?.bundleIdentifier == "app.w3dev.cmux.ios")
         #expect(
             store.selectedPairingURLScheme?.rawValue
-                == "cmux-ios-com.cmux.app"
+                == "cmux-w3dev-ios-app.w3dev.cmux.ios"
         )
 
         let internalNamespace = try #require(MobileIOSAppNamespace(
-            bundleIdentifier: "dev.cmux.app.internal"
+            bundleIdentifier: "app.w3dev.cmux.ios.internal"
         ))
         #expect(store.select(internalNamespace))
         #expect(store.selectedNamespace == internalNamespace)
         #expect(
             store.selectedPairingURLScheme?.rawValue
-                == "cmux-ios-dev.cmux.app.internal"
+                == "cmux-w3dev-ios-app.w3dev.cmux.ios.internal"
         )
     }
 
@@ -73,15 +73,15 @@ struct MobileHostIdentityTests {
         )
 
         #expect(store.availableNamespaces.map(\.bundleIdentifier) == [
-            "com.cmux.app",
-            "dev.cmux.app.beta",
-            "dev.cmux.app.internal",
-            "dev.cmux.app.demo",
+            "app.w3dev.cmux.ios",
+            "app.w3dev.cmux.ios.beta",
+            "app.w3dev.cmux.ios.internal",
+            "app.w3dev.cmux.ios.demo",
         ])
-        #expect(store.selectedNamespace?.bundleIdentifier == "com.cmux.app")
+        #expect(store.selectedNamespace?.bundleIdentifier == "app.w3dev.cmux.ios")
         #expect(
             store.selectedPairingURLScheme?.rawValue
-                == "cmux-ios-com.cmux.app"
+                == "cmux-w3dev-ios-app.w3dev.cmux.ios"
         )
     }
 
@@ -90,7 +90,7 @@ struct MobileHostIdentityTests {
         let defaults = try #require(UserDefaults(suiteName: suiteName))
         defer { defaults.removePersistentDomain(forName: suiteName) }
         defaults.set(
-            "dev.cmux.app.demo",
+            "app.w3dev.cmux.ios.demo",
             forKey: MobileIOSPairingTargetStore.defaultsKey
         )
         let store = MobileIOSPairingTargetStore(
@@ -99,30 +99,30 @@ struct MobileHostIdentityTests {
         )
 
         #expect(store.availableNamespaces.map(\.bundleIdentifier) == [
-            "dev.cmux.ios.future-one",
+            "app.w3dev.cmux.ios.debug.future-one",
         ])
         #expect(
             store.selectedNamespace?.bundleIdentifier
-                == "dev.cmux.ios.future-one"
+                == "app.w3dev.cmux.ios.debug.future-one"
         )
         let demoNamespace = try #require(MobileIOSAppNamespace(
-            bundleIdentifier: "dev.cmux.app.demo"
+            bundleIdentifier: "app.w3dev.cmux.ios.demo"
         ))
         #expect(!store.select(demoNamespace))
         #expect(
             defaults.string(forKey: MobileIOSPairingTargetStore.defaultsKey)
-                == "dev.cmux.app.demo"
+                == "app.w3dev.cmux.ios.demo"
         )
     }
 
     @Test func taggedBuildIdentityUsesBundleScopeWithoutLaunchMetadata() {
         #expect(MobileHostIdentity.instanceTag(
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app.debug.future-one"
+            bundleIdentifier: "app.w3dev.cmux.debug.future-one"
         ) == "future-one")
         #expect(MobileHostIdentity.instanceTag(
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app.debug.future-two"
+            bundleIdentifier: "app.w3dev.cmux.debug.future-two"
         ) == "future-two")
     }
 
@@ -192,7 +192,7 @@ struct MobileHostIdentityTests {
             phonePushDefaults: defaults,
             phonePushAdmission: .suppressedMacActive,
             phonePushQueuePersistenceStatus: .saveFailed,
-            phonePushAPIBaseURL: URL(string: "https://cmux-staging.vercel.app")!
+            phonePushAPIBaseURL: URL(string: "https://staging.cmux.w3dev.app")!
         )
         let phonePush = try #require(payload["phone_push"] as? [String: Any])
 
@@ -201,7 +201,7 @@ struct MobileHostIdentityTests {
         #expect(phonePush["admission"] as? String == "suppressed_mac_active")
         #expect(phonePush["queue_persistence"] as? String == "save_failed")
         #expect(phonePush["hide_content"] as? Bool == false)
-        #expect(phonePush["api_origin"] as? String == "https://cmux-staging.vercel.app")
+        #expect(phonePush["api_origin"] as? String == "https://staging.cmux.w3dev.app")
         #expect(phonePush["account_scope"] as? String == "verified_same_account")
     }
 
@@ -259,7 +259,7 @@ struct MobileHostIdentityTests {
             routes: [],
             deviceID: "v2-mac-fixture",
             phonePushDefaults: defaults,
-            phonePushAPIBaseURL: URL(string: "https://cmux.com")!
+            phonePushAPIBaseURL: URL(string: "https://cmux.w3dev.app")!
         )
         let phonePush = try #require(payload["phone_push"] as? [String: Any])
         #expect(phonePush["forwarding_enabled"] as? Bool == true)
@@ -484,7 +484,7 @@ struct MobileHostIdentityTests {
             defaults: taggedDefaults,
             sharedIDURL: sharedIDURL,
             stableDefaults: stableDefaults,
-            bundleIdentifier: "com.cmuxterm.app.debug.mpick"
+            bundleIdentifier: "app.w3dev.cmux.debug.mpick"
         ) == stableID.lowercased())
         #expect(taggedDefaults.string(forKey: "mobileHost.deviceID") == stableID.lowercased())
         #expect(try String(contentsOf: sharedIDURL, encoding: .utf8) == stableID.lowercased())

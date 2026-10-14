@@ -1,3 +1,5 @@
+import { forkDeployment } from "../deployment/config";
+import { isUpstreamServiceHost } from "../deployment/origin";
 // Cloud VM model plane: how a machine reaches coderouter without holding a
 // credential. At create, the control plane mints one route token bound to
 // the cmux Cloud VM row id and hands the provider an edge rule for the
@@ -31,7 +33,7 @@ import {
 import type { VmEdgeRule } from "../vms/drivers/types";
 
 export const VM_ROUTE_TOKEN_LABEL = "vm-signed";
-export const DEFAULT_CODEROUTER_EDGE_ORIGIN = "https://coderouter.dev";
+export const DEFAULT_CODEROUTER_EDGE_ORIGIN = forkDeployment.productionOrigin;
 export const CODEROUTER_EDGE_ORIGIN_ENV = "CMUX_CODEROUTER_EDGE_ORIGIN";
 
 export type VmModelPlaneInput = {
@@ -80,7 +82,7 @@ const defaultDependencies: VmModelPlaneDependencies = {
 /**
  * The origin guests dial. An explicit CMUX_CODEROUTER_EDGE_ORIGIN wins; a
  * Vercel preview serves itself (its branch URL), so a PR can be tested end to
- * end without touching production; production uses coderouter.dev.
+ * end without touching production; production uses the fork application origin.
  *
  * Any other deployment (a dev backend, a local checkout) has no origin: it
  * signs with its own key and keeps its database private, so production can
@@ -145,6 +147,7 @@ export function coderouterEdgeOrigin(raw: string | undefined): string {
   if ((url.pathname !== "/" && url.pathname !== "") || url.search || url.hash) {
     throw new Error(`${CODEROUTER_EDGE_ORIGIN_ENV} must not carry a path, query, or fragment`);
   }
+  if (isUpstreamServiceHost(url.hostname)) throw new Error("Upstream service origins are not available in this fork");
   return url.origin;
 }
 

@@ -15,7 +15,7 @@ extension SSHSessionChannel: MobileSSHTmuxControlTransport {}
 /// channel (no PTY, so the stream carries no DCS framing or CRs).
 ///
 /// The client attaches through its OWN grouped session
-/// (`new-session -t <session> -s <session>-cmux-ios-<id>`): the group shares
+/// (`new-session -t <session> -s <session>-cmux-w3dev-ios-<id>`): the group shares
 /// windows and panes with the user's session but keeps its own current
 /// window, so the phone never switches the window a laptop is looking at.
 /// Control mode reports `%output` for every pane in every window of the
@@ -51,7 +51,7 @@ final class MobileSSHTmuxControlClient {
     /// Lines of history seeded into the phone's scrollback on attach.
     nonisolated static let historyLines = 2_000
     /// Suffix marking the phone's grouped sessions, hidden from the workspace list.
-    nonisolated static let groupedSessionMarker = "-cmux-ios-"
+    nonisolated static let groupedSessionMarker = "-cmux-w3dev-ios-"
 
     let sessionName: String
     let groupedSessionName: String

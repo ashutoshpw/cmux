@@ -84,7 +84,7 @@ export const changelogMedia: Record<string, VersionMedia> = {
         title: "Smaller Download",
         description:
           "Stable ships thin arm64 and x86_64 builds in a smaller DMG with a one-hop update path.",
-        tryIt: "Download cmux from cmux.com, or update from the cmux menu.",
+        tryIt: "Download cmux from cmux.w3dev.app, or update from the cmux menu.",
       },
     ],
   },

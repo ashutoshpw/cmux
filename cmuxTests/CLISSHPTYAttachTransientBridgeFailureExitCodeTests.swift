@@ -246,7 +246,7 @@ extension CLINotifyProcessIntegrationRegressionTests {
             try fileManager.setAttributes([.posixPermissions: 0o700], ofItemAtPath: executable.path)
         }
 
-        var environment = sshPTYAttachTestEnvironment(socketPath: "/tmp/cmux-debug-test.sock")
+        var environment = sshPTYAttachTestEnvironment(socketPath: "/tmp/cmux-w3dev-debug-test.sock")
         environment["PATH"] = "\(root.path):\(environment["PATH"] ?? "/usr/bin:/bin")"
         environment["CMUX_BUNDLED_CLI_PATH"] = fakeCLI.path
         environment["CMUX_WORKSPACE_ID"] = "11111111-1111-1111-1111-111111111111"

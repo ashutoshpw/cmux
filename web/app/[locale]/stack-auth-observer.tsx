@@ -1,13 +1,13 @@
 "use client";
 
-import { useUser } from "@hexclave/next";
+import { authClient } from "@/app/lib/stack-client";
 import { usePathname } from "next/navigation";
 import { Suspense, useLayoutEffect, useRef } from "react";
 import { STACK_AUTH_CHANGED_EVENT } from "../../services/analytics/stackIdentity";
 import { IsolatedErrorBoundary } from "../components/error-boundary";
 
 function StackAuthObserver() {
-  const authenticatedUser = useUser({ or: "return-null" });
+  const authenticatedUser = authClient.useSession().data?.user;
   const previousUserId = useRef<string | undefined>(undefined);
   const initialized = useRef(false);
 

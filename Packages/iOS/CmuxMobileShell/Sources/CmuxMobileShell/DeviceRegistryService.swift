@@ -6,7 +6,7 @@ import os
 import UIKit
 #endif
 
-private let deviceRegistryLog = Logger(subsystem: "com.cmuxterm.app", category: "DeviceRegistry")
+private let deviceRegistryLog = Logger(subsystem: "app.w3dev.cmux", category: "DeviceRegistry")
 
 /// HTTP client for the team-scoped device registry (`/api/devices`).
 ///
@@ -751,7 +751,6 @@ public actor DeviceRegistryService: DeviceRegistryRefreshing {
         request.httpMethod = "GET"
         request.timeoutInterval = requestTimeout
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         if let teamID {
             request.setValue(teamID, forHTTPHeaderField: "X-Cmux-Team-Id")
         }
@@ -787,10 +786,10 @@ public extension MobileIOSAppNamespace {
         DeviceRegistryService.deviceID(
             store: KeychainDeviceIdentityStore(
                 service: keychainService(
-                    base: "com.cmuxterm.deviceRegistry.iosDeviceID.v1"
+                    base: "app.w3dev.cmux.deviceRegistry.iosDeviceID.v1"
                 ),
                 accessGroup: keychainAccessGroup,
-                legacyService: "com.cmuxterm.deviceRegistry.iosDeviceID.v1"
+                legacyService: "app.w3dev.cmux.deviceRegistry.iosDeviceID.v1"
             ),
             defaults: defaults,
             deviceWitness: deviceWitness,
@@ -821,10 +820,10 @@ public extension MobileIOSAppNamespace {
         #else
         let store: any DeviceIdentityStoring = KeychainDeviceIdentityStore(
             service: keychainService(
-                base: "com.cmuxterm.deviceRegistry.iosDeviceID.v1"
+                base: "app.w3dev.cmux.deviceRegistry.iosDeviceID.v1"
             ),
             accessGroup: keychainAccessGroup,
-            legacyService: "com.cmuxterm.deviceRegistry.iosDeviceID.v1"
+            legacyService: "app.w3dev.cmux.deviceRegistry.iosDeviceID.v1"
         )
         #endif
         return DeviceRegistryService.durableDeviceID(

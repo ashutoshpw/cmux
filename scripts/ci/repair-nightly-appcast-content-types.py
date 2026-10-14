@@ -2,6 +2,7 @@
 """Repair only the four existing nightly feeds, preserving their current bytes."""
 
 import argparse
+import os
 import datetime as dt
 import hashlib
 import importlib.util
@@ -25,9 +26,12 @@ def request(args, method, body=b"", headers=None):
         return response.read(), {k.lower(): v for k, v in response.headers.items()}
 
 
-def repair(endpoint_url, execute=False):
+def repair(endpoint_url, execute=False, bucket=None):
+    bucket = bucket or os.environ.get("CMUX_ARTIFACTS_R2_BUCKET", "")
+    if not bucket:
+        raise RuntimeError("CMUX_ARTIFACTS_R2_BUCKET is required")
     for name in APPCASTS:
-        args = argparse.Namespace(endpoint_url=endpoint_url, bucket="cmux-binaries", key=f"nightly/{name}",
+        args = argparse.Namespace(endpoint_url=endpoint_url, bucket=bucket, key=f"nightly/{name}",
                                   content_type="application/xml", cache_control="")
         body, original = request(args, "GET")
         if ET.fromstring(body).tag != "rss":

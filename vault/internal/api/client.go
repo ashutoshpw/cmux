@@ -15,7 +15,7 @@ import (
 	"github.com/manaflow-ai/cmux/vault/internal/authstore"
 )
 
-const DefaultBaseURL = "https://cmux.com"
+const DefaultBaseURL = "https://cmux.w3dev.app"
 
 type Client struct {
 	BaseURL        string
@@ -114,6 +114,9 @@ func New(baseURL string, tokens *authstore.Tokens) *Client {
 		Tokens:  tokens,
 		HTTPClient: &http.Client{
 			Timeout: 30 * time.Second,
+			CheckRedirect: func(req *http.Request, via []*http.Request) error {
+				return http.ErrUseLastResponse
+			},
 		},
 		// Blob transfers can be large, so allow far more than the JSON timeout,
 		// but still bound the request so a stalled S3 PUT/GET cannot hang the
@@ -251,6 +254,16 @@ func (c *Client) doJSON(ctx context.Context, method, path string, body any, auth
 }
 
 func (c *Client) doJSONOnce(ctx context.Context, method, path string, payload []byte, auth bool, out any) error {
+	base, parseErr := url.Parse(c.BaseURL)
+	if parseErr != nil || base == nil || base.User != nil || base.RawQuery != "" || base.Fragment != "" {
+		return errors.New("invalid fork API origin")
+	}
+	if base.Hostname() != "cmux.w3dev.app" && base.Hostname() != "staging.cmux.w3dev.app" && base.Hostname() != "localhost" && base.Hostname() != "127.0.0.1" {
+		return errors.New("API origin must belong to the W3Dev fork or local development")
+	}
+	if base.Scheme != "https" && !((base.Hostname() == "localhost" || base.Hostname() == "127.0.0.1") && base.Scheme == "http") {
+		return errors.New("fork API origin requires HTTPS")
+	}
 	endpoint := c.BaseURL + path
 	req, err := http.NewRequestWithContext(ctx, method, endpoint, bytes.NewReader(payload))
 	if err != nil {
@@ -261,11 +274,10 @@ func (c *Client) doJSONOnce(ctx context.Context, method, path string, payload []
 		req.Header.Set("Content-Type", "application/json")
 	}
 	if auth {
-		if c.Tokens == nil || c.Tokens.AccessToken == "" || c.Tokens.RefreshToken == "" {
+		if c.Tokens == nil || c.Tokens.AccessToken == "" {
 			return errors.New("not logged in; run cmux-vault login")
 		}
 		req.Header.Set("Authorization", "Bearer "+c.Tokens.AccessToken)
-		req.Header.Set("X-Stack-Refresh-Token", c.Tokens.RefreshToken)
 	}
 	resp, err := c.httpClient().Do(req)
 	if err != nil {

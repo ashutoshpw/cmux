@@ -559,7 +559,7 @@ struct SSHTuiMigrationTests {
         let legacy = WorkspaceRemoteConfiguration(
             destination: "alice@example.invalid", port: nil, identityFile: nil, sshOptions: [],
             localProxyPort: nil, relayPort: 64007, relayID: String(repeating: "a", count: 16),
-            relayToken: String(repeating: "b", count: 64), localSocketPath: "/tmp/cmux-debug-test.sock",
+            relayToken: String(repeating: "b", count: 64), localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh -T alice@example.invalid", preserveAfterTerminalExit: false
         )
         #expect(!legacy.routesThroughSSHTui)
@@ -573,7 +573,7 @@ struct SSHTuiMigrationTests {
         let persistentLegacy = WorkspaceRemoteConfiguration(
             destination: "alice@example.invalid", port: nil, identityFile: nil, sshOptions: [],
             localProxyPort: nil, relayPort: 64007, relayID: String(repeating: "a", count: 16),
-            relayToken: String(repeating: "b", count: 64), localSocketPath: "/tmp/cmux-debug-test.sock",
+            relayToken: String(repeating: "b", count: 64), localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh-pty-attach", preserveAfterTerminalExit: true
         )
         #expect(workspace.effectiveRemoteTerminalStartupCommand(from: persistentLegacy) == "ssh-pty-attach")

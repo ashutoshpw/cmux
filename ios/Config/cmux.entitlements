@@ -33,7 +33,7 @@
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.dev.cmux.ios</string>
+		<string>group.app.w3dev.cmux.ios.debug</string>
 	</array>
 
 	<!-- Example entitlements (commented out by default):

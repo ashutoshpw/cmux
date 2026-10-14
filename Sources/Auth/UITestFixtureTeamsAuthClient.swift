@@ -123,6 +123,18 @@ actor UITestFixtureTeamsAuthClient: AuthClient {
         try await base.signInWithOAuth(provider: provider, anchor: anchor)
     }
 
+    func signInWithOAuth(provider: String, anchor: any AuthPresentationAnchoring, attemptGeneration: UInt64?) async throws {
+        try await base.signInWithOAuth(provider: provider, anchor: anchor, attemptGeneration: attemptGeneration)
+    }
+
+    func prepareBrowserSignIn() async throws -> UInt64? {
+        try await base.prepareBrowserSignIn()
+    }
+
+    func cancelBrowserSignIn(attemptGeneration: UInt64) async {
+        await base.cancelBrowserSignIn(attemptGeneration: attemptGeneration)
+    }
+
     func storedAccessToken() async -> String? { await base.storedAccessToken() }
 
     func clearLocalSession() async { await base.clearLocalSession() }

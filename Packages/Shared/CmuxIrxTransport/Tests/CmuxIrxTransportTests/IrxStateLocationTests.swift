@@ -13,7 +13,7 @@ struct IrxStateLocationTests {
     @Test("different bundles and different brokers never share a directory")
     func isolation() {
         let nightlyProd = IrxStateLocation().directory(
-            base: base, bundleIdentifier: "dev.cmux.app.nightly", brokerHost: "cmux.com")
+            base: base, bundleIdentifier: "dev.cmux.app.nightly", brokerHost: "cmux.w3dev.app")
         let devStaging = IrxStateLocation().directory(
             base: base, bundleIdentifier: "dev.cmux.app.debug.irx",
             brokerHost: "cmux-v2-staging.debussy.workers.dev")

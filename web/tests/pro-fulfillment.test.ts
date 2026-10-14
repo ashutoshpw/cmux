@@ -22,7 +22,7 @@ describe("cmux Pro checkout fulfillment", () => {
       },
       {
         sendEmail,
-        fromEmail: () => "pro@cmux.com",
+        fromEmail: () => "pro@w3dev.app",
         fulfillmentStore: inMemoryProWelcomeFulfillmentStore(),
       },
     );
@@ -33,9 +33,9 @@ describe("cmux Pro checkout fulfillment", () => {
       mock: { calls: [[Record<string, unknown>, Record<string, unknown>]] };
     }).mock.calls[0];
     expect(payload).toMatchObject({
-      from: "cmux Pro <pro@cmux.com>",
+      from: "cmux Pro <pro@w3dev.app>",
       to: ["ada@example.com"],
-      replyTo: "pro@cmux.com",
+      replyTo: "support@w3dev.app",
       subject: "Welcome to cmux Pro 🎉",
       headers: { "X-Entity-Ref-ID": "pro-welcome/cs_pro_1" },
     });
@@ -56,7 +56,7 @@ describe("cmux Pro checkout fulfillment", () => {
 
   test("uses the Japanese Pro copy for a Japanese checkout", async () => {
     const email = await buildProWelcomeEmail({
-      from: "cmux Pro <pro@cmux.com>",
+      from: "cmux Pro <pro@w3dev.app>",
       to: "a@example.com",
       customerName: "山田 太郎",
       locale: "ja",
@@ -83,7 +83,7 @@ describe("cmux Pro checkout fulfillment", () => {
       { session, stackUserId: "user_1" },
       {
         sendEmail,
-        fromEmail: () => "pro@cmux.com",
+        fromEmail: () => "pro@w3dev.app",
         fulfillmentStore: inMemoryProWelcomeFulfillmentStore(),
       },
     );
@@ -97,7 +97,7 @@ describe("cmux Pro checkout fulfillment", () => {
 
   test("escapes the customer name in the HTML email", async () => {
     const email = await buildProWelcomeEmail({
-      from: "cmux Pro <pro@cmux.com>",
+      from: "cmux Pro <pro@w3dev.app>",
       to: "a@example.com",
       customerName: `<script>&"'`,
       locale: "en",
@@ -116,7 +116,7 @@ describe("cmux Pro checkout fulfillment", () => {
         { session: checkoutSession(), stackUserId: "user_1" },
         {
           sendEmail,
-          fromEmail: () => "pro@cmux.com",
+          fromEmail: () => "pro@w3dev.app",
           fulfillmentStore: inMemoryProWelcomeFulfillmentStore(),
         },
       ),
@@ -135,7 +135,7 @@ describe("cmux Pro checkout fulfillment", () => {
         { session, stackUserId: "user_1" },
         {
           sendEmail,
-          fromEmail: () => "pro@cmux.com",
+          fromEmail: () => "pro@w3dev.app",
           fulfillmentStore: inMemoryProWelcomeFulfillmentStore(),
         },
       ),
@@ -151,7 +151,7 @@ describe("cmux Pro checkout fulfillment", () => {
           sendEmail: mock(async () => ({
             error: { message: "provider unavailable" },
           })),
-          fromEmail: () => "pro@cmux.com",
+          fromEmail: () => "pro@w3dev.app",
           fulfillmentStore: inMemoryProWelcomeFulfillmentStore(),
         },
       ),
@@ -167,7 +167,7 @@ describe("cmux Pro checkout fulfillment", () => {
     };
     const dependencies = {
       sendEmail,
-      fromEmail: () => "pro@cmux.com",
+      fromEmail: () => "pro@w3dev.app",
       fulfillmentStore,
     };
 

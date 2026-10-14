@@ -20,13 +20,13 @@ struct CodeRouterSocketPeerVerifier: Sendable {
 
     private static let signingRequirement: String = {
 #if DEBUG
-        return #"anchor apple generic and identifier "com.cmuxterm.coderouter" and certificate leaf[field.1.2.840.113635.100.6.1.12] exists and certificate leaf[subject.OU] = "7WLXT3NR37""#
+        return #"anchor apple generic and identifier "app.w3dev.cmux.coderouter" and certificate leaf[field.1.2.840.113635.100.6.1.12] exists and certificate leaf[subject.OU] = "\#(CodeSigningTeamIdentity().currentTeamIdentifier() ?? "FORK_SIGNING_TEAM_REQUIRED")""#
 #else
-        return #"anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists and identifier "com.cmuxterm.coderouter" and certificate leaf[subject.OU] = "7WLXT3NR37""#
+        return #"anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists and identifier "app.w3dev.cmux.coderouter" and certificate leaf[subject.OU] = "\#(CodeSigningTeamIdentity().currentTeamIdentifier() ?? "FORK_SIGNING_TEAM_REQUIRED")""#
 #endif
     }()
     private static let taggedDevelopmentSigningRequirement =
-        #"anchor apple generic and identifier "com.cmuxterm.coderouter" and certificate leaf[field.1.2.840.113635.100.6.1.12] exists and certificate leaf[subject.OU] = "7WLXT3NR37""#
+        #"anchor apple generic and identifier "app.w3dev.cmux.coderouter" and certificate leaf[field.1.2.840.113635.100.6.1.12] exists and certificate leaf[subject.OU] = "\#(CodeSigningTeamIdentity().currentTeamIdentifier() ?? "FORK_SIGNING_TEAM_REQUIRED")""#
     private static let validFlag: UInt32 = 0x0000_0001
     private static let hardFlag: UInt32 = 0x0000_0100
     private static let killFlag: UInt32 = 0x0000_0200
@@ -159,7 +159,7 @@ struct CodeRouterSocketPeerVerifier: Sendable {
 #if DEBUG
         return false
 #else
-        guard Bundle.main.bundleIdentifier?.hasPrefix("com.cmuxterm.app.debug.") == true else {
+        guard Bundle.main.bundleIdentifier?.hasPrefix("app.w3dev.cmux.debug.") == true else {
             return false
         }
         var requirement: SecRequirement?

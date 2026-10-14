@@ -20,7 +20,7 @@ case "$MODE" in
 esac
 
 STRIPE_API_BASE="https://api.stripe.com/v1"
-WEBHOOK_URL="https://cmux.com/api/stripe/webhook"
+WEBHOOK_URL="https://cmux.w3dev.app/api/stripe/webhook"
 WEBHOOK_DESCRIPTION="cmux billing (webhook-driven entitlements)"
 EVENTS=(
   "checkout.session.completed"
@@ -483,8 +483,8 @@ if [[ "$MODE" == "live" ]]; then
 Vercel production env commands
 Run these from a checkout linked to the cmux Vercel project:
 
-  vercel env add STRIPE_SECRET_KEY production --scope manaflow
-  vercel env add STRIPE_WEBHOOK_SECRET production --scope manaflow
+  vercel env add STRIPE_SECRET_KEY production
+  vercel env add STRIPE_WEBHOOK_SECRET production
 
 Do not paste the provisioning key as STRIPE_SECRET_KEY. Use a least-privilege server key with:
   Checkout Sessions write, Customers write, Subscriptions read, Prices read, Products read.

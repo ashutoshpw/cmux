@@ -7,7 +7,7 @@ import Testing
 struct CodeRouterHandoffProtocolTests {
     private let protocolCodec = CodeRouterHandoffProtocol()
     private let launchPolicy = CodeRouterLaunchPolicy()
-    private let debugIdentityPolicy = CodeRouterDebugServerIdentityPolicy()
+    private let debugIdentityPolicy = CodeRouterDebugServerIdentityPolicy(expectedTeamIdentifier: "FORKTEAM01")
     private let capability: String
     private let nonce: Data
     private let challenge = Data(repeating: 0x43, count: 32)
@@ -177,7 +177,7 @@ struct CodeRouterHandoffProtocolTests {
     @Test("builds the hidden argv without shell parsing")
     func hiddenArguments() {
         let arm = CodeRouterHandoffProtocol.Arm(
-            socketPath: "/tmp/cmux.sock",
+            socketPath: "/tmp/cmux-w3dev.sock",
             teamBinding: teamBinding
         )
         #expect(
@@ -186,7 +186,7 @@ struct CodeRouterHandoffProtocolTests {
                 handoff: arm
             ) == [
                 "__cmux-handoff-v2",
-                "/tmp/cmux.sock",
+                "/tmp/cmux-w3dev.sock",
                 teamBinding,
                 "--",
                 "codex",
@@ -243,10 +243,10 @@ struct CodeRouterHandoffProtocolTests {
 
     @Test("allows only the matching company-signed tagged Debug server")
     func debugServerIdentity() {
-        let identifier = "com.cmuxterm.app.debug.coderouter-dogfood"
+        let identifier = "app.w3dev.cmux.debug.coderouter-dogfood"
         #expect(debugIdentityPolicy.isAllowed(
             identifier: identifier,
-            teamIdentifier: "7WLXT3NR37",
+            teamIdentifier: "FORKTEAM01",
             expectedBundleIdentifier: identifier
         ))
         #expect(!debugIdentityPolicy.isAllowed(
@@ -255,14 +255,14 @@ struct CodeRouterHandoffProtocolTests {
             expectedBundleIdentifier: identifier
         ))
         #expect(!debugIdentityPolicy.isAllowed(
-            identifier: "com.cmuxterm.app.debug.other",
-            teamIdentifier: "7WLXT3NR37",
+            identifier: "app.w3dev.cmux.debug.other",
+            teamIdentifier: "FORKTEAM01",
             expectedBundleIdentifier: identifier
         ))
         #expect(!debugIdentityPolicy.isAllowed(
-            identifier: "com.cmuxterm.app",
-            teamIdentifier: "7WLXT3NR37",
-            expectedBundleIdentifier: "com.cmuxterm.app"
+            identifier: "app.w3dev.cmux",
+            teamIdentifier: "FORKTEAM01",
+            expectedBundleIdentifier: "app.w3dev.cmux"
         ))
     }
 

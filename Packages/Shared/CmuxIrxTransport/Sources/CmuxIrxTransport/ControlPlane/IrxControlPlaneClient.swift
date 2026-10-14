@@ -324,7 +324,6 @@ public actor IrxControlPlaneClient {
         }
         var request = URLRequest(url: configuration.socketURL)
         request.setValue("Bearer \(tokens.access)", forHTTPHeaderField: "Authorization")
-        request.setValue(tokens.refresh, forHTTPHeaderField: "x-stack-refresh-token")
         // The DO borrows this connection's identity for its upstream
         // discovery fetches; without the namespace the broker serves the
         // release-scoped view and per-tag isolation hides every dev-tagged

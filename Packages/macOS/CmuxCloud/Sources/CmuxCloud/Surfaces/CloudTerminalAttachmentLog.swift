@@ -6,12 +6,12 @@ import os
 /// Durable, privacy-safe evidence for the cloud terminal attachment path.
 ///
 /// Every decision this path makes lands in the unified log in release builds
-/// (subsystem `com.cmuxterm.app`, category `CloudTerminalAttachment`), so a
+/// (subsystem `app.w3dev.cmux`, category `CloudTerminalAttachment`), so a
 /// report can say which terminal, which phase, and what the daemon answered.
 /// Machine and terminal ids are public; daemon text that could
 /// carry a path or a command line stays private.
 public struct CloudTerminalAttachmentLog: Sendable {
-    private static let logger = Logger(subsystem: "com.cmuxterm.app", category: "CloudTerminalAttachment")
+    private static let logger = Logger(subsystem: "app.w3dev.cmux", category: "CloudTerminalAttachment")
 
     /// Correlates resolver, attachment, and presentation observations for one
     /// attachment transaction without carrying terminal contents or payloads.

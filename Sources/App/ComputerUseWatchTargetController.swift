@@ -260,9 +260,9 @@ final class ComputerUseWatchTargetController {
     private var targetWindowIDByDriverSessionID: [String: UInt32] = [:]
 
     private var directoryWatchSource: DispatchSourceFileSystemObject?
-    private let directoryWatchQueue = DispatchQueue(label: "com.cmuxterm.app.computerUseWatchTarget")
+    private let directoryWatchQueue = DispatchQueue(label: "app.w3dev.cmux.computerUseWatchTarget")
     /// The untrusted state directory is scanned here, never on the main thread.
-    private let scanQueue = DispatchQueue(label: "com.cmuxterm.app.computerUseWatchTargetScan", qos: .utility)
+    private let scanQueue = DispatchQueue(label: "app.w3dev.cmux.computerUseWatchTargetScan", qos: .utility)
     /// At most one background scan is outstanding; further ticks are dropped until
     /// it lands. A one-bit latch preserves one follow-up refresh for any writes
     /// that arrive after the active scan took its filesystem snapshot.

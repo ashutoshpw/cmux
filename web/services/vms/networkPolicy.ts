@@ -1,3 +1,4 @@
+import { forkDeployment } from "../deployment/config";
 /**
  * Outbound network policy for a Cloud machine.
  *
@@ -98,7 +99,7 @@ export const NETWORK_POLICY_PRESETS: readonly NetworkPolicyPreset[] = [
  * model plane owns; they stay reachable through the edge grant the driver adds.
  */
 export const CMUX_REQUIRED_DOMAINS: readonly string[] = [
-  "files.cmux.com",
+  new URL(forkDeployment.artifactsOrigin).hostname,
   "github.com",
   "api.github.com",
   "objects.githubusercontent.com",

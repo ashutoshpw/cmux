@@ -194,7 +194,7 @@ permissions:
 # A called workflow does not inherit the caller's workflow-level env, so the
 # R2 cache URL must be declared here or every R2 restore reports a miss.
 env:
-  CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+  CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || '' }}
   # Which schemes the producer builds, and the profile the product's identity
   # records. A purely CLI-routed change only feeds cli-product-tests, which
   # needs the cmux-cli product and its test bundle -- not the app, and not the
@@ -4250,7 +4250,7 @@ jobs:
           SOCK="/tmp/cmux-debug-${TAG}.sock"
           BUNDLE_ID="$(
             /usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Contents/Info.plist" 2>/dev/null \
-              || echo 'com.cmuxterm.app.debug'
+              || echo 'app.w3dev.cmux.debug'
           )"
 
           pkill -x "cmux DEV" || true
@@ -4461,20 +4461,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          latest_url="https://files.cmux.com/cmux-tui/latest/manifest.json"
+          latest_url="https://files.cmux.w3dev.app/cmux-tui/latest/manifest.json"
           latest_manifest="$RUNNER_TEMP/cmux-tui-release-latest-manifest.json"
           curl --proto '=https' --tlsv1.2 -fsSL --retry 5 --retry-delay 3 --retry-all-errors --retry-connrefused "$latest_url" -o "$latest_manifest"
           gh attestation verify "$latest_manifest" \
-            --repo manaflow-ai/cmux \
-            --signer-workflow manaflow-ai/cmux/.github/workflows/cmux-tui-artifacts.yml >&2
+            --repo ashutoshpw/cmux \
+            --signer-workflow ashutoshpw/cmux/.github/workflows/cmux-tui-artifacts.yml >&2
           commit="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["commit"])' "$latest_manifest")"
           [[ "$commit" =~ ^[0-9a-f]{40}$ ]]
-          manifest_url="https://files.cmux.com/cmux-tui/$commit/manifest.json"
+          manifest_url="https://files.cmux.w3dev.app/cmux-tui/$commit/manifest.json"
           manifest="$RUNNER_TEMP/cmux-tui-release-manifest.json"
           curl --proto '=https' --tlsv1.2 -fsSL --retry 5 --retry-delay 3 --retry-all-errors --retry-connrefused "$manifest_url" -o "$manifest"
           gh attestation verify "$manifest" \
-            --repo manaflow-ai/cmux \
-            --signer-workflow manaflow-ai/cmux/.github/workflows/cmux-tui-artifacts.yml \
+            --repo ashutoshpw/cmux \
+            --signer-workflow ashutoshpw/cmux/.github/workflows/cmux-tui-artifacts.yml \
             --source-digest "$commit" >&2
           manifest_commit="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["commit"])' "$manifest")"
           test "$manifest_commit" = "$commit"

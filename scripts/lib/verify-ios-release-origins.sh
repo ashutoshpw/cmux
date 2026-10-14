@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Fail-closed artifact gate for every signed/unsigned iOS Release archive.
-# TestFlight and App Store builds use the production Stack project and must
+# TestFlight and App Store builds use the fork OAuth client and must
 # carry only production API, Iroh broker, and presence origins. This checks the
 # built Info.plist, rather than the source settings, so an accidental CI
 # environment override cannot reach an upload.
@@ -77,16 +77,20 @@ require_empty() {
 
 bundle_id="$(read_plist CFBundleIdentifier)"
 case "$bundle_id" in
-  com.cmux.app|com.cmuxterm.app.nightly|dev.cmux.app.beta|dev.cmux.app.internal|dev.cmux.app.demo) ;;
+  app.w3dev.cmux.ios|app.w3dev.cmux.ios.beta|app.w3dev.cmux.ios.internal|app.w3dev.cmux.ios.demo) ;;
   *)
     echo "error: production iOS artifact has unexpected release bundle identifier '${bundle_id:-<absent>}'" >&2
     exit 1
     ;;
 esac
+oauth_channel="${bundle_id#app.w3dev.cmux.ios}"
+oauth_channel="${oauth_channel//./-}"
 require_exact "CMUXAuthEnvironment" "$(read_plist CMUXAuthEnvironment)" "production"
-require_exact "CMUXApiBaseURL" "$(read_plist CMUXApiBaseURL)" "https://cmux.com"
-require_exact "CMUXIrohBrokerBaseURL" "$(read_plist CMUXIrohBrokerBaseURL)" "https://cmux.com"
-require_exact "CMUXPresenceBaseURL" "$(read_plist CMUXPresenceBaseURL)" "https://presence.cmux.dev"
+require_exact "CMUXApiBaseURL" "$(read_plist CMUXApiBaseURL)" "https://cmux.w3dev.app"
+require_exact "CMUXIrohBrokerBaseURL" "$(read_plist CMUXIrohBrokerBaseURL)" "https://cmux.w3dev.app"
+require_exact "CMUXPresenceBaseURL" "$(read_plist CMUXPresenceBaseURL)" "https://presence.cmux.w3dev.app"
+require_exact "CMUXOAuthClientID" "$(read_plist CMUXOAuthClientID)" "${CMUX_OAUTH_CLIENT_ID:-cmux-w3dev-ios$oauth_channel}"
+require_exact "CMUXOAuthCallbackScheme" "$(read_plist CMUXOAuthCallbackScheme)" "${CMUX_OAUTH_CALLBACK_SCHEME:-cmux-w3dev-ios$oauth_channel}"
 require_empty "CMUXDevTag" "$(read_plist CMUXDevTag)"
 
 echo "==> production iOS runtime origins verified for ${bundle_id:-unknown bundle}"

@@ -286,7 +286,7 @@ final class PresenceHeartbeatClient {
             "routes": routes.mobileHostJSONObjects(for: .cloudRendezvous, at: now),
         ]
         // The app's bundle id lets the phone label the build channel on the
-        // Computers screen (com.cmuxterm.app = Stable, .nightly/.rc/.staging
+        // Computers screen (app.w3dev.cmux = Stable, .nightly/.rc/.staging
         // suffixes, dev.cmux.* = a DEV build — paired with `tag` for the dev tag).
         if let bundleID, !bundleID.isEmpty {
             bodyDict["bundleId"] = bundleID

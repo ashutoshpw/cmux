@@ -2339,7 +2339,7 @@ final class TabManagerSessionSnapshotTests: XCTestCase {
         )
         let store = SessionSnapshotRepository<AppSessionSnapshot>(
             schemaVersion: SessionSnapshotSchema.currentVersion,
-            bundleIdentifier: "com.cmuxterm.tests"
+            bundleIdentifier: "app.w3dev.cmux.tests"
         )
         XCTAssertTrue(store.save(snapshot, fileURL: snapshotURL))
         let persistedTabManager = try XCTUnwrap(
@@ -2637,7 +2637,7 @@ final class TabManagerSessionSnapshotTests: XCTestCase {
         )
         let store = SessionSnapshotRepository<AppSessionSnapshot>(
             schemaVersion: SessionSnapshotSchema.currentVersion,
-            bundleIdentifier: "com.cmuxterm.tests"
+            bundleIdentifier: "app.w3dev.cmux.tests"
         )
         XCTAssertTrue(store.save(snapshot, fileURL: snapshotURL))
         let persistedTabManager = try XCTUnwrap(

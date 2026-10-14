@@ -171,12 +171,12 @@ cmux --session agents terminal <terminal-id> screen read`}</CodeBlock>
           <Link href="/tui">{t("links.product")}</Link>
         </li>
         <li>
-          <a href="https://github.com/manaflow-ai/cmux/tree/main/cmux-tui/docs">
+          <a href="https://github.com/ashutoshpw/cmux/tree/main/cmux-tui/docs">
             {t("links.sourceDocs")}
           </a>
         </li>
         <li>
-          <a href="https://github.com/manaflow-ai/cmux/tree/main/cmux-tui">
+          <a href="https://github.com/ashutoshpw/cmux/tree/main/cmux-tui">
             {t("links.source")}
           </a>
         </li>

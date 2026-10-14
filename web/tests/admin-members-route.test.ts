@@ -80,17 +80,17 @@ const { GET, POST, DELETE } = createAdminMembersHandlers({ store, auditDb, sendI
 
 const admin = (): StackUser => ({
   id: "admin-1",
-  primaryEmail: "admin@manaflow.ai",
+  primaryEmail: "admin@w3dev.app",
   primaryEmailVerified: true,
   isAnonymous: false,
 });
 
 function mutation(body: unknown, method: "POST" | "DELETE" = "POST", headers: Record<string, string> = {}) {
-  return new NextRequest("https://cmux.com/api/admin/members", {
+  return new NextRequest("https://w3dev.app/api/admin/members", {
     method,
     headers: {
       "content-type": "application/json",
-      origin: "https://cmux.com",
+      origin: "https://w3dev.app",
       "sec-fetch-site": "same-origin",
       "x-vercel-id": "iad1::req-1",
       ...headers,
@@ -111,14 +111,14 @@ describe("admin members routes", () => {
 
   test("GET lists members and is admin-only", async () => {
     await POST(mutation({ email: "Pat@Example.com" }));
-    const response = await GET(new NextRequest("https://cmux.com/api/admin/members"));
+    const response = await GET(new NextRequest("https://w3dev.app/api/admin/members"));
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(await response.json()).toEqual({
       members: [{
         id: "00000000-0000-4000-8000-000000000001",
         email: "pat@example.com",
-        invitedByEmail: "admin@manaflow.ai",
+        invitedByEmail: "admin@w3dev.app",
         invitedAt: NOW.toISOString(),
         acceptedAt: null,
         revokedAt: null,
@@ -127,20 +127,20 @@ describe("admin members routes", () => {
     });
     // An address with no member row and no company domain.
     currentUser = { id: "user", primaryEmail: "stranger@example.com", primaryEmailVerified: true, isAnonymous: false };
-    expect((await GET(new NextRequest("https://cmux.com/api/admin/members"))).status).toBe(403);
+    expect((await GET(new NextRequest("https://w3dev.app/api/admin/members"))).status).toBe(403);
   });
 
   test("POST creates the member, sends the invite, and audits it", async () => {
     const response = await POST(mutation({ email: "Pat@Example.com" }));
     expect(response.status).toBe(200);
     const body = (await response.json()) as { member: Record<string, unknown>; emailSent: boolean };
-    expect(body.member).toMatchObject({ email: "pat@example.com", invitedByEmail: "admin@manaflow.ai" });
+    expect(body.member).toMatchObject({ email: "pat@example.com", invitedByEmail: "admin@w3dev.app" });
     expect(body.emailSent).toBe(true);
     expect(members[0]).toMatchObject({ email: "pat@example.com", invitedByUserId: "admin-1", revokedAt: null });
-    expect(sendInvite).toHaveBeenCalledWith({ to: "pat@example.com", inviterEmail: "admin@manaflow.ai" });
+    expect(sendInvite).toHaveBeenCalledWith({ to: "pat@example.com", inviterEmail: "admin@w3dev.app" });
     expect(auditRows).toEqual([expect.objectContaining({
       actorUserId: "admin-1",
-      actorEmail: "admin@manaflow.ai",
+      actorEmail: "admin@w3dev.app",
       action: "member_invite",
       targetKind: "admin_member",
       targetLabel: "pat@example.com",
@@ -232,7 +232,7 @@ describe("admin members routes", () => {
   });
 
   test("DELETE refuses a self-revoke", async () => {
-    await POST(mutation({ email: "Admin@manaflow.ai" }));
+    await POST(mutation({ email: "Admin@w3dev.app" }));
     const response = await DELETE(mutation({ memberId: members[0]!.id }, "DELETE"));
     expect(response.status).toBe(400);
     expect(await response.json()).toEqual({ error: "self_revoke" });

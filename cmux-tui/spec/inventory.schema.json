@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cmux.dev/spec/cmux-tui-inventory.schema.json",
+  "$id": "https://cmux.w3dev.app/spec/cmux-tui-inventory.schema.json",
   "title": "cmux-tui protocol inventory",
   "type": "object",
   "required": [

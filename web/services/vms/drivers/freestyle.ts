@@ -1,3 +1,4 @@
+import { forkDeployment } from "../../deployment/config";
 import {
   Freestyle,
   FreestyleApiError,
@@ -558,10 +559,12 @@ function freestyleCreateTlsRules(edgeRules: readonly VmEdgeRule[] | undefined, n
  * Public VM publications use the account-managed publication workflow; these
  * helpers only recognize the older driver-minted capability URL format.
  */
-export const FREESTYLE_PORT_RULE_DOMAIN_SUFFIXES = ["cmux.sh", "style.dev"] as const;
+export const FREESTYLE_PORT_RULE_DOMAIN_SUFFIXES = [forkDeployment.publicationDomain, "style.dev"] as const;
 
 /** Matches a driver-minted, 96-bit capability-domain preview hostname. */
-export const FREESTYLE_PORT_RULE_DOMAIN_RE = /^cmux-([0-9a-f]{24})\.((?:cmux\.sh)|(?:cmux\.site)|(?:style\.dev))$/;
+export const FREESTYLE_PORT_RULE_DOMAIN_RE = new RegExp(
+  `^cmux-([0-9a-f]{24})\\.(${FREESTYLE_PORT_RULE_DOMAIN_SUFFIXES.map((suffix) => suffix.replaceAll(".", "\\.")).join("|")})$`,
+);
 
 /** Returns the configured legacy preview suffix first, then the safe fallback. */
 export function freestylePortRuleDomainSuffixes(env: NodeJS.ProcessEnv = process.env): readonly string[] {

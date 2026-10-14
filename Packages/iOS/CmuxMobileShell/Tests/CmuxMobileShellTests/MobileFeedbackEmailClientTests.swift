@@ -31,7 +31,7 @@ struct MobileFeedbackEmailClientTests {
             buildType: .beta,
             appVersion: "0.64.13",
             appBuild: "42",
-            bundleIdentifier: "dev.cmux.app.beta",
+            bundleIdentifier: "app.w3dev.cmux.ios.beta",
             osVersion: "iOS 18.5",
             deviceModel: "iPhone16,2"
         )
@@ -49,7 +49,7 @@ struct MobileFeedbackEmailClientTests {
         #expect(fields["buildType"] == "beta")
         #expect(fields["appVersion"] == "0.64.13")
         #expect(fields["appBuild"] == "42")
-        #expect(fields["bundleIdentifier"] == "dev.cmux.app.beta")
+        #expect(fields["bundleIdentifier"] == "app.w3dev.cmux.ios.beta")
         #expect(fields["osVersion"] == "iOS 18.5")
         #expect(fields["hardwareModel"] == "iPhone16,2")
         #expect(fields["locale"] != nil)

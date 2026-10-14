@@ -1,7 +1,4 @@
 import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import {
   ALERT_SINK_KEY,
@@ -58,12 +55,11 @@ type Coherence = Record<"selected" | "codeDefault", ProviderAuditLeg | null> & {
   problems: string[];
 };
 
-const realManifest = JSON.parse(
-  readFileSync(
-    path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "services", "vms", "images", "manifest.json"),
-    "utf8",
-  ),
-) as Manifest;
+// Independent audit fixture; the fork runtime catalog remains unprovisioned.
+const realManifest: Manifest = { images: [{
+  provider: "freestyle", version: "fork-audit-fixture", imageId: "fixture-freestyle-base",
+  envVar: "FREESTYLE_SANDBOX_SNAPSHOT", validationStatus: "passed", kind: "base", defaultForKind: true,
+}] };
 
 // The manifest's validated base default (defaultForKind): what deployed
 // runtimes serve when FREESTYLE_SANDBOX_SNAPSHOT is unset.

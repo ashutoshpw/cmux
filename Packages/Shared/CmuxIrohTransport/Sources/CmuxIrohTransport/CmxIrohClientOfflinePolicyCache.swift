@@ -15,7 +15,7 @@ public actor CmxIrohClientOfflinePolicyCache {
 
     public init(
         secureStore: any CmxIrohSecureCredentialStoring = CmxIrohKeychainCredentialStore(
-            service: "com.cmuxterm.iroh.client-offline-policy.v1"
+            service: "app.w3dev.cmux.iroh.client-offline-policy.v1"
         ),
         verifier: CmxIrohGrantVerifier = CmxIrohGrantVerifier()
     ) {

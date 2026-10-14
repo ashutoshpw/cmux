@@ -101,7 +101,7 @@ public actor IrxBrokerService {
         /// identities carry their existing generation).
         public var identityGeneration: Int
         /// The signed-in account. With it, Release builds keep the broker
-        /// caches in the Keychain (`com.cmuxterm.irx.cache.v1`, account
+        /// caches in the Keychain (`app.w3dev.cmux.irx.cache.v1`, account
         /// `<kind>|<accountID>|<backendHost>`). Scoped Release caches never
         /// import unscoped legacy JSON files because those snapshots have no
         /// account/backend owner; a fresh authenticated registration or mint

@@ -2,8 +2,8 @@ import Foundation
 
 /// Supplies the auth tokens needed to authenticate cmux web API calls.
 ///
-/// Native API calls send `Authorization: Bearer <access>` plus
-/// `X-Stack-Refresh-Token: <refresh>`, so consumers need both. ``AuthCoordinator``
+/// Native API calls send only `Authorization: Bearer <access>`.
+/// Refresh credentials stay local for renewal and coherent session capture. ``AuthCoordinator``
 /// is the production conformer; inject it as `any TokenProviding` into services
 /// that talk to the web API (e.g. ``PushRegistrationService``) so they never
 /// reach for an auth singleton.

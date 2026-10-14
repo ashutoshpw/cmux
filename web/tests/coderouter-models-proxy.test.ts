@@ -63,7 +63,7 @@ describe("coderouter models proxy", () => {
 
   test("forwards Codex model discovery through the authenticated account", async () => {
     const response = await proxyCodexModels(
-      new Request("https://coderouter.dev/v1/models?client_version=0.146.0", {
+      new Request("https://cmux.w3dev.app/v1/models?client_version=0.146.0", {
         headers: { authorization: "Bearer crt_route" },
       }),
     );
@@ -81,7 +81,7 @@ describe("coderouter models proxy", () => {
     selectedAccounts = ["refreshing-account", "healthy-account"];
     unusableAccounts.add("refreshing-account");
     const response = await proxyCodexModels(
-      new Request("https://coderouter.dev/v1/models?client_version=0.146.0", {
+      new Request("https://cmux.w3dev.app/v1/models?client_version=0.146.0", {
         headers: { authorization: "Bearer crt_route" },
       }),
     );
@@ -93,7 +93,7 @@ describe("coderouter models proxy", () => {
 
   test("accepts the private Pi route-token header", async () => {
     const response = await proxyCodexModels(
-      new Request("https://coderouter.dev/v1/models?client_version=0.146.0", {
+      new Request("https://cmux.w3dev.app/v1/models?client_version=0.146.0", {
         headers: { "x-coderouter-route-token": "crt_route" },
       }),
     );
@@ -103,7 +103,7 @@ describe("coderouter models proxy", () => {
   test("a signed VM token needs no separate VM header", async () => {
     const models = (headers: Record<string, string>) =>
       proxyCodexModels(
-        new Request("https://coderouter.dev/v1/models", {
+        new Request("https://cmux.w3dev.app/v1/models", {
           headers: {
             authorization: `Bearer ${VM_PLACEHOLDER_API_KEY}`,
             "x-cmux-authorization": `Bearer ${BOUND_TOKEN}`,
@@ -124,7 +124,7 @@ describe("coderouter models proxy", () => {
 
   test("the placeholder API key alone is rejected without a lookup", async () => {
     const response = await proxyCodexModels(
-      new Request("https://coderouter.dev/v1/models", {
+      new Request("https://cmux.w3dev.app/v1/models", {
         headers: {
           authorization: `Bearer ${VM_PLACEHOLDER_API_KEY}`,
           "x-cmux-vm-id": "vm-1",
@@ -155,7 +155,7 @@ describe("coderouter models proxy with no account configured", () => {
     return { proxy, checks };
   }
 
-  const request = () => new Request("https://coderouter.dev/v1/models?client_version=0.146.0", {
+  const request = () => new Request("https://cmux.w3dev.app/v1/models?client_version=0.146.0", {
     headers: { authorization: "Bearer crt_route" },
   });
 
@@ -166,7 +166,7 @@ describe("coderouter models proxy with no account configured", () => {
     expect(response.headers.get("retry-after")).toBeNull();
     expect(await response.json()).toEqual({
       error: {
-        message: "No Codex account is configured for this team or shared with this caller. Add one with `cr add codex` or at coderouter.dev.",
+        message: "No Codex account is configured for this team or shared with this caller. Add one with `cr add codex` or at https://cmux.w3dev.app/dashboard/coderouter.",
         type: "invalid_request_error",
         code: "no_account_configured",
       },
@@ -179,7 +179,7 @@ describe("coderouter models proxy with no account configured", () => {
     vmRequest.headers.set("x-cmux-vm-id", "vm-1");
     const response = await noAccountModelsProxy(false, "vm-1").proxy(vmRequest);
     expect(response.status).toBe(403);
-    expect((await response.json()).error.message).toBe("No Codex account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at coderouter.dev, or add one here with `cr add codex` (accounts added on a Cloud machine are shared with its team).");
+    expect((await response.json()).error.message).toBe("No Codex account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at https://cmux.w3dev.app/dashboard/coderouter, or add one here with `cr add codex` (accounts added on a Cloud machine are shared with its team).");
   });
 
   test("a caller whose accounts are all unavailable still gets a retryable 503", async () => {

@@ -1,7 +1,7 @@
 export function vaultSignInHref(returnPath: string): string {
-  const afterSignIn = new URL("/handler/after-sign-in", "https://cmux.com");
+  const afterSignIn = new URL("/handler/after-sign-in", "https://cmux.w3dev.app");
   afterSignIn.searchParams.set("after_auth_return_to", returnPath);
-  const signIn = new URL("/handler/sign-in", "https://cmux.com");
+  const signIn = new URL("/handler/sign-in", "https://cmux.w3dev.app");
   signIn.searchParams.set(
     "after_auth_return_to",
     `${afterSignIn.pathname}${afterSignIn.search}`,
@@ -15,7 +15,7 @@ export function vaultSignInHref(returnPath: string): string {
  * signed out first.
  */
 export function vaultSwitchAccountHref(returnPath: string): string {
-  const url = new URL(vaultSignInHref(returnPath), "https://cmux.com");
+  const url = new URL(vaultSignInHref(returnPath), "https://cmux.w3dev.app");
   url.searchParams.set("prompt", "select_account");
   return `${url.pathname}${url.search}`;
 }

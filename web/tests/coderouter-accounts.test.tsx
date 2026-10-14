@@ -2,6 +2,7 @@ import { afterEach, describe, expect, mock, test } from "bun:test";
 import { MutationObserver, QueryClient, QueryClientProvider, type UseMutationOptions } from "@tanstack/react-query";
 import { renderToStaticMarkup as renderMarkup } from "react-dom/server";
 import type React from "react";
+import { createTranslator } from "use-intl/core";
 import enMessages from "../messages/en.json";
 import { coderouterApiKeysQueryKey, coderouterOverviewQuery } from "../dashboard-app/queries/coderouter";
 import {
@@ -26,6 +27,7 @@ function renderToStaticMarkup(element: React.ReactElement, queryClient = new Que
 }
 
 mock.module("next-intl", () => ({
+  createTranslator,
   useTranslations: (namespace: string) => translator(namespace),
   useFormatter: () => ({
     dateTime: (date: Date) => date.toISOString().slice(0, 10),

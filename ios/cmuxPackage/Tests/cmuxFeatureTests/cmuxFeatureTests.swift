@@ -13,7 +13,7 @@ import CmuxMobileTransport
 /// iOS Simulator without a host app. This is the untagged development scheme,
 /// the same value the host fallback produced.
 private let pairingScheme = CmxPairingURLScheme(
-    rawValue: "cmux-ios-dev.cmux.ios"
+    rawValue: "cmux-w3dev-ios-app.w3dev.cmux.ios.debug"
 )
 
 import CmuxMobileWorkspace
@@ -415,7 +415,7 @@ final class TerminalOutputCollector {
                 buildType: .dev,
                 appVersion: "0.65.0",
                 appBuild: "10",
-                bundleIdentifier: "dev.cmux.ios.test",
+                bundleIdentifier: "app.w3dev.cmux.ios.debug.test",
                 osVersion: "iOS test",
                 deviceModel: "test"
             )
@@ -628,7 +628,7 @@ final class TerminalOutputCollector {
                 buildType: .dev,
                 appVersion: "0.65.0",
                 appBuild: "10",
-                bundleIdentifier: "dev.cmux.ios.test",
+                bundleIdentifier: "app.w3dev.cmux.ios.debug.test",
                 osVersion: "iOS test",
                 deviceModel: "test"
             )
@@ -1822,7 +1822,7 @@ final class TerminalOutputCollector {
                 buildType: .dev,
                 appVersion: "0.65.0",
                 appBuild: "10",
-                bundleIdentifier: "dev.cmux.ios.test",
+                bundleIdentifier: "app.w3dev.cmux.ios.debug.test",
                 osVersion: "iOS test",
                 deviceModel: "test"
             )
@@ -1873,7 +1873,7 @@ final class TerminalOutputCollector {
                 buildType: .dev,
                 appVersion: "1.0.0",
                 appBuild: "10",
-                bundleIdentifier: "dev.cmux.ios.test",
+                bundleIdentifier: "app.w3dev.cmux.ios.debug.test",
                 osVersion: "iOS test",
                 deviceModel: "test"
             )
@@ -1918,7 +1918,7 @@ final class TerminalOutputCollector {
                 buildType: .dev,
                 appVersion: "1.0.0",
                 appBuild: "10",
-                bundleIdentifier: "dev.cmux.ios.test",
+                bundleIdentifier: "app.w3dev.cmux.ios.debug.test",
                 osVersion: "iOS test",
                 deviceModel: "test"
             )
@@ -4024,7 +4024,7 @@ private actor ScriptedTransportResponses {
                 topics: params["topics"] as? [String],
                 hasAuth: auth != nil,
                 attachToken: auth?["attach_token"] as? String,
-                stackAccessToken: auth?["stack_access_token"] as? String
+                stackAccessToken: auth?["access_token"] as? String
             )
         }
     }
@@ -4065,7 +4065,7 @@ private func recordedRPCRequest(from payload: Data) throws -> RecordedRPCRequest
         topics: params["topics"] as? [String],
         hasAuth: auth != nil,
         attachToken: auth?["attach_token"] as? String,
-        stackAccessToken: auth?["stack_access_token"] as? String
+        stackAccessToken: auth?["access_token"] as? String
     )
 }
 

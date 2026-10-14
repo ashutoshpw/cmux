@@ -80,7 +80,7 @@ extension RemoteTmuxSizingUITests {
         return (response["stdout"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    /// The app binds a TAG-DERIVED socket (`/tmp/cmux-debug-<slug>.sock`) and
+    /// The app binds a TAG-DERIVED socket (`/tmp/cmux-w3dev-debug-<slug>.sock`) and
     /// ignores CMUX_SOCKET_PATH in tag mode, so probe both and adopt whichever
     /// answers — matching the passing browser/automation UITests. Once found,
     /// `socketPath` is updated so every later call uses the live socket.
@@ -120,7 +120,7 @@ extension RemoteTmuxSizingUITests {
         return object.reduce(into: [:]) { $0[$1.key] = String(describing: $1.value) }
     }
 
-    /// `/tmp/cmux-debug-<slug>.sock`, the path the app derives from CMUX_TAG.
+    /// `/tmp/cmux-w3dev-debug-<slug>.sock`, the path the app derives from CMUX_TAG.
     func taggedSocketPath() -> String {
         let slug = launchTag
             .lowercased()
@@ -129,7 +129,7 @@ extension RemoteTmuxSizingUITests {
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty }
             .joined(separator: "-")
-        return "/tmp/cmux-debug-\(slug).sock"
+        return "/tmp/cmux-w3dev-debug-\(slug).sock"
     }
 
     func socketJSON(method: String, params: [String: Any]) -> [String: Any]? {

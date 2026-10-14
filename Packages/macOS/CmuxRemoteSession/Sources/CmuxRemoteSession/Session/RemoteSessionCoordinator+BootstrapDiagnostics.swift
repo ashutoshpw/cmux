@@ -2,7 +2,7 @@ internal import Foundation
 internal import OSLog
 
 nonisolated private let remoteBootstrapLogger = Logger(
-    subsystem: "com.cmuxterm.app",
+    subsystem: "app.w3dev.cmux",
     category: "RemoteDaemonBootstrap"
 )
 

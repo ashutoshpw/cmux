@@ -4,7 +4,7 @@ import Foundation
 import os
 
 private let pairedMacPersistenceLog = Logger(
-    subsystem: "com.cmuxterm.app",
+    subsystem: "app.w3dev.cmux",
     category: "MobilePairedMacPersistence"
 )
 

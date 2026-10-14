@@ -13,19 +13,19 @@ import Testing
 struct CloudNightlyOverrideTests {
     private let cloud = CmuxFeatureFlags.cloudMachinesFlag
     private let nightly = CmuxFeatureFlagOverrideCapability(
-        bundleIdentifier: "com.cmuxterm.app.nightly", isDebugBuild: false
+        bundleIdentifier: "app.w3dev.cmux.nightly", isDebugBuild: false
     )
 
     @Test(arguments: [
-        ("com.cmuxterm.app.nightly", false, true),
-        ("com.cmuxterm.app.debug", true, true),
-        ("com.cmuxterm.app.debug.issue12705", true, true),
-        ("com.cmuxterm.app", false, false),
-        ("com.cmuxterm.app", true, false),
-        ("com.cmuxterm.app.staging", false, false),
-        ("com.cmuxterm.app.debug.issue12705", false, false),
-        ("com.cmuxterm.app.nightly-lookalike", false, false),
-        ("com.cmuxterm.app.nightly.suffix", false, false),
+        ("app.w3dev.cmux.nightly", false, true),
+        ("app.w3dev.cmux.debug", true, true),
+        ("app.w3dev.cmux.debug.issue12705", true, true),
+        ("app.w3dev.cmux", false, false),
+        ("app.w3dev.cmux", true, false),
+        ("app.w3dev.cmux.staging", false, false),
+        ("app.w3dev.cmux.debug.issue12705", false, false),
+        ("app.w3dev.cmux.nightly-lookalike", false, false),
+        ("app.w3dev.cmux.nightly.suffix", false, false),
         ("unknown.NIGHTLY", false, false),
         ("", true, false)
     ])
@@ -49,7 +49,7 @@ struct CloudNightlyOverrideTests {
         _ = CmuxFeatureFlags(
             defaults: defaults,
             overrideCapability: CmuxFeatureFlagOverrideCapability(
-                bundleIdentifier: "com.cmuxterm.app.debug.old", isDebugBuild: true,
+                bundleIdentifier: "app.w3dev.cmux.debug.old", isDebugBuild: true,
                 cloudDogfoodRequested: false, cloudDogfoodMarkerPresent: true
             ),
             remoteFlagValueProvider: { _ in false }
@@ -72,7 +72,7 @@ struct CloudNightlyOverrideTests {
         _ = CmuxFeatureFlags(
             defaults: defaults,
             overrideCapability: CmuxFeatureFlagOverrideCapability(
-                bundleIdentifier: "com.cmuxterm.app.debug", isDebugBuild: true, cloudDogfoodRequested: false
+                bundleIdentifier: "app.w3dev.cmux.debug", isDebugBuild: true, cloudDogfoodRequested: false
             ),
             remoteFlagValueProvider: { _ in false }
         )
@@ -167,7 +167,7 @@ struct CloudNightlyOverrideTests {
         dogfood.setOverride(persistedOverride, for: cloud)
         let stable = CmuxFeatureFlags(
             defaults: defaults,
-            overrideCapability: .init(bundleIdentifier: "com.cmuxterm.app", isDebugBuild: false),
+            overrideCapability: .init(bundleIdentifier: "app.w3dev.cmux", isDebugBuild: false),
             remoteFlagValueProvider: { _ in true }
         )
         stable.applyLoadedFlags()
@@ -204,9 +204,9 @@ struct CloudNightlyOverrideTests {
         }
     }
 
-    @Test(arguments: ["com.cmuxterm.app", "com.cmuxterm.app.staging",
-                      "com.cmuxterm.app.nightly", "com.cmuxterm.app.debug",
-                      "com.cmuxterm.app.debug.cloud-dogfood"])
+    @Test(arguments: ["app.w3dev.cmux", "app.w3dev.cmux.staging",
+                      "app.w3dev.cmux.nightly", "app.w3dev.cmux.debug",
+                      "app.w3dev.cmux.debug.cloud-dogfood"])
     func reloadMarkerPreservesTaggedDebugActivation(bundleID: String) throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -233,7 +233,7 @@ struct CloudNightlyOverrideTests {
         )
         flags.applyLoadedFlags()
         #if DEBUG
-        let expected = bundleID == "com.cmuxterm.app.debug.cloud-dogfood"
+        let expected = bundleID == "app.w3dev.cmux.debug.cloud-dogfood"
         #else
         let expected = false
         #endif

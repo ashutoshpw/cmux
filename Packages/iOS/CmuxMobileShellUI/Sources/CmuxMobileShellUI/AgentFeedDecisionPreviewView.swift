@@ -248,7 +248,7 @@ public struct AgentFeedDecisionPreviewView: View {
             monitor.stop()
             let state = Task.isCancelled ? "cancelled" : "complete"
             stressMetrics = monitor.markerValue(state: state)
-            Logger(subsystem: "dev.cmux.ios", category: "AgentFeedScrollStress").notice(
+            Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "AgentFeedScrollStress").notice(
                 "AFSCROLLSTRESS \(self.stressMetrics, privacy: .public)"
             )
         }

@@ -87,6 +87,6 @@ struct CmxIrohBrokerCredentialPairTests {
         // Both header values come from the SAME snapshot (index 0), so an old
         // access token is never paired with a rotated refresh token.
         #expect(captured.value(forHTTPHeaderField: "Authorization") == "Bearer access-0")
-        #expect(captured.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == "refresh-0")
+        #expect(captured.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == nil)
     }
 }

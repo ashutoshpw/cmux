@@ -169,7 +169,7 @@ public struct BrowserURLAllowlistPattern: Equatable, Hashable, Sendable {
 
 /// Resolves the effective MDM or user URL allowlist for embedded browsing.
 public struct BrowserURLAllowlistPolicy: Equatable, Sendable {
-    /// The administrator-facing forced preference key in `com.cmuxterm.app`.
+    /// The administrator-facing forced preference key in `app.w3dev.cmux`.
     public static let managedDefaultsKey = ManagedDevicePolicyKey.browserURLAllowlist.rawValue
 
     /// The regular user preference key used by Settings and `cmux.json`.

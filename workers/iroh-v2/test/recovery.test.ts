@@ -10,7 +10,7 @@ const authority = {
   projectId: "project",
   teamId: "team",
   userId: "user",
-  verifiedAt: now,
+   sessionId: "auth-session", verifiedAt: now,
 };
 
 test("the owning Mac can recover a forgotten registration with fresh Stack auth", async () => {

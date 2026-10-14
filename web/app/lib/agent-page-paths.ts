@@ -384,7 +384,7 @@ export function buildLlmsText(origin: string): string {
     "- Agent pages: every public page has Markdown and plain-text variants for AI crawlers and answer engines.",
     `- Download: ${origin}/docs/getting-started`,
     `- Updates: ${origin}/feed.xml`,
-    "- Source: https://github.com/manaflow-ai/cmux",
+    "- Source: https://github.com/ashutoshpw/cmux",
     "",
     "## Comparisons and buying guides",
     "",

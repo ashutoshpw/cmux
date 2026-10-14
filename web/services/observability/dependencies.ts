@@ -11,7 +11,6 @@ const DEPENDENCY_NAMES: ReadonlyArray<readonly [RegExp, string]> = [
   [/(^|\.)stack-auth\.com$/, "stack-auth"],
   [/(^|\.)stripe\.com$/, "stripe"],
   [/(^|\.)posthog\.com$/, "posthog"],
-  [/^r\.cmux\.com$/, "posthog"],
   [/(^|\.)sentry\.io$/, "sentry"],
   [/(^|\.)slack\.com$/, "slack"],
   [/(^|\.)github\.com$/, "github"],
@@ -25,8 +24,8 @@ const DEPENDENCY_NAMES: ReadonlyArray<readonly [RegExp, string]> = [
   [/(^|\.)anthropic\.com$/, "anthropic"],
   [/(^|\.)amazonaws\.com$/, "aws"],
   [/(^|\.)cloudflare\.com$/, "cloudflare"],
-  [/(^|\.)cmux\.com$/, "cmux"],
-  [/(^|\.)cmux\.sh$/, "cmux-vm"],
+  [/(^|\.)vm\.cmux\.w3dev\.app$/, "cmux-vm"],
+  [/(^|\.)cmux\.w3dev\.app$/, "cmux"],
 ];
 
 export function dependencyNameForHost(host: string): string {

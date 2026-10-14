@@ -24,7 +24,7 @@ if [ -n "$terminal" ] && [ -x "$binary" ]; then
   # The daemon waits at most five seconds for the frontend acknowledgement.
   # timeout also fences a wedged/older CLI before the calling auth tool resumes.
   result="$(timeout 8 "$binary" --session "$session" --json raw command --request-json "$request" 2>/dev/null || true)"
-  if printf '%s' "$result" | jq -e '.opened == true' >/dev/null 2>&1; then exit 0; fi
+  if printf '%s' "$result" | jq -se 'length == 1 and .[0].opened == true' >/dev/null 2>&1; then exit 0; fi
 fi
 cmux_message openURLFallback "$url"
 exit 0

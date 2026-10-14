@@ -54,7 +54,7 @@ jobs:
       SOURCE_RUN_ID: ${{ github.event.workflow_run.id || inputs.source_run_id }}
       RELEASE_TAG: cmux-next-dev
       APP_NAME: cmux NEXT DEV
-      BUNDLE_ID: com.cmuxterm.app.debug.next
+      BUNDLE_ID: app.w3dev.cmux.debug.next
       APP_ARCHIVE_NAME: cmux-NEXT-DEV.zip
       # A source run may have unrelated red checks while its app-producing Mac
       # job succeeded. Those independent reds must not suppress this channel.

@@ -161,7 +161,7 @@ final class RecordingAnalytics: AnalyticsEmitting, @unchecked Sendable {
 /// Shared fixtures.
 struct BillingFixtures {
     static let token = UUID(uuidString: "6F9619FF-8B86-D011-B42D-00C04FC964FF")!
-    static let bundle = "dev.cmux.ios"
+    static let bundle = "app.w3dev.cmux.ios.debug"
 
     static func reference(_ plan: BillingPlanID) -> BillingProductReference {
         BillingProductReference(productID: "\(bundle).\(plan.rawValue).monthly", planID: plan)

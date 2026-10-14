@@ -19,7 +19,7 @@ struct MobileBuildTypeTests {
     @Test func appStoreBundleResolvesToProd() {
         let resolved = MobileBuildType.resolve(
             isDebugBuild: false,
-            bundleIdentifier: "com.cmux.app"
+            bundleIdentifier: "app.w3dev.cmux.ios"
         )
         #expect(resolved == .prod)
         #expect(!resolved.usesInternalBuildVocabulary)
@@ -38,6 +38,6 @@ struct MobileBuildTypeTests {
         // Tests compile DEBUG, so `current()` short-circuits to `.dev` before
         // consulting the bundle identifier. This documents why channel-gated
         // copy is asserted through explicit build-type injection.
-        #expect(MobileBuildType.current(bundleIdentifier: "com.cmux.app") == .dev)
+        #expect(MobileBuildType.current(bundleIdentifier: "app.w3dev.cmux.ios") == .dev)
     }
 }

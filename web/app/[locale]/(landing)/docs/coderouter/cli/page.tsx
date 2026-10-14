@@ -29,7 +29,7 @@ export default async function CoderouterCliPage({
 
       <DocsHeading level={2} id="install">{t("installTitle")}</DocsHeading>
       <p>{t("installDesc")}</p>
-      <CodeBlock lang="bash">{`curl -fsSL https://cmux.com/coderouter/install.sh | sh
+      <CodeBlock lang="bash">{`curl -fsSL https://cmux.w3dev.app/coderouter/install.sh | sh
 npm install -g coderouter
 uv tool install coderouter`}</CodeBlock>
       <p>{t("loginDesc")}</p>

@@ -9,7 +9,7 @@ import XCTest
 @testable import cmux
 #endif
 
-/// The `rc` release channel (`com.cmuxterm.app.rc`, "cmux RC.app") is a fourth
+/// The `rc` release channel (`app.w3dev.cmux.rc`, "cmux RC.app") is a fourth
 /// lane next to stable, nightly, and staging. These tests pin the identity
 /// surfaces that key off the channel: build flavor, socket path, icon
 /// persistence, and the update feed.
@@ -18,14 +18,14 @@ final class RCChannelIdentityTests: XCTestCase {
     func testBundleIconPersistenceSkipsRCBundles() {
         XCTAssertFalse(
             AppBundleIconPersistencePolicy.shouldPersist(
-                bundleIdentifier: "com.cmuxterm.app.rc",
+                bundleIdentifier: "app.w3dev.cmux.rc",
                 appBundleLastPathComponent: "cmux RC.app",
                 persistenceDisabled: false
             )
         )
         XCTAssertFalse(
             AppBundleIconPersistencePolicy.shouldPersist(
-                bundleIdentifier: "com.cmuxterm.app.rc.candidate1",
+                bundleIdentifier: "app.w3dev.cmux.rc.candidate1",
                 appBundleLastPathComponent: "cmux RC candidate1.app",
                 persistenceDisabled: false
             )
@@ -35,58 +35,58 @@ final class RCChannelIdentityTests: XCTestCase {
     func testRCReleaseUsesDedicatedDefaultAndIgnoresAmbientSocketOverride() {
         let path = SocketControlSettings.socketPath(
             environment: [
-                "CMUX_SOCKET_PATH": "/tmp/cmux-debug-issue-153-tmux-compat.sock",
+                "CMUX_SOCKET_PATH": "/tmp/cmux-w3dev-debug-issue-153-tmux-compat.sock",
             ],
-            bundleIdentifier: "com.cmuxterm.app.rc",
+            bundleIdentifier: "app.w3dev.cmux.rc",
             isDebugBuild: false,
             probeStableDefaultPathEntry: { _ in .missing }
         )
 
-        XCTAssertEqual(path, "/tmp/cmux-rc.sock")
+        XCTAssertEqual(path, "/tmp/cmux-w3dev-rc.sock")
     }
 
     func testDefaultSocketPathForRCBundles() {
         XCTAssertEqual(
             SocketControlSettings.defaultSocketPath(
-                bundleIdentifier: "com.cmuxterm.app.rc",
+                bundleIdentifier: "app.w3dev.cmux.rc",
                 isDebugBuild: false,
                 probeStableDefaultPathEntry: { _ in .missing }
             ),
-            "/tmp/cmux-rc.sock"
+            "/tmp/cmux-w3dev-rc.sock"
         )
         XCTAssertEqual(
             SocketControlSettings.defaultSocketPath(
-                bundleIdentifier: "com.cmuxterm.app.rc.tag",
+                bundleIdentifier: "app.w3dev.cmux.rc.tag",
                 isDebugBuild: false,
                 probeStableDefaultPathEntry: { _ in .missing }
             ),
-            "/tmp/cmux-rc-tag.sock"
+            "/tmp/cmux-w3dev-rc-tag.sock"
         )
     }
 
     func testDetectsRCFromBundleIdentifier() {
         XCTAssertEqual(
-            BuildFlavor.detect(bundleName: "cmux", bundleIdentifier: "com.cmuxterm.app.rc"),
+            BuildFlavor.detect(bundleName: "cmux-w3dev", bundleIdentifier: "app.w3dev.cmux.rc"),
             .rc
         )
         XCTAssertEqual(
-            BuildFlavor.detect(bundleName: "cmux", bundleIdentifier: "com.cmuxterm.app.rc.candidate1"),
+            BuildFlavor.detect(bundleName: "cmux-w3dev", bundleIdentifier: "app.w3dev.cmux.rc.candidate1"),
             .rc
         )
     }
 
     func testDetectsRCFromBundleName() {
         XCTAssertEqual(
-            BuildFlavor.detect(bundleName: "cmux RC", bundleIdentifier: "com.cmuxterm.app"),
+            BuildFlavor.detect(bundleName: "cmux RC", bundleIdentifier: "app.w3dev.cmux"),
             .rc
         )
     }
 
     func testResolvedFeedDetectsRCFromInfoFeedURL() {
         let resolved = UpdateFeedResolver(hostArchitecture: .arm64).resolve(
-            infoFeedURL: "https://files.cmux.com/rc/appcast.xml"
+            infoFeedURL: "https://files.cmux.w3dev.app/rc/appcast.xml"
         )
-        XCTAssertEqual(resolved.url, "https://files.cmux.com/rc/appcast-arm64.xml")
+        XCTAssertEqual(resolved.url, "https://files.cmux.w3dev.app/rc/appcast-arm64.xml")
         XCTAssertEqual(resolved.channel, .rc)
         XCTAssertFalse(resolved.isNightly)
         XCTAssertFalse(resolved.usedFallback)
@@ -98,14 +98,14 @@ extension GhosttyConfigPathResolverTests {
         try withTemporaryAppSupportDirectory { appSupportDirectory in
             let releaseConfigURL = try writeAppSupportConfig(
                 appSupportDirectory: appSupportDirectory,
-                bundleIdentifier: "com.cmuxterm.app",
+                bundleIdentifier: "app.w3dev.cmux",
                 filename: "config.ghostty",
                 contents: "font-size = 13\n"
             )
 
             XCTAssertEqual(
                 GhosttyApp.cmuxAppSupportConfigURLs(
-                    currentBundleIdentifier: "com.cmuxterm.app.rc",
+                    currentBundleIdentifier: "app.w3dev.cmux.rc",
                     appSupportDirectory: appSupportDirectory
                 ),
                 [releaseConfigURL]
@@ -117,20 +117,20 @@ extension GhosttyConfigPathResolverTests {
         try withTemporaryAppSupportDirectory { appSupportDirectory in
             _ = try writeAppSupportConfig(
                 appSupportDirectory: appSupportDirectory,
-                bundleIdentifier: "com.cmuxterm.app",
+                bundleIdentifier: "app.w3dev.cmux",
                 filename: "config.ghostty",
                 contents: "font-size = 13\n"
             )
             let rcConfigURL = try writeAppSupportConfig(
                 appSupportDirectory: appSupportDirectory,
-                bundleIdentifier: "com.cmuxterm.app.rc",
+                bundleIdentifier: "app.w3dev.cmux.rc",
                 filename: "config.ghostty",
                 contents: "font-size = 15\n"
             )
 
             XCTAssertEqual(
                 GhosttyApp.cmuxAppSupportConfigURLs(
-                    currentBundleIdentifier: "com.cmuxterm.app.rc",
+                    currentBundleIdentifier: "app.w3dev.cmux.rc",
                     appSupportDirectory: appSupportDirectory
                 ),
                 [rcConfigURL]

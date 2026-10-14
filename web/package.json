@@ -50,7 +50,8 @@
     "typecheck": "tsgo --noEmit",
     "lint": "eslint",
     "lint:complexity": "bun scripts/check-complexity.mjs",
-    "test:e2e:dashboard": "playwright test -c playwright.dashboard.config.ts"
+    "test:e2e:dashboard": "playwright test -c playwright.dashboard.config.ts",
+    "auth:seed-local-oauth": "bun scripts/auth/seed-local-oauth.ts"
   },
   "dependencies": {
     "@apple/app-store-server-library": "^3.1.0",
@@ -59,6 +60,8 @@
     "@aws-sdk/rds-signer": "^3.1045.0",
     "@aws-sdk/s3-request-presigner": "^3.1045.0",
     "@base-ui-components/react": "^1.0.0-rc.0",
+    "@better-auth/oauth-provider": "1.7.7",
+    "@better-auth/passkey": "1.7.7",
     "@effect/experimental": "0.57.9",
     "@effect/opentelemetry": "0.59.2",
     "@effect/platform": "0.93.6",
@@ -85,6 +88,7 @@
     "@vercel/functions": "^2.2.13",
     "@vercel/oidc-aws-credentials-provider": "^3.1.1",
     "@vercel/otel": "^2.1.2",
+    "better-auth": "1.7.7",
     "browser-image-compression": "2.0.2",
     "drizzle-orm": "1.0.0-beta.22",
     "effect": "^3.21.2",

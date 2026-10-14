@@ -137,7 +137,7 @@ function messagesRequest(
   body: Record<string, unknown> = { model: "claude-sonnet-4-5", max_tokens: 8, messages: [] },
   headers: Record<string, string> = {},
 ): Request {
-  return new Request("https://coderouter.dev/v1/messages", {
+  return new Request("https://cmux.w3dev.app/v1/messages", {
     method: "POST",
     headers: {
       "anthropic-version": "2023-06-01",
@@ -254,7 +254,7 @@ describe("claude proxy auth", () => {
       type: "error",
       error: {
         type: "permission_error",
-        message: "No Claude upstream account is configured for this team or shared with this caller. Add one with `cmux coderouter claude add` or at coderouter.dev.",
+        message: "No Claude upstream account is configured for this team or shared with this caller. Add one with `cmux coderouter claude add` or at https://cmux.w3dev.app/dashboard/coderouter.",
       },
     });
     expect(outcome).toMatchObject({
@@ -267,7 +267,7 @@ describe("claude proxy auth", () => {
     upstream = null;
     const { response } = await routed(messagesRequest());
     expect(response.status).toBe(403);
-    expect((await response.json()).error.message).toBe("No Claude upstream account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at coderouter.dev, or add one here with `cr add claude` (accounts added on a Cloud machine are shared with its team).");
+    expect((await response.json()).error.message).toBe("No Claude upstream account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at https://cmux.w3dev.app/dashboard/coderouter, or add one here with `cr add claude` (accounts added on a Cloud machine are shared with its team).");
   });
 });
 
@@ -351,7 +351,7 @@ describe("claude proxy direct Anthropic upstreams", () => {
   test("count_tokens and models forward to the matching Anthropic paths", async () => {
     upstreamResponse = () => Response.json({ input_tokens: 12 });
     const counted = await countTokens(
-      new Request("https://coderouter.dev/v1/messages/count_tokens", {
+      new Request("https://cmux.w3dev.app/v1/messages/count_tokens", {
         method: "POST",
         headers: { "anthropic-version": "2023-06-01", "content-type": "application/json" },
         body: "{}",
@@ -362,7 +362,7 @@ describe("claude proxy direct Anthropic upstreams", () => {
 
     upstreamResponse = () => Response.json({ data: [], has_more: false });
     const listed = await models(
-      new Request("https://coderouter.dev/v1/models?limit=5", {
+      new Request("https://cmux.w3dev.app/v1/models?limit=5", {
         headers: { "anthropic-version": "2023-06-01" },
       }),
     );
@@ -525,7 +525,7 @@ describe("claude proxy Bedrock upstream", () => {
   test("count_tokens uses the CountTokens API and falls back to an estimate", async () => {
     upstreamResponse = () => Response.json({ inputTokens: 55 });
     const request = () =>
-      new Request("https://coderouter.dev/v1/messages/count_tokens", {
+      new Request("https://cmux.w3dev.app/v1/messages/count_tokens", {
         method: "POST",
         headers: { "anthropic-version": "2023-06-01", "content-type": "application/json" },
         body: JSON.stringify({ model: "claude-haiku-4-5", messages: [{ role: "user", content: "hello" }] }),
@@ -549,7 +549,7 @@ describe("claude proxy Bedrock upstream", () => {
 
   test("models returns the static catalog in the Anthropic shape", async () => {
     const response = await models(
-      new Request("https://coderouter.dev/v1/models", { headers: { "anthropic-version": "2023-06-01" } }),
+      new Request("https://cmux.w3dev.app/v1/models", { headers: { "anthropic-version": "2023-06-01" } }),
     );
     const json = await response.json();
     expect(json.has_more).toBe(false);

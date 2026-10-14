@@ -142,7 +142,7 @@ enum MobileHostRPCEnvelope {
             return nil
         }
         let attachToken = nonEmptyString(auth["attach_token"])
-        let accessToken = nonEmptyString(auth["stack_access_token"])
+        let accessToken = nonEmptyString(auth["access_token"])
         guard attachToken != nil || accessToken != nil else {
             return nil
         }

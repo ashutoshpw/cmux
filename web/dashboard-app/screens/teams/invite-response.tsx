@@ -1,6 +1,6 @@
 "use client";
 
-import { useStackApp } from "@hexclave/next";
+import { useStackApp } from "@/app/lib/stack-client";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { localizedVaultPath, vaultSignInHref } from "@/app/lib/vault-auth";

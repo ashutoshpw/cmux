@@ -851,7 +851,7 @@ async function probeCodexCapacity(
     await reader.cancel().catch(() => undefined);
     throw error;
   }
-  let buffered = chunks.slice();
+  const buffered = chunks.slice();
   let upstreamDone = false;
   const stream = new ReadableStream<Uint8Array>({
     async pull(controller) {
@@ -1322,7 +1322,7 @@ async function sendResponses(
     case "openrouter-apikey":
       url = OPENROUTER_UPSTREAM;
       headers.set("authorization", `Bearer ${credential.apiKey}`);
-      headers.set("http-referer", "https://cmux.com");
+      headers.set("http-referer", "https://cmux.w3dev.app");
       headers.set("x-title", "cmux coderouter");
       headers.delete("session_id");
       headers.delete("openai-beta");
@@ -1412,7 +1412,7 @@ function modelsRequest(
         url: new URL(OPENROUTER_MODELS_UPSTREAM),
         headers: {
           authorization: `Bearer ${credential.apiKey}`,
-          "http-referer": "https://cmux.com",
+          "http-referer": "https://cmux.w3dev.app",
           "x-title": "cmux coderouter",
           "user-agent": userAgent,
         },

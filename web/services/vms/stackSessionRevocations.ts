@@ -1,16 +1,6 @@
-import { env } from "../../app/env";
-import { stackApiBaseURL } from "../auth/stackApiBaseURL";
-
-/**
- * Revoking a Cloud access grant also revokes the Stack sessions that enrolled
- * it. The grant and its tunnels are cut in our database first, so the Mac
- * loses Cloud network access no matter what Stack answers, and the sessions
- * are queued in `stack_session_revocations` in that same transaction. They
- * are revoked with the server key (`DELETE /auth/sessions/{id}`), which needs
- * no user token, so a revocation Stack throttled or failed is retried by the
- * vm-reconcile cron. A row is deleted when Stack accepts; after the attempt
- * cap or 24 hours it is marked given up and reported.
- */
+/** Owned session revocations are queued with access-grant removal and retried
+ * after transient database failures. Compatibility names retain the existing
+ * queue schema; no upstream provider credentials or HTTP calls are used. */
 export type StackSessionRevocationRow = {
   readonly stackSessionId: string;
   readonly userId: string;
@@ -31,7 +21,7 @@ export type StackSessionRevocationStore = {
   claimDue(now: Date, limit: number, leaseUntil: Date): Promise<readonly StackSessionRevocationRow[]>;
   /** Open (not given up) rows among these session ids, for the request's own first attempt. */
   listOpen(stackSessionIds: readonly string[]): Promise<readonly StackSessionRevocationRow[]>;
-  /** Stack accepted: the row is done and deleted. */
+  /** The owned session is absent: the queue row is done and deleted. */
   markRevoked(stackSessionId: string): Promise<void>;
   /** Count a failed attempt, schedule the next one, and stop at the cap or age limit. */
   recordFailure(stackSessionId: string, input: {
@@ -41,7 +31,7 @@ export type StackSessionRevocationStore = {
   }): Promise<StackSessionRevocationFailure | null>;
 };
 
-/** Revoke one session at Stack. Resolves when Stack no longer has it; throws otherwise. */
+/** Revoke one owned session. Missing session IDs are idempotent; database failures remain retryable. */
 export type StackSessionRevoker = (stackSessionId: string) => Promise<void>;
 
 export type StackSessionRevocationRetryPolicy = {
@@ -78,7 +68,7 @@ export type GiveUpReporter = (row: StackSessionRevocationRow & { readonly attemp
 
 /**
  * The request's first attempt at the sessions its grant revocation queued.
- * Answers `pending` while any session is still waiting for Stack, so the
+ * Answers `pending` while any session is still waiting for deletion, so the
  * caller never reports success it does not have.
  */
 export async function revokeAccessGrantStackSessions(input: {
@@ -146,41 +136,11 @@ function revocationErrorSummary(error: unknown): string {
   return typeof status === "number" ? `${name}: HTTP ${status}` : name;
 }
 
-/**
- * Stack's known error for a session (refresh token) that no longer exists or
- * expired: there is nothing left to revoke. (The SDK's known-error list has no
- * separate session-not-found code.)
- */
-const GONE_SESSION_ERRORS = new Set(["REFRESH_TOKEN_NOT_FOUND_OR_EXPIRED"]);
-
-/**
- * The exact request the Stack SDK sends for `ServerUser.revokeSession(id)`
- * (`HexclaveServerInterface.deleteServerSession`): `DELETE
- * /api/v1/auth/sessions/{id}` with server access headers and no body or
- * `user_id`; the session id alone names the session.
- */
-export function stackServerSessionRevoker(fetchImpl: typeof fetch = fetch): StackSessionRevoker {
-  return async (stackSessionId) => {
-    const projectId = env.NEXT_PUBLIC_STACK_PROJECT_ID;
-    const secretServerKey = env.STACK_SECRET_SERVER_KEY;
-    if (!projectId || !secretServerKey) throw new Error("Stack Auth is not configured");
-    const base = stackApiBaseURL();
-    const url = `${/\/api\/v1$/u.test(base) ? base : `${base}/api/v1`}/auth/sessions/${encodeURIComponent(stackSessionId)}`;
-    const response = await fetchImpl(url, {
-      method: "DELETE",
-      headers: {
-        "x-hexclave-access-type": "server",
-        "x-hexclave-project-id": projectId,
-        "x-hexclave-secret-server-key": secretServerKey,
-      },
-      signal: AbortSignal.timeout(10_000),
-      cache: "no-store",
-    });
-    await response.body?.cancel();
-    if (response.ok) return;
-    const knownError = response.headers.get("x-hexclave-known-error") ?? response.headers.get("x-stack-known-error");
-    if (knownError && GONE_SESSION_ERRORS.has(knownError)) return;
-    // No body in the error: Stack can echo account data.
-    throw Object.assign(new Error("Stack session revocation failed"), { status: response.status });
+/** Revokes an owned auth session; foreign or already-deleted IDs are idempotent no-ops. */
+export function stackServerSessionRevoker(): StackSessionRevoker {
+  return async (sessionId) => {
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(sessionId)) throw new Error("Owned session id is invalid");
+    const [{ cloudDb }, { betterAuthSession }, { eq }] = await Promise.all([import("../../db/client"), import("../../db/betterAuthSchema"), import("drizzle-orm")]);
+    await cloudDb().delete(betterAuthSession).where(eq(betterAuthSession.id, sessionId));
   };
 }

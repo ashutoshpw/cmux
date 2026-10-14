@@ -24,4 +24,6 @@ if (problems.length > 0) {
 }
 
 const defaults = manifest.images.filter((entry) => entry.provider === "freestyle" && entry.defaultForKind);
-console.log(`devbox image manifest ok: ${defaults.length} validated Freestyle defaults across base and desktop ladders, all baked from this checkout's devbox sources`);
+if (manifest.provisioningStatus === "unprovisioned") {
+  console.log("devbox image manifest is unprovisioned: VM creation remains disabled until owned images are baked and promoted");
+} else console.log(`devbox image manifest ok: ${defaults.length} validated Freestyle defaults across base and desktop ladders, all baked from this checkout's devbox sources`);

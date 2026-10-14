@@ -667,7 +667,7 @@ fn run_upgrade(rest: &[OsString]) -> Result<i32, Error> {
             ));
         }
     };
-    const PRICING_URL: &str = "https://cmux.com/pricing";
+    const PRICING_URL: &str = "https://cmux.w3dev.app/pricing";
     println!("Upgrade cmux Pro or Team:\n  {PRICING_URL}");
     if !no_browser && std::env::var_os("CODEROUTER_NO_BROWSER").is_none() {
         let _ = webbrowser::open(PRICING_URL);
@@ -831,7 +831,7 @@ mod tests {
     #[test]
     fn pi_provider_extension_references_the_route_token_without_embedding_it() {
         let extension = pi_provider_extension(
-            "https://coderouter.dev/v1",
+            "https://cmux.w3dev.app/v1",
             &[control_plane::CodexModel {
                 id: "gpt-test".into(),
                 name: "GPT Test".into(),

@@ -17,8 +17,7 @@ const ALLOW_HEADERS = "If-None-Match, Content-Type";
  * must stay on cmux-owned or cmux-release hosts.
  */
 const ALLOWED_DOWNLOAD_URL_HOSTS = new Set([
-  "cmux.com",
-  "www.cmux.com",
+  "cmux.w3dev.app",
   "github.com",
 ]);
 // One to three components, matching the client's MobileMacAppVersion

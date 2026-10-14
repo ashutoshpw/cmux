@@ -39,9 +39,9 @@ public struct MobileIOSAppNamespace: Equatable, Hashable, Sendable {
             return nil
         }
         let bundleIdentifier = if tag.isEmpty || tag == "default" {
-            "com.cmux.app"
+            "app.w3dev.cmux.ios"
         } else {
-            "dev.cmux.ios.\(tag)"
+            "app.w3dev.cmux.ios.debug.\(tag)"
         }
         self.init(bundleIdentifier: bundleIdentifier)
     }
@@ -58,7 +58,7 @@ public struct MobileIOSAppNamespace: Equatable, Hashable, Sendable {
 
     /// The only pairing URL scheme this bundle registers with iOS.
     public var pairingURLScheme: String {
-        "cmux-ios-\(bundleIdentifier)"
+        "cmux-w3dev-ios-\(bundleIdentifier)"
     }
 
     /// Opaque server partition for data restored to this exact app bundle.
@@ -78,10 +78,10 @@ public struct MobileIOSAppNamespace: Equatable, Hashable, Sendable {
     /// and Demo intentionally adopt nothing because their old unscoped records
     /// cannot be attributed without risking cross-build restore.
     public var legacyBackupScope: MobileIOSLegacyBackupScope? {
-        if bundleIdentifier == "com.cmux.app" {
+        if bundleIdentifier == "app.w3dev.cmux.ios" {
             return .unscoped
         }
-        let prefix = "dev.cmux.ios."
+        let prefix = "app.w3dev.cmux.ios.debug."
         guard bundleIdentifier.hasPrefix(prefix),
               let buildScope = MobileIOSBuildScope(
                 String(bundleIdentifier.dropFirst(prefix.count))

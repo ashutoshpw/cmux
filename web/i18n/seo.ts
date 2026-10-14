@@ -2,7 +2,7 @@ import { locales } from "./routing";
 import { docsCanonicalOrigin } from "@/app/lib/docs-channel";
 import { resolveAgentPageVariant } from "@/app/lib/agent-page-paths";
 
-const BASE = "https://cmux.com";
+const BASE = "https://cmux.w3dev.app";
 const DEFAULT_OG_IMAGE_PATH = "/opengraph-image";
 const BROWSER_OG_IMAGE_PATH = "/browser-opengraph-image";
 

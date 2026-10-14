@@ -18,11 +18,11 @@ extension PresenceClient {
     /// instance.
     public static let serviceURLInfoPlistKey = "CMUXPresenceBaseURL"
     /// The dev/staging worker (dev Stack project); see workers/presence/README.md.
-    public static let debugDefaultServiceURL = "https://cmux-presence-dev.debussy.workers.dev"
+    public static let debugDefaultServiceURL = "https://presence.staging.cmux.w3dev.app"
     /// The production presence worker (prod Stack project); see
     /// workers/presence/README.md. The Release default, so a stable iOS app
     /// subscribes to the same presence service stable Macs heartbeat to.
-    public static let productionServiceURL = "https://presence.cmux.dev"
+    public static let productionServiceURL = "https://presence.cmux.w3dev.app"
 
     /// The presence service base URL for this process. Release builds and the
     /// production auth channel always use the production worker. Otherwise the

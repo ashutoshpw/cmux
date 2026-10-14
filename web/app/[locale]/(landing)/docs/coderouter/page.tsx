@@ -59,7 +59,7 @@ export default async function CoderouterOverviewPage({
           <tr><td>{t("accountBedrock")}</td><td>Claude Code</td><td><code>cmux coderouter claude add bedrock</code></td></tr>
         </tbody>
       </table>
-      <p>{t("accountsDashboard")} <Link href="/dashboard/coderouter" className={linkClass}>cmux.com/dashboard/coderouter</Link></p>
+      <p>{t("accountsDashboard")} <Link href="/dashboard/coderouter" className={linkClass}>cmux.w3dev.app/dashboard/coderouter</Link></p>
 
       <DocsHeading level={2} id="routing">{t("routingTitle")}</DocsHeading>
       <p>{t("routingSticky")}</p>
@@ -73,7 +73,7 @@ export default async function CoderouterOverviewPage({
         <li>{t("stepAdd")}</li>
         <li>{t("stepRun")}</li>
       </ol>
-      <CodeBlock lang="bash">{`curl -fsSL https://cmux.com/coderouter/install.sh | sh
+      <CodeBlock lang="bash">{`curl -fsSL https://cmux.w3dev.app/coderouter/install.sh | sh
 cr login
 cr add codex
 cr codex`}</CodeBlock>

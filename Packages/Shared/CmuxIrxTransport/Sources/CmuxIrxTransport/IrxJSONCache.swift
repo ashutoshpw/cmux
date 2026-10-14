@@ -24,7 +24,7 @@ extension IrxDiskCache: IrxJSONCache {}
 /// actor. RECONCILE: if the shared store ever grows a synchronous facade,
 /// fold this onto it.
 public struct IrxKeychainJSONCache<Value: Codable & Sendable>: IrxJSONCache {
-    public static var service: String { "com.cmuxterm.irx.cache.v1" }
+    public static var service: String { "app.w3dev.cmux.irx.cache.v1" }
 
     private let account: String
     private let accessGroup: String?

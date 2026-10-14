@@ -52,7 +52,7 @@ public enum MobilePairingFailureCategory: Equatable, Sendable {
     case authFailed
     /// The QR's account binding (`ub`) cannot match because the two auth
     /// channels are DECLARED to differ: the scanned URL's scheme names the
-    /// Mac's channel (release Macs emit `cmux-ios`, dev Macs `cmux-ios-dev`,
+    /// Mac's channel (release Macs emit `cmux-ios`, dev Macs `cmux-w3dev-ios-dev`,
     /// #6038) and it is the opposite of this build's resolved auth
     /// environment. Stack user ids are per-project, so a development-project
     /// id never equals a production-project id — even for the same email.

@@ -18,7 +18,7 @@ const AttachmentSchema = z.strictObject({
   version: z.literal(1),
   session: z.strictObject({
     sessionId: identifier, userId: identifier, identity: IdentitySchema, endpointId: endpointID,
-    identityGeneration: revision, expiresAt: timestamp,
+    identityGeneration: revision, expiresAt: timestamp, authSessionId: identifier.optional(),
   }),
   closed: z.boolean(),
 });
@@ -188,6 +188,7 @@ export class AccountControl extends DurableObject<Environment> {
       broker = new AccountBroker({
         store: this.store, userId, now: () => Math.floor(Date.now() / 1000),
         relayURLs: services.relays.configuration.relayURLs,
+        verifySession: session => services.stack.verifyTeamMember(session.identity.teamId, session.userId, { ...scope, teamId: session.identity.teamId, userId: session.userId, sessionId: session.authSessionId ?? "", verifiedAt: 0 }),
         teamRecords: (teamId: string, identities: Identity[]) => this.env.TEAM_CONTROL
           .getByName(objectName(scope.environment, scope.projectId, teamId)).accountMacRecords(teamId, identities),
       });

@@ -3,8 +3,7 @@ import CmuxBrowser
 import Foundation
 import WebKit
 
-/// Exchanges the native Stack session for browser cookies without allowing
-/// WebKit navigation to own the exchange lifecycle.
+/// Opens fork app links in isolated browser storage without copying native credentials.
 @MainActor
 final class BrowserAppSessionController {
     static let appSessionWebsiteDataTypes = WKWebsiteDataStore.allWebsiteDataTypes()
@@ -12,11 +11,7 @@ final class BrowserAppSessionController {
     private static let maximumCleanupAttemptsPerOwnership = 2
 
     private let coordinator: AuthCoordinator
-    private let handoff: BrowserAppSessionHandoff
-    private let projectID: String
     private let environment: BrowserAppSessionEnvironment
-    private let redirectDelegate: BrowserAppSessionRedirectRejectingDelegate
-    private let session: URLSession
     private let storeRegistry: BrowserAppSessionStoreRegistry
     private let clearWebsiteDataStore: @MainActor (
         WKWebsiteDataStore
@@ -41,8 +36,6 @@ final class BrowserAppSessionController {
         ) async -> BrowserAppSessionCallbackWaitOutcome)? = nil
     ) {
         self.coordinator = coordinator
-        handoff = BrowserAppSessionHandoff(webOrigin: webOrigin)
-        self.projectID = projectID
         let environment = BrowserAppSessionEnvironment(
             webOrigin: webOrigin,
             projectID: projectID
@@ -57,31 +50,13 @@ final class BrowserAppSessionController {
         self.clearWebsiteDataStore = clearWebsiteDataStore ?? { store in
             await Self.removeAppSessionWebsiteData(from: store)
         }
-        let configuration = URLSessionConfiguration.ephemeral
-        configuration.httpShouldSetCookies = false
-        configuration.httpCookieAcceptPolicy = .never
-        configuration.httpCookieStorage = nil
-        configuration.urlCache = nil
-        configuration.requestCachePolicy = .reloadIgnoringLocalCacheData
-        let redirectDelegate = BrowserAppSessionRedirectRejectingDelegate()
-        self.redirectDelegate = redirectDelegate
-        session = URLSession(
-            configuration: configuration,
-            delegate: redirectDelegate,
-            delegateQueue: nil
-        )
+
     }
 
     func request(
         destinationURL: URL
     ) async -> BrowserAppSessionRequestOutcome {
-        let snapshot: AuthenticatedSessionSnapshot
-        do {
-            snapshot = try await coordinator.authenticatedSessionSnapshot()
-        } catch {
-            guard !Task.isCancelled else { return .cancelled }
-            return BrowserAppSessionRequestOutcome.tokenFailure(error)
-        }
+        guard let snapshot = coordinator.authenticatedSessionIdentity else { return .notAuthenticated }
         let expectedOwner = BrowserAppSessionAuthOwner(
             userID: snapshot.accountID,
             authSessionGeneration: snapshot.generation
@@ -259,68 +234,16 @@ final class BrowserAppSessionController {
         destinationURL: URL,
         websiteDataStore: WKWebsiteDataStore,
         requestGeneration: UInt64,
-        snapshot: AuthenticatedSessionSnapshot
+        snapshot: AuthenticatedSessionIdentity
     ) async -> BrowserAppSessionRequestOutcome {
         guard handoffIsCurrent(
             requestGeneration,
             authSessionGeneration: snapshot.generation
         ) else { return .cancelled }
-        guard let exchangeRequest = handoff.request(
-            destinationURL: destinationURL,
-            tokens: BrowserAppSessionTokens(
-                accessToken: snapshot.accessToken,
-                refreshToken: snapshot.refreshToken
-            )
-        ) else { return .failed }
-
-        let response: URLResponse
-        do {
-            let result = try await session.data(for: exchangeRequest)
-            response = result.1
-        } catch {
-            return handoffIsCurrent(
-                requestGeneration,
-                authSessionGeneration: snapshot.generation
-            ) ? .transientFailure : .cancelled
-        }
-        guard handoffIsCurrent(
-            requestGeneration,
-            authSessionGeneration: snapshot.generation
-        ) else { return .cancelled }
-        guard let httpResponse = response as? HTTPURLResponse else { return .failed }
-        if httpResponse.statusCode != 204 {
-            return .exchangeFailure(statusCode: httpResponse.statusCode)
-        }
-        guard let cookies = handoff.sessionCookies(
-            from: httpResponse,
-            projectID: projectID
-        ) else {
-            return .failed
-        }
-
+        // The fork's browser session is established by hosted sign-in. Native
+        // OAuth credentials stay in Keychain and are never copied into WebKit.
+        guard BrowserAppWebOrigin(environment.webOrigin).contains(destinationURL) else { return .failed }
         storeRegistry.register(websiteDataStore)
-        let clearOutcome = await clearWebsiteDataStore(websiteDataStore)
-        guard clearOutcome == .completed else {
-            return clearOutcome == .cancelled ? .cancelled : .transientFailure
-        }
-        guard handoffIsCurrent(
-            requestGeneration,
-            authSessionGeneration: snapshot.generation
-        ) else { return .cancelled }
-        for cookie in cookies {
-            let setOutcome = await set(
-                cookie,
-                in: websiteDataStore.httpCookieStore
-            )
-            guard setOutcome == .completed else {
-                return setOutcome == .cancelled ? .cancelled : .transientFailure
-            }
-            guard handoffIsCurrent(
-                requestGeneration,
-                authSessionGeneration: snapshot.generation
-            ) else { return .cancelled }
-        }
-
         return .navigation(BrowserAppSessionNavigation(
             request: URLRequest(url: destinationURL),
             websiteDataStore: websiteDataStore,
@@ -359,14 +282,4 @@ final class BrowserAppSessionController {
         }
     }
 
-    private func set(
-        _ cookie: HTTPCookie,
-        in store: WKHTTPCookieStore
-    ) async -> BrowserAppSessionCallbackWaitOutcome {
-        await awaitBrowserAppSessionCallback(
-            timeout: Self.webKitCallbackTimeout
-        ) { completion in
-            store.setCookie(cookie) { completion() }
-        }
-    }
 }

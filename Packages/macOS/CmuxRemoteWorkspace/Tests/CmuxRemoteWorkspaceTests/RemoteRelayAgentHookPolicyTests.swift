@@ -89,7 +89,7 @@ struct RemoteRelayAgentHookPolicyTests {
         ("agent", "codex"),
         ("relay_backed", "false"),
         ("environment", "{}"),
-        ("socket_path", "/tmp/cmux.sock"),
+        ("socket_path", "/tmp/cmux-w3dev.sock"),
         ("command", "id"),
         ("payload", "oversized"),
         ("caller_tty", "nul"),

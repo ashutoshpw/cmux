@@ -1,10 +1,41 @@
-import { describe, expect, test } from "bun:test";
+import { ownedPrincipal } from "./helpers/owned-principal";
+import { betterAuthInvitation, betterAuthOrganization, betterAuthMember } from "../db/betterAuthSchema";
+import { beforeEach, describe, expect, mock, test } from "bun:test";
 import { acceptTeamInvitationCode } from "../services/teams/accept";
-import { requireTeamAccess } from "../services/teams/access";
-import { inviteTeamMembers, resendTeamInvitation } from "../services/teams/invitations";
 import { TeamApiError, TeamServiceUnavailableError } from "../services/teams/errors";
 import { createInvitationCodeClient, type InvitationCodeClient } from "../services/teams/invitationCode";
 import { ADMIN_ID, MemoryInviteStore, MemoryTeamSeatSync, OUTSIDER_ID, standardTeam, TEAM_ID } from "./teams-fixture";
+
+let invitationPrincipal = await ownedPrincipal({ id: OUTSIDER_ID, primaryEmail: "invitee@example.com" });
+let invitationRow: { id: string; organizationId: string; email: string; role: string; status: string; expiresAt: Date } | null = null;
+let invitationDbError: Error | null = null;
+let invitationDbCalls = 0;
+let acceptedMembers: unknown[] = [];
+const invitationDb = {
+  select(projection?: unknown) {
+    let table: unknown;
+    const query = {
+      from(value: unknown) { table = value; return query; },
+      innerJoin() { return query; }, where() { return query; }, limit() { return query; }, for() { return query; },
+      then(resolve: (value: unknown[]) => unknown, reject: (error: unknown) => unknown) {
+        invitationDbCalls += 1;
+        if (invitationDbError) return Promise.reject(invitationDbError).then(resolve, reject);
+        const rows = table === betterAuthInvitation
+          ? invitationRow ? [projection ? { invitation: invitationRow, name: "Acme" } : invitationRow] : []
+          : table === betterAuthOrganization ? [{ clientReadOnlyMetadata: { cmuxPlan: "pro", cmuxSeats: 3 } }]
+          : table === betterAuthMember ? [{ organizationId: TEAM_ID, userId: ADMIN_ID, role: "owner" }] : [];
+        return Promise.resolve(rows).then(resolve, reject);
+      },
+    };
+    return query;
+  },
+  transaction: async (run: (tx: unknown) => Promise<unknown>) => run(invitationDb),
+  execute: async () => {},
+  insert: () => ({ values: (row: unknown) => ({ onConflictDoNothing: async () => { acceptedMembers.push(row); } }) }),
+  update: () => ({ set: (changes: { status: string }) => ({ where: async () => { if (invitationRow) invitationRow.status = changes.status; } }) }),
+};
+mock.module("../db/client", () => ({ cloudDb: () => invitationDb }));
+mock.module("../services/auth/betterAuthPrincipal", () => ({ resolveBetterAuthPrincipal: async () => invitationPrincipal }));
 
 const INVITEE_EMAIL = "invitee@example.com";
 
@@ -178,62 +209,57 @@ describe("accepting an email invitation", () => {
   });
 });
 
-describe("Stack invitation-code client", () => {
-  const environment = {
-    NEXT_PUBLIC_STACK_PROJECT_ID: "project-1",
-    NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: "pck_1",
-  };
-
-  function respond(body: unknown, headers: Record<string, string> = {}) {
-    const calls: { url: string; init: RequestInit }[] = [];
-    const client = createInvitationCodeClient({
-      environment,
-      fetch: async (url, init) => {
-        calls.push({ url, init });
-        return new Response(JSON.stringify(body), { status: 200, headers });
-      },
-    });
-    return { client, calls };
-  }
-
-  test("reads the team id from the details endpoint with the caller's client headers", async () => {
-    const { client, calls } = respond({ team_id: TEAM_ID, team_display_name: "Acme" });
-    expect(await client.details("the-code", "user-token")).toEqual({
-      ok: true,
-      value: { teamId: TEAM_ID, teamDisplayName: "Acme" },
-    });
-    expect(calls[0]!.url.endsWith("/api/v1/team-invitations/accept/details")).toBe(true);
-    const headers = calls[0]!.init.headers as Record<string, string>;
-    expect(headers["x-hexclave-access-type"]).toBe("client");
-    expect(headers["x-hexclave-access-token"]).toBe("user-token");
-    expect(headers["x-hexclave-publishable-client-key"]).toBe("pck_1");
-    // Stack answers 429 to the legacy x-stack-* auth headers.
-    expect(Object.keys(headers).some((name) => name.startsWith("x-stack-"))).toBe(false);
-    expect(Object.keys(headers).some((name) => name.includes("secret"))).toBe(false);
-    expect(calls[0]!.init.body).toBe(JSON.stringify({ code: "the-code" }));
+describe("owned organization invitation-code client", () => {
+  const code = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+  beforeEach(async () => {
+    invitationPrincipal = await ownedPrincipal({ id: OUTSIDER_ID, primaryEmail: INVITEE_EMAIL });
+    invitationRow = { id: code, organizationId: TEAM_ID, email: INVITEE_EMAIL, role: "admin", status: "pending", expiresAt: new Date(Date.now() + 60_000) };
+    invitationDbError = null;
+    invitationDbCalls = 0;
+    acceptedMembers = [];
   });
 
-  test("maps known errors from override-status responses", async () => {
-    const mismatch = respond(
-      { code: "TEAM_INVITATION_EMAIL_MISMATCH" },
-      { "x-stack-actual-status": "403", "x-stack-known-error": "TEAM_INVITATION_EMAIL_MISMATCH" },
-    );
-    expect(await mismatch.client.accept("c", "t")).toEqual({ ok: false, failure: "email_mismatch" });
-    const used = respond({ code: "VERIFICATION_CODE_ALREADY_USED" }, { "x-hexclave-actual-status": "409", "x-hexclave-known-error": "VERIFICATION_CODE_ALREADY_USED" });
-    expect(await used.client.accept("c", "t")).toEqual({ ok: false, failure: "invalid" });
-    const broken = respond({ message: "boom" }, { "x-stack-actual-status": "500" });
-    expect(await broken.client.accept("c", "t")).toEqual({ ok: false, failure: "unavailable" });
-    const missingTeam = respond({ team_display_name: "Acme" });
-    expect(await missingTeam.client.details("c", "t")).toEqual({ ok: false, failure: "unavailable" });
+  test("reads the organization name and ID from the owned invitation without contacting a legacy endpoint", async () => {
+    const legacyFetch = mock(async () => { throw new Error("legacy endpoint forbidden"); });
+    const client = createInvitationCodeClient({ fetch: legacyFetch });
+    expect(await client.details(code, "owned-token")).toEqual({ ok: true, value: { teamId: TEAM_ID, teamDisplayName: "Acme" } });
+    expect(legacyFetch).not.toHaveBeenCalled();
+    expect(invitationDbCalls).toBe(1);
   });
 
-  test("a transport failure is unavailable, not invalid", async () => {
-    const client = createInvitationCodeClient({
-      environment,
-      fetch: async () => {
-        throw new Error("network");
-      },
-    });
-    expect(await client.accept("c", "t")).toEqual({ ok: false, failure: "unavailable" });
+  test("accepts the invitation for the current verified identity and preserves its admin role", async () => {
+    const client = createInvitationCodeClient();
+    expect(await client.accept(code, "owned-token")).toEqual({ ok: true, value: null });
+    expect(acceptedMembers).toHaveLength(1);
+    expect(acceptedMembers[0]).toMatchObject({ organizationId: TEAM_ID, userId: OUTSIDER_ID, role: "admin" });
+    expect(invitationRow?.status).toBe("accepted");
+    expect(await client.accept(code, "owned-token")).toEqual({ ok: false, failure: "invalid" });
+  });
+
+  test("maps a mailbox mismatch and never grants membership", async () => {
+    invitationPrincipal = await ownedPrincipal({ id: OUTSIDER_ID, primaryEmail: "different@example.com" });
+    const client = createInvitationCodeClient();
+    expect(await client.details(code, "owned-token")).toEqual({ ok: false, failure: "email_mismatch" });
+    expect(await client.accept(code, "owned-token")).toEqual({ ok: false, failure: "email_mismatch" });
+    expect(acceptedMembers).toEqual([]);
+  });
+
+  test("refuses malformed, missing, expired and consumed invitations", async () => {
+    const client = createInvitationCodeClient();
+    expect(await client.details("legacy-code", "owned-token")).toEqual({ ok: false, failure: "invalid" });
+    expect(invitationDbCalls).toBe(0);
+    invitationRow!.expiresAt = new Date(0);
+    expect(await client.details(code, "owned-token")).toEqual({ ok: false, failure: "invalid" });
+    invitationRow!.expiresAt = new Date(Date.now() + 60_000);
+    invitationRow!.status = "accepted";
+    expect(await client.details(code, "owned-token")).toEqual({ ok: false, failure: "invalid" });
+    invitationRow = null;
+    expect(await client.details(code, "owned-token")).toEqual({ ok: false, failure: "invalid" });
+  });
+
+  test("an owned store failure is unavailable, not an invalid invitation", async () => {
+    invitationDbError = new Error("database unavailable");
+    expect(await createInvitationCodeClient().accept(code, "owned-token")).toEqual({ ok: false, failure: "unavailable" });
+    expect(acceptedMembers).toEqual([]);
   });
 });

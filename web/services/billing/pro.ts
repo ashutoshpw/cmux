@@ -48,7 +48,7 @@ export function isFounderSubscriptionRow(row: { readonly id?: string | null; rea
   return raw?.metadata?.founders_edition === "true";
 }
 /** Stack project used by the local cmux development server. */
-export const DEVELOPMENT_STACK_PROJECT_ID = "454ecd03-1db2-4050-845e-4ce5b0cd9895";
+export { DEVELOPMENT_STACK_PROJECT_ID } from "../auth/stackProject";
 
 /**
  * Local development accounts are Pro by default. This is intentionally tied
@@ -62,7 +62,12 @@ export function isDevelopmentProAccessEnabled(
   return env.NODE_ENV === "development" &&
     env.CMUX_LOCAL_DEV_PRO === "1" &&
     !env.VERCEL_ENV &&
-    env.NEXT_PUBLIC_STACK_PROJECT_ID === DEVELOPMENT_STACK_PROJECT_ID;
+    localDevelopmentAuthOrigin(env.CMUX_APP_ORIGIN ?? env.BETTER_AUTH_URL);
+}
+function localDevelopmentAuthOrigin(value: string | undefined): boolean {
+  if (!value) return false;
+  try { const url = new URL(value); return url.protocol === "http:" && ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname) && !url.username && !url.password; }
+  catch { return false; }
 }
 /**
  * Plan ids an operator may write to `clientReadOnlyMetadata.cmuxVmPlan` to

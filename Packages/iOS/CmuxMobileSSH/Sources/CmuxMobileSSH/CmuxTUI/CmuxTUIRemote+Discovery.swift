@@ -121,7 +121,7 @@ extension CmuxTUIRemote {
     public func connect(
         on connection: SSHConnection,
         socket: CmuxTUISessionSocket,
-        clientName: String = "cmux-ios",
+        clientName: String = "cmux-w3dev-ios",
         handshakeTimeout: Duration = .seconds(10)
     ) async throws -> CmuxTUIControl {
         if let name = socket.name { try Self.validateSocketSession(name) }

@@ -8,7 +8,8 @@
 // provider vouches for it, so the gate reduces to "controls a mailbox on one
 // of these domains".
 
-export const ADMIN_EMAIL_DOMAINS = ["cmux.com", "manaflow.ai", "manaflow.com"] as const;
+export const ADMIN_EMAIL_DOMAINS: readonly string[] = (process.env.CMUX_ADMIN_EMAIL_DOMAINS ?? "")
+  .split(",").map((domain) => domain.trim().toLowerCase()).filter(Boolean);
 
 export type AdminAccessUser = {
   readonly primaryEmail?: string | null;

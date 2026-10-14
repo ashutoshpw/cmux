@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# This legacy harness provisions Stack identities and is not compatible with
+# fork Better Auth. Fail before reading credentials or contacting a provider.
+echo 'error: this Stack auth harness is retired; use fork Better Auth OAuth/PKCE with an exact registered callback.' >&2
+exit 2
+
 # Turnkey dev-build entrypoint: build + launch the macOS dev app auto-signed-in,
 # and (optionally) the iOS dev build auto-paired to it, with no QR scan and no
 # manual sign-in. Wraps the P1 macOS auto-sign-in path and the P2 iOS auto-pair.

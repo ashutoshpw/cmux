@@ -11,7 +11,7 @@ import UserNotifications
 // facade remains a small, stable seam for the rest of the app and tests.
 
 nonisolated private let notificationSoundLogger = Logger(
-    subsystem: "com.cmuxterm.app",
+    subsystem: "app.w3dev.cmux",
     category: "notification-sound"
 )
 
@@ -31,7 +31,7 @@ enum NotificationSoundSettings {
     private static var activeCustomCommandCount = 0
     private static let activePlaybackSoundDelegate = ActivePlaybackSoundDelegate()
     private static let customCommandQueue = DispatchQueue(
-        label: "com.cmuxterm.notification-custom-command",
+        label: "app.w3dev.cmux.notification-custom-command",
         qos: .utility,
         attributes: .concurrent
     )

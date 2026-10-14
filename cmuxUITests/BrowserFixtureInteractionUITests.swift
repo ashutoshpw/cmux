@@ -23,7 +23,7 @@ class BrowserFixtureSocketTestCase: XCTestCase {
     override func setUp() {
         super.setUp()
         continueAfterFailure = false
-        socketPath = "/tmp/cmux-debug-\(UUID().uuidString).sock"
+        socketPath = "/tmp/cmux-w3dev-debug-\(UUID().uuidString).sock"
         diagnosticsPath = "/tmp/cmux-ui-test-browser-fixtures-\(UUID().uuidString).json"
         launchTag = "ui-tests-browser-\(UUID().uuidString.prefix(8))"
         try? FileManager.default.removeItem(atPath: socketPath)
@@ -319,7 +319,7 @@ class BrowserFixtureSocketTestCase: XCTestCase {
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty }
             .joined(separator: "-")
-        return "/tmp/cmux-debug-\(slug).sock"
+        return "/tmp/cmux-w3dev-debug-\(slug).sock"
     }
 
     private func loadDiagnostics() -> [String: String] {

@@ -1,6 +1,6 @@
 "use client";
 
-import type { CurrentUser } from "@hexclave/next";
+import type { CurrentUser } from "@/app/lib/stack-client";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import {

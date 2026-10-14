@@ -3,7 +3,7 @@ internal import CmuxRemoteWorkspace
 internal import OSLog
 internal import Foundation
 
-nonisolated private let remoteRelayLogger = Logger(subsystem: "com.cmuxterm.app", category: "RemoteRelay")
+nonisolated private let remoteRelayLogger = Logger(subsystem: "app.w3dev.cmux", category: "RemoteRelay")
 
 // The reverse CLI relay: a remote `127.0.0.1:<relayPort>` listener forwarded
 // back to the local CLI relay server. It prefers `ssh -O forward` on the

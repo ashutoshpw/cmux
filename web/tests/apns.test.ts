@@ -264,12 +264,12 @@ describe("apns logical-event delivery state", () => {
     const targets = [
       {
         deviceToken: "a".repeat(64),
-        bundleId: "com.cmux.app",
+        bundleId: "app.w3dev.cmux.ios",
         environment: "production",
       },
       {
         deviceToken: "b".repeat(64),
-        bundleId: "com.cmux.app",
+        bundleId: "app.w3dev.cmux.ios",
         environment: "production",
       },
     ];
@@ -291,7 +291,7 @@ describe("apns logical-event delivery state", () => {
       .toEqual(["b".repeat(64)]);
     const newlyRegistered = {
       deviceToken: "c".repeat(64),
-      bundleId: "com.cmux.app",
+      bundleId: "app.w3dev.cmux.ios",
       environment: "production",
     };
     expect(
@@ -464,70 +464,68 @@ describe("apns logical-event delivery state", () => {
 
 describe("apns route policy", () => {
   test("allows only cmux iOS bundle IDs and derives the APNs environment", () => {
-    expect(normalizeApnsBundle("com.cmux.app")).toEqual({
-      bundleId: "com.cmux.app",
+    expect(normalizeApnsBundle("app.w3dev.cmux.ios")).toEqual({
+      bundleId: "app.w3dev.cmux.ios",
       environment: "production",
     });
-    expect(normalizeApnsBundle("com.cmuxterm.app")).toEqual({
-      bundleId: "com.cmuxterm.app",
+    expect(normalizeApnsBundle("app.w3dev.cmux")).toBeNull();
+    expect(normalizeApnsBundle("com.cmuxterm.app")).toBeNull();
+    expect(normalizeApnsBundle("app.w3dev.cmux.ios.beta")).toEqual({
+      bundleId: "app.w3dev.cmux.ios.beta",
       environment: "production",
     });
-    expect(normalizeApnsBundle("dev.cmux.app.beta")).toEqual({
-      bundleId: "dev.cmux.app.beta",
+    expect(normalizeApnsBundle("app.w3dev.cmux.ios")).toEqual({
+      bundleId: "app.w3dev.cmux.ios",
       environment: "production",
     });
-    expect(normalizeApnsBundle("com.cmux.app")).toEqual({
-      bundleId: "com.cmux.app",
-      environment: "production",
-    });
-    expect(normalizeApnsBundle("dev.cmux.ios.push1")).toEqual({
-      bundleId: "dev.cmux.ios.push1",
+    expect(normalizeApnsBundle("app.w3dev.cmux.ios.debug.push1")).toEqual({
+      bundleId: "app.w3dev.cmux.ios.debug.push1",
       environment: "sandbox",
     });
     const maximumDevTag = "a".repeat(64);
-    expect(normalizeApnsBundle(`dev.cmux.ios.${maximumDevTag}`)).toEqual({
-      bundleId: `dev.cmux.ios.${maximumDevTag}`,
+    expect(normalizeApnsBundle(`app.w3dev.cmux.ios.debug.${maximumDevTag}`)).toEqual({
+      bundleId: `app.w3dev.cmux.ios.debug.${maximumDevTag}`,
       environment: "sandbox",
     });
-    expect(normalizeApnsBundle(`dev.cmux.ios.${maximumDevTag}a`)).toBeNull();
+    expect(normalizeApnsBundle(`app.w3dev.cmux.ios.debug.${maximumDevTag}a`)).toBeNull();
 
     expect(normalizeApnsBundle("com.example.app")).toBeNull();
-    expect(normalizeApnsBundle("dev.cmux.ios.bad_topic")).toBeNull();
-    expect(normalizeApnsBundle("dev.cmux.ios.-bad")).toBeNull();
+    expect(normalizeApnsBundle("app.w3dev.cmux.ios.debug.bad_topic")).toBeNull();
+    expect(normalizeApnsBundle("app.w3dev.cmux.ios.debug.-bad")).toBeNull();
   });
 
   test("stores sandbox for a production bundle only when the install declares it", () => {
-    const official = normalizeApnsBundle("com.cmux.app")!;
+    const official = normalizeApnsBundle("app.w3dev.cmux.ios")!;
     // A Simulator or development-signed install only has sandbox tokens.
     expect(registrationApnsBundle(official, "sandbox")).toEqual({
-      bundleId: "com.cmux.app",
+      bundleId: "app.w3dev.cmux.ios",
       environment: "sandbox",
     });
     expect(registrationApnsBundle(official, "production")).toEqual(official);
     expect(registrationApnsBundle(official, undefined)).toEqual(official);
     expect(registrationApnsBundle(official, "SANDBOX")).toEqual(official);
-    const dev = normalizeApnsBundle("dev.cmux.ios.push1")!;
+    const dev = normalizeApnsBundle("app.w3dev.cmux.ios.debug.push1")!;
     expect(registrationApnsBundle(dev, "production")).toEqual(dev);
     expect(registrationApnsBundle(null, "sandbox")).toBeNull();
   });
 
   test("allows the internal TestFlight bundle id as a production APNs topic", () => {
-    // The scheduled internal TestFlight lane ships dev.cmux.app.internal
+    // The scheduled internal TestFlight lane ships app.w3dev.cmux.ios.internal
     // (.github/workflows/ios-testflight.yml); TestFlight uses the production
     // APNs environment. Rejecting it here makes every internal-beta phone fail
     // device-token registration with invalid_bundle_id, so pushes never arrive.
-    expect(normalizeApnsBundle("dev.cmux.app.internal")).toEqual({
-      bundleId: "dev.cmux.app.internal",
+    expect(normalizeApnsBundle("app.w3dev.cmux.ios.internal")).toEqual({
+      bundleId: "app.w3dev.cmux.ios.internal",
       environment: "production",
     });
   });
 
   test("allows the demo TestFlight bundle id as a production APNs topic", () => {
-    // The manual demo lane variant ships dev.cmux.app.demo
+    // The manual demo lane variant ships app.w3dev.cmux.ios.demo
     // (.github/workflows/ios-testflight.yml, variant=demo); TestFlight uses the
     // production APNs environment, same as the internal lane above.
-    expect(normalizeApnsBundle("dev.cmux.app.demo")).toEqual({
-      bundleId: "dev.cmux.app.demo",
+    expect(normalizeApnsBundle("app.w3dev.cmux.ios.demo")).toEqual({
+      bundleId: "app.w3dev.cmux.ios.demo",
       environment: "production",
     });
   });
@@ -827,7 +825,7 @@ describe("apns sender transport", () => {
     const secondP8 = secondKeys.privateKey.export({ type: "pkcs8", format: "pem" }) as string;
     const target = {
       deviceToken: "a".repeat(64),
-      bundleId: "com.cmux.app",
+      bundleId: "app.w3dev.cmux.ios",
       environment: "production",
     };
 
@@ -874,12 +872,12 @@ describe("apns sender transport", () => {
       [
         {
           deviceToken: "a".repeat(64),
-          bundleId: "com.cmux.app",
+          bundleId: "app.w3dev.cmux.ios",
           environment: "production",
         },
         {
           deviceToken: "b".repeat(64),
-          bundleId: "com.cmux.app",
+          bundleId: "app.w3dev.cmux.ios",
           environment: "corrupt",
         },
       ],
@@ -951,7 +949,7 @@ describe("apns sender transport", () => {
         },
         [{
           deviceToken: "a".repeat(64),
-          bundleId: "com.cmux.app",
+          bundleId: "app.w3dev.cmux.ios",
           environment: "production",
         }],
         {
@@ -1023,7 +1021,7 @@ describe("apns sender transport", () => {
       { keyP8: p8, keyId: "KID-429-FALLBACK", teamId: "TEAM456" },
       [{
         deviceToken: "a".repeat(64),
-        bundleId: "com.cmux.app",
+        bundleId: "app.w3dev.cmux.ios",
         environment: "production",
       }],
       {
@@ -1091,7 +1089,7 @@ describe("apns sender transport", () => {
       { keyP8: p8, keyId: "KID-503-DEFER", teamId: "TEAM456" },
       [{
         deviceToken: "a".repeat(64),
-        bundleId: "com.cmux.app",
+        bundleId: "app.w3dev.cmux.ios",
         environment: "production",
       }],
       {
@@ -1164,8 +1162,8 @@ describe("apns sender transport", () => {
     const results = await sendApnsNotificationReliably(
       { keyP8: p8, keyId: "KID-RETRY-PARTIAL", teamId: "TEAM456" },
       [
-        { deviceToken: "a".repeat(64), bundleId: "com.cmux.app", environment: "production" },
-        { deviceToken: "b".repeat(64), bundleId: "com.cmux.app", environment: "production" },
+        { deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios", environment: "production" },
+        { deviceToken: "b".repeat(64), bundleId: "app.w3dev.cmux.ios", environment: "production" },
       ],
       {
         title: "agent",
@@ -1201,7 +1199,7 @@ describe("apns sender transport", () => {
     }) as string;
     const target = {
       deviceToken: "a".repeat(64),
-      bundleId: "com.cmux.app",
+      bundleId: "app.w3dev.cmux.ios",
       environment: "production",
     };
 
@@ -1358,17 +1356,17 @@ describe("apns sender transport", () => {
         [
           {
             deviceToken: "a".repeat(64),
-            bundleId: "com.cmux.app",
+            bundleId: "app.w3dev.cmux.ios",
             environment: "production",
           },
           {
             deviceToken: "b".repeat(64),
-            bundleId: "dev.cmux.ios.push1",
+            bundleId: "app.w3dev.cmux.ios.debug.push1",
             environment: "sandbox",
           },
           {
             deviceToken: "c".repeat(64),
-            bundleId: "com.cmux.app",
+            bundleId: "app.w3dev.cmux.ios",
             environment: "production",
           },
         ],
@@ -1440,7 +1438,7 @@ describe("apns sender transport", () => {
 
     const results = await sendApnsNotificationReliably(
       { keyP8: p8, keyId: "KID-RETRY-TTL", teamId: "TEAM456" },
-      [{ deviceToken: "a".repeat(64), bundleId: "com.cmux.app", environment: "production" }],
+      [{ deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios", environment: "production" }],
       {
         title: "agent",
         body: "done",
@@ -1520,8 +1518,8 @@ describe("apns sender transport", () => {
     const resultPromise = sendApnsNotification(
       { keyP8: p8, keyId: "KID-CONCURRENT", teamId: "TEAM456" },
       [
-        { deviceToken: "a".repeat(64), bundleId: "dev.cmux.ios.push1", environment: "sandbox" },
-        { deviceToken: "b".repeat(64), bundleId: "com.cmux.app", environment: "production" },
+        { deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios.debug.push1", environment: "sandbox" },
+        { deviceToken: "b".repeat(64), bundleId: "app.w3dev.cmux.ios", environment: "production" },
       ],
       { title: "agent", body: "done" },
       1000,
@@ -1538,8 +1536,8 @@ describe("apns sender transport", () => {
     }
 
     expect(results).toEqual([
-      { deviceToken: "a".repeat(64), bundleId: "dev.cmux.ios.push1", status: 200, reason: undefined, prune: false },
-      { deviceToken: "b".repeat(64), bundleId: "com.cmux.app", status: 200, reason: undefined, prune: false },
+      { deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios.debug.push1", status: 200, reason: undefined, prune: false },
+      { deviceToken: "b".repeat(64), bundleId: "app.w3dev.cmux.ios", status: 200, reason: undefined, prune: false },
     ]);
     expect(closed).toEqual([productionHost, sandboxHost]);
   });
@@ -1605,7 +1603,7 @@ describe("apns sender transport", () => {
     }) as string;
     const targets = Array.from({ length: 200 }, (_, index) => ({
       deviceToken: index.toString(16).padStart(64, "0"),
-      bundleId: "com.cmux.app",
+      bundleId: "app.w3dev.cmux.ios",
       environment: "production",
     }));
 
@@ -1680,7 +1678,7 @@ describe("apns sender transport", () => {
     };
     const target = {
       deviceToken: "a".repeat(64),
-      bundleId: "com.cmux.app",
+      bundleId: "app.w3dev.cmux.ios",
       environment: "production",
     };
 
@@ -1818,7 +1816,7 @@ describe("apns sender transport", () => {
     };
     const target = {
       deviceToken: "a".repeat(64),
-      bundleId: "com.cmux.app",
+      bundleId: "app.w3dev.cmux.ios",
       environment: "production",
     };
 
@@ -1888,7 +1886,7 @@ describe("apns sender transport", () => {
     }) as string;
     const target = {
       deviceToken: "a".repeat(64),
-      bundleId: "com.cmux.app",
+      bundleId: "app.w3dev.cmux.ios",
       environment: "production",
     };
     const inputAtSize = (targetBytes: number) => {
@@ -1992,8 +1990,8 @@ describe("apns sender transport", () => {
     const results = await sendApnsNotification(
       { keyP8: p8, keyId: "KID-PARTIAL", teamId: "TEAM456" },
       [
-        { deviceToken: "a".repeat(64), bundleId: "dev.cmux.ios.push1", environment: "sandbox" },
-        { deviceToken: "b".repeat(64), bundleId: "com.cmux.app", environment: "production" },
+        { deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios.debug.push1", environment: "sandbox" },
+        { deviceToken: "b".repeat(64), bundleId: "app.w3dev.cmux.ios", environment: "production" },
       ],
       { title: "agent", body: "done" },
       1000,
@@ -2001,8 +1999,8 @@ describe("apns sender transport", () => {
     );
 
     expect(results).toEqual([
-      { deviceToken: "a".repeat(64), bundleId: "dev.cmux.ios.push1", status: 0, reason: "connection_error", prune: false },
-      { deviceToken: "b".repeat(64), bundleId: "com.cmux.app", status: 200, reason: undefined, prune: false },
+      { deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios.debug.push1", status: 0, reason: "connection_error", prune: false },
+      { deviceToken: "b".repeat(64), bundleId: "app.w3dev.cmux.ios", status: 200, reason: undefined, prune: false },
     ]);
     expect(closed).toEqual([productionHost]);
   });
@@ -2056,8 +2054,8 @@ describe("apns sender transport", () => {
     const results = await sendApnsNotification(
       { keyP8: p8, keyId: "KID-SAME-HOST-PARTIAL", teamId: "TEAM456" },
       [
-        { deviceToken: "a".repeat(64), bundleId: "com.cmux.app", environment: "production" },
-        { deviceToken: "b".repeat(64), bundleId: "dev.cmux.app.beta", environment: "production" },
+        { deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios", environment: "production" },
+        { deviceToken: "b".repeat(64), bundleId: "app.w3dev.cmux.ios.beta", environment: "production" },
       ],
       { title: "agent", body: "done" },
       1000,
@@ -2065,8 +2063,8 @@ describe("apns sender transport", () => {
     );
 
     expect(results).toEqual([
-      { deviceToken: "a".repeat(64), bundleId: "com.cmux.app", status: 200, reason: undefined, prune: false },
-      { deviceToken: "b".repeat(64), bundleId: "dev.cmux.app.beta", status: 0, reason: "request failed", prune: false },
+      { deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios", status: 200, reason: undefined, prune: false },
+      { deviceToken: "b".repeat(64), bundleId: "app.w3dev.cmux.ios.beta", status: 0, reason: "request failed", prune: false },
     ]);
     expect(closed).toEqual([productionHost]);
   });
@@ -2105,7 +2103,7 @@ describe("apns sender transport", () => {
 
     await sendApnsNotification(
       { keyP8: p8, keyId: "KID-COLLAPSE", teamId: "TEAM456" },
-      [{ deviceToken: "a".repeat(64), bundleId: "com.cmux.app", environment: "production" }],
+      [{ deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios", environment: "production" }],
       {
         title: "agent",
         body: "done",
@@ -2123,7 +2121,7 @@ describe("apns sender transport", () => {
 
     await sendApnsNotification(
       { keyP8: p8, keyId: "KID-COLLAPSE", teamId: "TEAM456" },
-      [{ deviceToken: "a".repeat(64), bundleId: "com.cmux.app", environment: "production" }],
+      [{ deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios", environment: "production" }],
       {
         title: "agent",
         body: "done",
@@ -2172,7 +2170,7 @@ describe("apns sender transport", () => {
 
     await sendApnsNotification(
       { keyP8: p8, keyId: "KID-NO-COLLAPSE", teamId: "TEAM456" },
-      [{ deviceToken: "a".repeat(64), bundleId: "com.cmux.app", environment: "production" }],
+      [{ deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios", environment: "production" }],
       { title: "agent", body: "done" },
       1000,
       transport,
@@ -2216,7 +2214,7 @@ describe("apns sender transport", () => {
 
     await sendApnsNotification(
       { keyP8: p8, keyId: "KID-DISMISS", teamId: "TEAM456" },
-      [{ deviceToken: "a".repeat(64), bundleId: "com.cmux.app", environment: "production" }],
+      [{ deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios", environment: "production" }],
       {
         kind: "dismiss",
         title: "",
@@ -2270,7 +2268,7 @@ describe("apns sender transport", () => {
 
     await sendApnsNotification(
       { keyP8: p8, keyId: "KID-NOTIFY-PRIO", teamId: "TEAM456" },
-      [{ deviceToken: "a".repeat(64), bundleId: "com.cmux.app", environment: "production" }],
+      [{ deviceToken: "a".repeat(64), bundleId: "app.w3dev.cmux.ios", environment: "production" }],
       { title: "agent", body: "done", badgeCount: 2 },
       1000,
       transport,

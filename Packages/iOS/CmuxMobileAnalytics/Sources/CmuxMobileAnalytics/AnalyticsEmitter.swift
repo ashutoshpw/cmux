@@ -2,7 +2,7 @@ public import CMUXMobileCore
 public import Foundation
 internal import OSLog
 
-private let analyticsLog = Logger(subsystem: "dev.cmux.ios", category: "analytics")
+private let analyticsLog = Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "analytics")
 
 /// The de-singletonized, non-blocking product-analytics emitter.
 ///

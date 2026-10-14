@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cmux.dev/schemas/tui-sdk-schema.schema.json",
+  "$id": "https://cmux.w3dev.app/schemas/tui-sdk-schema.schema.json",
   "title": "cmux-tui SDK protocol IR",
   "type": "object",
   "additionalProperties": false,

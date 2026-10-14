@@ -6,7 +6,7 @@ import Testing
     @Test func productionUsesStackWhitelistedCmuxDomain() {
         let config = AuthConfig(environment: .production)
 
-        #expect(config.magicLinkCallbackURL == "https://cmux.com/auth/callback")
-        #expect(config.apiBaseURL == "https://cmux.com")
+        #expect(config.magicLinkCallbackURL == "https://cmux.w3dev.app/auth/callback")
+        #expect(config.apiBaseURL == "https://cmux.w3dev.app")
     }
 }

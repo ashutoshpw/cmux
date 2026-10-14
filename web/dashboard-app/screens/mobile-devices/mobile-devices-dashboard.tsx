@@ -1,6 +1,8 @@
 "use client";
 
-import { useStackApp } from "@hexclave/next";
+import { forkDeployment } from "../../../services/deployment/config";
+
+import { useStackApp } from "@/app/lib/stack-client";
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { DashboardSectionSkeleton } from "../../components/dashboard-skeleton";
@@ -9,11 +11,7 @@ import { RequiresPro } from "../../components/requires-pro";
 import { useDashboardTeamScope } from "../../shell/dashboard-team-scope";
 import { V2DashboardController, type DashboardDirectory } from "./v2-dashboard-controller";
 
-const PROJECT_ID = process.env.NEXT_PUBLIC_STACK_PROJECT_ID ?? "";
-const DEFAULT_ENVIRONMENT = process.env.NEXT_PUBLIC_IROH_V2_ENVIRONMENT ??
-  (process.env.NODE_ENV === "production" ? "production" : "development");
-const DEFAULT_ORIGIN = process.env.NEXT_PUBLIC_IROH_V2_ORIGIN ??
-  `https://cmux-v2${DEFAULT_ENVIRONMENT === "production" ? "" : `-${DEFAULT_ENVIRONMENT}`}.debussy.workers.dev`;
+
 
 type Props = { readonly userId: string };
 
@@ -59,8 +57,14 @@ function ConnectedDevices({ teamId, userId, stack }: { readonly teamId: string; 
 
   useEffect(() => {
     let cancelled = false;
+    const projectId = process.env.NEXT_PUBLIC_IROH_V2_PROJECT_ID ?? window.location.origin;
+    const environment = process.env.NEXT_PUBLIC_IROH_V2_ENVIRONMENT ??
+      (projectId === forkDeployment.productionOrigin ? "production" :
+        projectId === forkDeployment.stagingOrigin ? "staging" : "development");
+    const origin = process.env.NEXT_PUBLIC_IROH_V2_ORIGIN ??
+      (environment === "production" ? forkDeployment.irohV2Origin : forkDeployment.developmentIrohV2Origin);
     const controller = new V2DashboardController({
-      origin: DEFAULT_ORIGIN, environment: DEFAULT_ENVIRONMENT, projectId: PROJECT_ID, userId, teamId,
+      origin, environment, projectId, userId, teamId,
       getStackToken: async () => (await stack.getAuthJson()).accessToken,
       onDirectory: next => { if (!cancelled) { setDirectory(next); setError(null); } },
       onError: () => { if (!cancelled) setError(unavailable); },

@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Deploy one isolated development Worker. A named Worker gets its own Durable
 # Object namespaces, so a branch cannot change the shared development data.
-# The shared baseline remains cmux-v2-development.
+# The shared baseline remains w3dev-cmux-v2-development.
 
 cd "$(dirname "$0")/.."
 
@@ -29,9 +29,22 @@ case "$slug" in
     echo "error: '$slug' is reserved; choose a branch or developer slug" >&2; exit 1 ;;
 esac
 
-name="cmux-v2-dev-${slug}"
-workers_subdomain="${CMUX_IROH_V2_WORKERS_SUBDOMAIN:-debussy}"
-required=(STACK_PROJECT_ID STACK_PUBLISHABLE_KEY STACK_SERVER_KEY API_TICKET_KEYS
+name="w3dev-cmux-v2-dev-${slug}"
+workers_subdomain="${CMUX_IROH_V2_WORKERS_SUBDOMAIN:-}"
+expected_account="$(read_value CMUX_FORK_CLOUDFLARE_ACCOUNT_ID)"
+account_id="${CLOUDFLARE_ACCOUNT_ID:-}"
+if [[ ! "$expected_account" =~ ^[0-9a-f]{32}$ || "$account_id" != "$expected_account" || "$expected_account" == "0c1675e0def6de1ab3a50a4e17dc5656" ]]; then
+  echo "error: explicit owned Cloudflare account configuration is required" >&2; exit 1
+fi
+if [[ ! "$workers_subdomain" =~ ^[a-z0-9][a-z0-9-]*$ || "$workers_subdomain" == debussy ]]; then
+  echo "error: an explicit owned Workers subdomain is required" >&2; exit 1
+fi
+source ../../scripts/lib/fork-deployment.env
+auth_origin="$(read_value CMUX_AUTH_ORIGIN)"
+if [[ -n "$auth_origin" && "$auth_origin" != "$CMUX_FORK_STAGING_ORIGIN" ]]; then
+  echo "error: development authority must use the owned staging origin" >&2; exit 1
+fi
+required=(CMUX_AUTH_SERVICE_KEY API_TICKET_KEYS
   API_TICKET_CURRENT_KEY_ID RELAY_SIGNING_KEY RELAY_KEY_ID RELAY_URLS DATABASE_URL)
 # PlanetScale is a supported shared Postgres provider. Accept its explicit
 # variable for local convenience, but always publish one canonical Worker
@@ -51,7 +64,9 @@ trap 'rm -f "$secret_file"' EXIT
 chmod 600 "$secret_file"
 secret_pairs=()
 for key in "${required[@]}"; do
-  secret_pairs+=("$key" "$(read_value "$key")")
+  value="$(read_value "$key")"
+  [[ "$key" == DATABASE_URL ]] && value="$database_url"
+  secret_pairs+=("$key" "$value")
 done
 printf '%s\0' "${secret_pairs[@]}" | python3 -c '
 import json, pathlib, sys

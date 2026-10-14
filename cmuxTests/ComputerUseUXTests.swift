@@ -1634,7 +1634,7 @@ struct ComputerUseUXTests {
         let helperURL = URL(
             fileURLWithPath: "/Users/tester/Library/Application Support/cmux/cmux-cua/helper/tag/cmux Computer Use.app"
         )
-        let helperBundleIdentifier = "com.cmuxterm.cua"
+        let helperBundleIdentifier = "app.w3dev.cmux.cua"
 
         #expect(ComputerUseRuntimeService.shouldRecoverAfterHelperTermination(
             desiredEnabled: true,
@@ -1686,7 +1686,7 @@ struct ComputerUseUXTests {
             isTrackedHelperProcess: true,
             terminatedBundleIdentifier: nil,
             terminatedBundleURL: nil,
-            helperBundleIdentifier: "com.cmuxterm.cua",
+            helperBundleIdentifier: "app.w3dev.cmux.cua",
             helperBundleURL: helperURL
         ))
     }
@@ -1724,7 +1724,7 @@ struct ComputerUseUXTests {
             socketRootDirectoryURL: URL(fileURLWithPath: "/tmp"),
             userIdentifier: 501,
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "app.w3dev.cmux",
             authenticationToken: "production-token"
         )
         let staging = ComputerUseRuntimePaths(
@@ -1732,12 +1732,12 @@ struct ComputerUseUXTests {
             socketRootDirectoryURL: URL(fileURLWithPath: "/tmp"),
             userIdentifier: 501,
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app.staging",
+            bundleIdentifier: "app.w3dev.cmux.staging",
             authenticationToken: "staging-token"
         )
 
-        #expect(production.scope == "com.cmuxterm.app")
-        #expect(staging.scope == "com.cmuxterm.app.staging")
+        #expect(production.scope == "app.w3dev.cmux")
+        #expect(staging.scope == "app.w3dev.cmux.staging")
         #expect(production.daemonSocketURL != staging.daemonSocketURL)
         #expect(production.installedHelperAppURL != staging.installedHelperAppURL)
     }

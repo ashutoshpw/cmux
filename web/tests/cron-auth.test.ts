@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
+import vercel from "../vercel.json";
 
 import { authorizeCronRequest } from "../services/cronAuth";
 
@@ -20,17 +20,12 @@ function requestWithAuthorization(authorization?: string): Request {
 }
 
 describe("cron auth", () => {
-  test("every Vercel cron route uses the shared bearer authorization", () => {
-    const config = JSON.parse(
-      readFileSync(new URL("../vercel.json", import.meta.url), "utf8"),
-    ) as { crons: Array<{ path: string }> };
-
-    for (const cron of config.crons) {
-      const source = readFileSync(
-        new URL(`../app${cron.path}/route.ts`, import.meta.url),
-        "utf8",
-      );
-      expect(source).toContain("authorizeCronRequest");
+  test("every configured live cron refuses a request without its secret", async () => {
+    process.env.CRON_SECRET = "cron-secret";
+    for (const cron of vercel.crons) {
+      const route = await import(`../app${cron.path}/route.ts`);
+      const response = await route.GET(new Request(`https://cmux.w3dev.app${cron.path}`));
+      expect(response.status).toBe(401);
     }
   });
 

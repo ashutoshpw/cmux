@@ -19,7 +19,7 @@ struct SessionSnapshotHistoryTests {
     private func makeRepository(root: URL, limit: Int = 3) -> SessionSnapshotRepository<HistorySnapshotFixture> {
         SessionSnapshotRepository(
             schemaVersion: schemaVersion,
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "app.w3dev.cmux",
             appSupportDirectory: root,
             historyLimit: limit
         )
@@ -86,7 +86,7 @@ struct SessionSnapshotHistoryTests {
         let repository = makeRepository(root: root)
         let other = SessionSnapshotRepository<HistorySnapshotFixture>(
             schemaVersion: schemaVersion,
-            bundleIdentifier: "com.cmuxterm.app.debug.echo",
+            bundleIdentifier: "app.w3dev.cmux.debug.echo",
             appSupportDirectory: root
         )
         try archiveLaunch(other, HistorySnapshotFixture(version: schemaVersion, workspaces: [["x"]]), at: 5)

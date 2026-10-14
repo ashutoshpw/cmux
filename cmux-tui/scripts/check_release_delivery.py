@@ -81,7 +81,7 @@ def main() -> int:
     args = parser.parse_args()
     if args.grace_seconds < 0:
         parser.error("--grace-seconds must be nonnegative")
-    repository = "manaflow-ai/cmux"
+    repository = "ashutoshpw/cmux"
     api = f"https://api.github.com/repos/{repository}"
     token = os.environ.get("GH_TOKEN", "")
     refs = fetch_json(f"{api}/git/matching-refs/tags/cmux-tui-v", token)

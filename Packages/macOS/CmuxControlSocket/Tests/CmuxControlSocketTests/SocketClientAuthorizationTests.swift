@@ -34,7 +34,7 @@ struct SocketClientAuthorizationTests {
     @Test func cmuxOnlyAllowsReparentedClientWithInheritedCapability() throws {
         let authority = SocketClientCapabilityAuthority(
             secret: Data(repeating: 0xA5, count: SocketClientCapabilityAuthority.secureByteCount),
-            audience: "com.cmuxterm.test"
+            audience: "app.w3dev.cmux.test"
         )
         let capability = authority.issueCapability(
             nonce: Data(repeating: 0x5A, count: SocketClientCapabilityAuthority.secureByteCount)
@@ -54,7 +54,7 @@ struct SocketClientAuthorizationTests {
     @Test func cmuxOnlyRejectsReparentedClientWithoutCapability() {
         let authority = SocketClientCapabilityAuthority(
             secret: Data(repeating: 0xA5, count: SocketClientCapabilityAuthority.secureByteCount),
-            audience: "com.cmuxterm.test"
+            audience: "app.w3dev.cmux.test"
         )
         #expect(authorization.authorizedCommand(
             "hooks claude prompt-submit",
@@ -68,7 +68,7 @@ struct SocketClientAuthorizationTests {
     @Test func cmuxOnlyRejectsCapabilityFromDifferentUser() throws {
         let authority = SocketClientCapabilityAuthority(
             secret: Data(repeating: 0xA5, count: SocketClientCapabilityAuthority.secureByteCount),
-            audience: "com.cmuxterm.test"
+            audience: "app.w3dev.cmux.test"
         )
         let capability = authority.issueCapability(
             nonce: Data(repeating: 0x5A, count: SocketClientCapabilityAuthority.secureByteCount)
@@ -86,7 +86,7 @@ struct SocketClientAuthorizationTests {
     @Test func ownerOnlyAutomationModesRejectDifferentUser() {
         let authority = SocketClientCapabilityAuthority(
             secret: Data(repeating: 0xA5, count: SocketClientCapabilityAuthority.secureByteCount),
-            audience: "com.cmuxterm.test"
+            audience: "app.w3dev.cmux.test"
         )
 
         for mode in [SocketControlMode.automation, .password] {
@@ -104,7 +104,7 @@ struct SocketClientAuthorizationTests {
     @Test func ownerOnlyAutomationModesAllowSameUser() {
         let authority = SocketClientCapabilityAuthority(
             secret: Data(repeating: 0xA5, count: SocketClientCapabilityAuthority.secureByteCount),
-            audience: "com.cmuxterm.test"
+            audience: "app.w3dev.cmux.test"
         )
 
         for mode in [SocketControlMode.automation, .password] {
@@ -122,7 +122,7 @@ struct SocketClientAuthorizationTests {
     @Test func allowAllDoesNotRequireSameUser() {
         let authority = SocketClientCapabilityAuthority(
             secret: Data(repeating: 0xA5, count: SocketClientCapabilityAuthority.secureByteCount),
-            audience: "com.cmuxterm.test"
+            audience: "app.w3dev.cmux.test"
         )
 
         #expect(authorization.authorizedCommand(

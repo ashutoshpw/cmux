@@ -75,7 +75,7 @@ describe("classifyCoderouterFault", () => {
 
 describe("traceEvents", () => {
   test("uses route_crash when a handler throws after recording another outcome", () => {
-    const request = new Request("https://coderouter.dev/v1/responses", { method: "POST" });
+    const request = new Request("https://cmux.w3dev.app/v1/responses", { method: "POST" });
     const context = newCoderouterRequestContext({ request, surface: "responses", route: "/v1/responses", requestId: "req-crash" });
     context.outcome = { outcome: "success", failureStage: "none", status: 200 };
     const error = new Error("handler failed");
@@ -85,7 +85,7 @@ describe("traceEvents", () => {
   });
 
   test("builds one $ai_trace root, one $ai_span per step, and no $exception on success", () => {
-    const request = new Request("https://coderouter.dev/v1/messages", { method: "POST" });
+    const request = new Request("https://cmux.w3dev.app/v1/messages", { method: "POST" });
     const context = newCoderouterRequestContext({ request, surface: "messages", route: "/v1/messages", requestId: "req-1" });
     context.traceId = "0af7651916cd43dd8448eb211c80319c";
     runWithCoderouterRequest(context, () => {
@@ -124,7 +124,7 @@ describe("traceEvents", () => {
   });
 
   test("files an error-level $exception for an operator fault and a warning for an upstream one", () => {
-    const request = new Request("https://coderouter.dev/v1/responses", { method: "POST" });
+    const request = new Request("https://cmux.w3dev.app/v1/responses", { method: "POST" });
     const operator = newCoderouterRequestContext({ request, surface: "responses", route: "/v1/responses", requestId: "req-2" });
     operator.outcome = { outcome: "provider_unavailable", failureStage: "account_selection", status: 503, provider: "codex" };
     const operatorEvents = traceEvents(operator, { status: 503, durationMs: 50 });
@@ -146,7 +146,7 @@ describe("traceEvents", () => {
   });
 
   test("a tenant fault (no usable account) produces a trace but no $exception", () => {
-    const request = new Request("https://coderouter.dev/v1/messages", { method: "POST" });
+    const request = new Request("https://cmux.w3dev.app/v1/messages", { method: "POST" });
     for (const [surface, provider, failureStage] of [
       ["messages", "claude", "provider_config"],
       ["responses", "codex", "account_selection"],
@@ -169,7 +169,7 @@ describe("traceEvents", () => {
   });
 
   test("a caller fault produces a trace but no $exception", () => {
-    const request = new Request("https://coderouter.dev/v1/responses", { method: "POST" });
+    const request = new Request("https://cmux.w3dev.app/v1/responses", { method: "POST" });
     const context = newCoderouterRequestContext({ request, surface: "responses", route: "/v1/responses", requestId: "req-4" });
     context.outcome = { outcome: "unauthorized", failureStage: "auth", status: 401, provider: "codex" };
     const events = traceEvents(context, { status: 401, durationMs: 5 });
@@ -181,7 +181,7 @@ describe("traceEvents", () => {
   });
 
   test("an unhandled throw becomes a route_crash without exporting its message", () => {
-    const request = new Request("https://coderouter.dev/v1/responses", { method: "POST" });
+    const request = new Request("https://cmux.w3dev.app/v1/responses", { method: "POST" });
     const context = newCoderouterRequestContext({ request, surface: "responses", route: "/v1/responses", requestId: "req-5" });
     const error = new TypeError("boom Bearer sk-ant-secret-value-1234567890");
     const events = traceEvents(context, { status: 503, durationMs: 5, error });
@@ -266,7 +266,7 @@ describe("withCoderouterRoute", () => {
         return new Response("ok", { status: 200 });
       },
     );
-    const response = await route(new Request("https://coderouter.dev/v1/responses", { method: "POST" }), undefined);
+    const response = await route(new Request("https://cmux.w3dev.app/v1/responses", { method: "POST" }), undefined);
     expect(response.status).toBe(200);
     const requestId = response.headers.get(CODEROUTER_REQUEST_ID_HEADER);
     expect(requestId).toMatch(/^[0-9a-f-]{36}$/);
@@ -290,7 +290,7 @@ describe("withCoderouterRoute", () => {
         throw new RangeError("exploded");
       },
     );
-    const response = await route(new Request("https://coderouter.dev/v1/messages", { method: "POST" }), undefined);
+    const response = await route(new Request("https://cmux.w3dev.app/v1/messages", { method: "POST" }), undefined);
     expect(response.status).toBe(503);
     expect(await response.json()).toEqual({ type: "error" });
     expect(response.headers.get(CODEROUTER_REQUEST_ID_HEADER)).toBeTruthy();
@@ -324,7 +324,7 @@ describe("withCoderouterRoute", () => {
         return new Response(null, { status: 503 });
       },
     );
-    await route(new Request("https://coderouter.dev/v1/responses", { method: "POST" }), undefined);
+    await route(new Request("https://cmux.w3dev.app/v1/responses", { method: "POST" }), undefined);
     const exceptions = captured().filter((entry) => entry.event === "$exception");
     expect(exceptions).toHaveLength(1);
     expect(exceptions[0]!.properties.coderouter_outcome).toBe("provider_unavailable");
@@ -344,7 +344,7 @@ describe("withCoderouterRoute", () => {
       },
     );
     const response = await route(
-      new Request("https://coderouter.dev/v1/responses", {
+      new Request("https://cmux.w3dev.app/v1/responses", {
         method: "POST",
         signal: controller.signal,
       }),
@@ -371,7 +371,7 @@ describe("withCoderouterRoute", () => {
       },
     );
     const response = await route(
-      new Request("https://coderouter.dev/v1/responses", { method: "POST" }),
+      new Request("https://cmux.w3dev.app/v1/responses", { method: "POST" }),
       undefined,
     );
     expect(response.status).toBe(503);
@@ -388,8 +388,8 @@ describe("withCoderouterRoute", () => {
       telemetry: { sampleEveryMs: 60_000, priority: false },
     };
     const route = withCoderouterRoute(options, async () => new Response("ok", { status: 200 }));
-    await route(new Request("https://coderouter.dev/api/coderouter/health"), undefined);
-    await route(new Request("https://coderouter.dev/api/coderouter/health"), undefined);
+    await route(new Request("https://cmux.w3dev.app/api/coderouter/health"), undefined);
+    await route(new Request("https://cmux.w3dev.app/api/coderouter/health"), undefined);
     expect(rawBatch).toHaveBeenCalledTimes(1);
   });
 
@@ -453,7 +453,7 @@ describe("request identifiers", () => {
 
 describe("route token auth spans", () => {
   test("records an auth span and the identity on the active request", async () => {
-    const request = new Request("https://coderouter.dev/v1/responses", {
+    const request = new Request("https://cmux.w3dev.app/v1/responses", {
       headers: { authorization: "Bearer crt_abcdefghijklmnopqrstuvwxyz0123456789" },
     });
     const context = newCoderouterRequestContext({ request, surface: "responses", route: "/v1/responses" });
@@ -480,7 +480,7 @@ describe("route token auth spans", () => {
 
   test("records API key auth without exposing the key or its id", async () => {
     const key = `crk_${"A".repeat(43)}`;
-    const request = new Request("https://coderouter.dev/v1/responses", {
+    const request = new Request("https://cmux.w3dev.app/v1/responses", {
       headers: { authorization: `Bearer ${key}` },
     });
     const context = newCoderouterRequestContext({ request, surface: "responses", route: "/v1/responses" });
@@ -507,7 +507,7 @@ describe("route token auth spans", () => {
   });
 
   test("does not label browser control-plane auth as a route token", () => {
-    const request = new Request("https://coderouter.dev/api/coderouter/accounts");
+    const request = new Request("https://cmux.w3dev.app/api/coderouter/accounts");
     const context = newCoderouterRequestContext({ request, surface: "accounts", route: "/api/coderouter/accounts" });
     runWithCoderouterRequest(context, () => {
       recordCoderouterIdentity({ teamId: "team-1", stackUserId: "user-1", vmId: null }, "control_plane");
@@ -525,7 +525,7 @@ describe("route token auth spans", () => {
       [{ authorization: "Bearer crt_abcdefghijklmnopqrstuvwxyz0123456789" }, "invalid_route_token", "not_live"],
     ];
     for (const [headers, reason, detail] of cases) {
-      const request = new Request("https://coderouter.dev/api/vm/reflection/name", { headers });
+      const request = new Request("https://cmux.w3dev.app/api/vm/reflection/name", { headers });
       const context = newCoderouterRequestContext({ request, surface: "vm_reflection_name", route: "/api/vm/reflection/name" });
       const attributes: Record<string, unknown> = {};
       const span = { setAttributes: (values: Record<string, unknown>) => Object.assign(attributes, values) } as unknown as Span;
@@ -545,7 +545,7 @@ describe("route token auth spans", () => {
     // reached production, which knows no such key.
     const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "cmux-vm+jwt", kid: "dev-backend-1" })).toString("base64url");
     const token = `${header}.${Buffer.from("{}").toString("base64url")}.${"A".repeat(43)}`;
-    const request = new Request("https://coderouter.dev/api/vm/reflection/name", { headers: { "x-cmux-authorization": `Bearer ${token}` } });
+    const request = new Request("https://cmux.w3dev.app/api/vm/reflection/name", { headers: { "x-cmux-authorization": `Bearer ${token}` } });
     const context = newCoderouterRequestContext({ request, surface: "vm_reflection_name", route: "/api/vm/reflection/name" });
     const attributes: Record<string, unknown> = {};
     const span = { setAttributes: (values: Record<string, unknown>) => Object.assign(attributes, values) } as unknown as Span;
@@ -563,7 +563,7 @@ describe("route token auth spans", () => {
   });
 
   test("exports control-plane auth consistently to the active trace and events", () => {
-    const request = new Request("https://coderouter.dev/api/coderouter/accounts");
+    const request = new Request("https://cmux.w3dev.app/api/coderouter/accounts");
     const context = newCoderouterRequestContext({ request, surface: "accounts", route: "/api/coderouter/accounts" });
     const attributes: Record<string, unknown> = {};
     const span = { setAttributes: (values: Record<string, unknown>) => Object.assign(attributes, values) } as unknown as Span;

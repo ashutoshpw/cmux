@@ -1,12 +1,6 @@
-const PRODUCTION_HOSTED_SUBROUTER_URL = "https://sr.cmux.com";
-const STAGING_HOSTED_SUBROUTER_URL = "https://staging.sr.cmux.com";
-
-export function defaultHostedSubrouterURL(
-  deploymentEnvironment = process.env.VERCEL_ENV,
-): string {
-  return deploymentEnvironment === "production"
-    ? PRODUCTION_HOSTED_SUBROUTER_URL
-    : STAGING_HOSTED_SUBROUTER_URL;
+import { isUpstreamServiceHost } from "../deployment/origin";
+export function defaultHostedSubrouterURL(): string {
+  throw new Error("Hosted Subrouter requires an explicit fork service URL");
 }
 
 export function hostedSubrouterBaseURL(value: string): string {
@@ -26,5 +20,6 @@ export function hostedSubrouterBaseURL(value: string): string {
   ) {
     throw new Error("invalid hosted Subrouter URL");
   }
+  if (isUpstreamServiceHost(parsed.hostname)) throw new Error("Upstream service origins are not available in this fork");
   return parsed.origin;
 }

@@ -755,7 +755,7 @@ import Testing
         #expect(CmuxTuiSnapshotParser.localhostPort(fromURL: "http://localhost:5173/x?y=1") == 5173)
         #expect(CmuxTuiSnapshotParser.localhostPort(fromURL: "http://127.0.0.1:8080") == 8080)
         #expect(CmuxTuiSnapshotParser.localhostPort(fromURL: "http://localhost/") == 80)
-        #expect(CmuxTuiSnapshotParser.localhostPort(fromURL: "https://cmux.com") == nil)
+        #expect(CmuxTuiSnapshotParser.localhostPort(fromURL: "https://cmux.w3dev.app") == nil)
         #expect(CmuxTuiSnapshotParser.localhostPort(fromURL: "not a url") == nil)
     }
 
@@ -778,7 +778,7 @@ import Testing
                 privateAddress: "10.16.4.9"
             ) == "http://10.16.4.9:3000/path"
         )
-        #expect(CmuxTuiSurfaceProvider.privateBrowserURL("https://cmux.com", privateAddress: "10.0.0.2") == nil)
+        #expect(CmuxTuiSurfaceProvider.privateBrowserURL("https://cmux.w3dev.app", privateAddress: "10.0.0.2") == nil)
         #expect(
             CmuxTuiSurfaceProvider.privateDesktopURL(privateAddress: "10.16.4.9")
                 == "http://10.16.4.9:6901/vnc.html?path=websockify&autoconnect=1&resize=remote&reconnect=1&reconnect_delay=2000"

@@ -287,7 +287,7 @@
     },
     "foundingDesigner": {
       "metaTitle": "cmux Founding Designer 채용",
-      "metaDescription": "cmux의 창립 디자이너로 합류해 macOS, TUI, Windows, Linux, iOS, Cloud, cmux.com, chatmux 전반에서 AI 코딩의 미래를 디자인해 보세요.",
+      "metaDescription": "cmux의 창립 디자이너로 합류해 macOS, TUI, Windows, Linux, iOS, Cloud, cmux.w3dev.app, chatmux 전반에서 AI 코딩의 미래를 디자인해 보세요.",
       "section": "채용",
       "eyebrow": "역할 소개",
       "title": "Founding Designer",
@@ -296,7 +296,7 @@
       "hiring": "AI 코딩의 미래를 디자인할 뛰어난 디자이너를 찾고 있습니다.",
       "whatYoullDo": "담당하게 될 일",
       "whatYoullDoItems": [
-        "cmux macOS, cmux TUI, cmux Windows/Linux, cmux iOS, cmux Cloud, cmux.com, chatmux 등 스택 전반의 프런티어 개발자 도구를 디자인합니다.",
+        "cmux macOS, cmux TUI, cmux Windows/Linux, cmux iOS, cmux Cloud, cmux.w3dev.app, chatmux 등 스택 전반의 프런티어 개발자 도구를 디자인합니다.",
         "개발자가 AI로 일할 때 가장 유용한 제품을 디자인하는 데 기여합니다.",
         "사용자 피드백 루프를 포함해 제품의 시각적 언어와 상호작용 모델을 처음부터 끝까지 책임집니다.",
         "cmux를 직접 사용하고 프로토타입을 만들며 끊임없이 출시합니다."
@@ -778,7 +778,8 @@
           "disableTitle": "다단계 인증 비활성화",
           "disableBody": "로그인할 때 더 이상 인증 앱의 코드를 요구하지 않습니다.",
           "disableConfirm": "MFA 비활성화",
-          "disableError": "MFA를 비활성화할 수 없습니다. 다시 시도하세요."
+          "disableError": "MFA를 비활성화할 수 없습니다. 다시 시도하세요.",
+          "password": "현재 비밀번호"
         },
         "connected": {
           "title": "연결된 계정",
@@ -1461,7 +1462,7 @@
       "p116": "SessionStart hook으로 각 Claude Code session ID를 surface UUID에 mapping한 뒤 cmux restart 후 정확한 session을 resume한다. hook-driven approach라 polling을 피하고 rapid restart에도 살아남는다",
       "p117": "tool-use approval과 agent-stop alert용 OSC 777 notification을 emit해 cmux-compatible terminal이 Copilot activity를 surface할 수 있게 한다",
       "p118": "general status plugin과 달리 context-window awareness에 특화되어 fill percentage, line count, rate limit을 color-coded progress bar로 열린 모든 workspace에 동시에 시각화한다",
-      "p119": "두 skill을 제공한다. self-referential cmux docs lookup(live cmux -h + scraped cmux.com)과 다른 terminal용 /pane reader. runtime에 upstream documentation을 동적으로 scrape하는 유일한 skill",
+      "p119": "두 skill을 제공한다. self-referential cmux docs lookup(live cmux -h + scraped cmux.w3dev.app)과 다른 terminal용 /pane reader. runtime에 upstream documentation을 동적으로 scrape하는 유일한 skill",
       "p120": "ticket과 worktree용 cmux workspace를 만들거나 재사용해 task state를 보이는 cmux session과 맞춘다",
       "p121": "PreToolUse hook으로 Agent tool call을 intercept해 보이는 cmux split pane으로 redirect한다. hook-based approach라 agent 자체 prompt나 skill을 변경하지 않는다",
       "p122": "GitHub 및 Linear issue에서 worktree를 만든다. wt gh가 title을 가져와 branch를 만들고 cmux tab을 연다. open issue 선택용 fzf picker 포함",
@@ -2742,7 +2743,7 @@
       "agentPromptTitle": "에이전트에게 설정 요청하기",
       "agentPromptIntro": "코딩 에이전트가 Dock 컨트롤을 만들게 하려면 이 프롬프트를 사용하세요. 에이전트에게 `cmux docs dock`을 실행하고 프로젝트를 살펴본 뒤 추측하기 전에 질문하라고 지시합니다.",
       "agentPromptCodeTitle": "에이전트 프롬프트",
-      "agentPrompt": "Set up cmux Dock controls for the current context.\n\nFirst, learn the feature before editing:\n1. Run `cmux docs dock` if the cmux CLI is available. If it is not, read https://cmux.com/docs/dock.\n2. Inspect the repository or current directory to understand the project type, scripts, package manager, dev servers, logs, task runners, test commands, and any existing TUI tools.\n3. If the desired Dock is ambiguous, ask the user what they want monitored or controlled before writing files.\n\nDock is cmux's right-sidebar terminal and browser control area. A Dock config is JSON with a top-level `controls` array. Terminal controls run commands in Ghostty-backed sections using the user's login shell; browser controls embed URLs. Controls are useful for project dashboards, git/status views, dev server or build status, test watchers, log tails, queues, local services, or fixed web dashboards.\n\nChoose where to write the config:\n- In a repository or project directory, create or edit `.cmux/dock.json` so teammates can share it.\n- For a personal default outside a repo, create or edit `~/.config/cmux/dock.json`.\n- If both exist, project `.cmux/dock.json` is more specific for that project. Nested project configs apply to that directory tree; use the nearest relevant project config instead of writing unrelated controls globally.\n- If there is no repo and no clear project root, use the global config only after confirming the user wants a personal Dock.\n\nSchema:\n{\n  \"controls\": [\n    {\n      \"id\": \"short-stable-id\",\n      \"title\": \"Human label\",\n      \"command\": \"safe command to run\",\n      \"cwd\": \"optional/path\",\n      \"height\": 220,\n      \"env\": { \"NAME\": \"value\" }\n    },\n    {\n      \"id\": \"dashboard\",\n      \"title\": \"Dashboard\",\n      \"type\": \"browser\",\n      \"url\": \"http://127.0.0.1:3000\",\n      \"chrome\": false\n    }\n  ]\n}\n\nRules:\n- Keep ids stable, lowercase, and unique.\n- `type` is optional: `terminal` is the default, or use `browser`.\n- Terminal controls require `command`; browser controls require `url`.\n- Browser controls default to `chrome: true`. Set `chrome: false` to hide browser chrome, including the address bar and toolbar; Focus Address Bar then does nothing for that pane, while `cmux browser goto` and `cmux browser reload` remain available.\n- Use `cwd` for subdirectories; relative paths resolve from the config base.\n- Use `height` only when a control needs a fixed amount of vertical space.\n- Use `env` only for non-secret values needed by one control.\n- Do not put secrets, tokens, or machine-specific private paths in a shared project config.\n- Prefer commands that are safe to start repeatedly and make sense in a terminal.\n- Do not invent unavailable scripts. Read package files, Makefiles, Procfiles, README docs, config files, and existing tooling first.\n- Keep shared project Docks portable for teammates. Put personal or machine-specific controls in the global Dock.\n\nDeliverable:\n- Create or update the appropriate dock.json.\n- Preserve existing useful controls unless the user asked to replace them.\n- Validate that the JSON parses.\n- Summarize what each control does and any commands the user should review before trusting the Dock config."
+      "agentPrompt": "Set up cmux Dock controls for the current context.\n\nFirst, learn the feature before editing:\n1. Run `cmux docs dock` if the cmux CLI is available. If it is not, read https://cmux.w3dev.app/docs/dock.\n2. Inspect the repository or current directory to understand the project type, scripts, package manager, dev servers, logs, task runners, test commands, and any existing TUI tools.\n3. If the desired Dock is ambiguous, ask the user what they want monitored or controlled before writing files.\n\nDock is cmux's right-sidebar terminal and browser control area. A Dock config is JSON with a top-level `controls` array. Terminal controls run commands in Ghostty-backed sections using the user's login shell; browser controls embed URLs. Controls are useful for project dashboards, git/status views, dev server or build status, test watchers, log tails, queues, local services, or fixed web dashboards.\n\nChoose where to write the config:\n- In a repository or project directory, create or edit `.cmux/dock.json` so teammates can share it.\n- For a personal default outside a repo, create or edit `~/.config/cmux/dock.json`.\n- If both exist, project `.cmux/dock.json` is more specific for that project. Nested project configs apply to that directory tree; use the nearest relevant project config instead of writing unrelated controls globally.\n- If there is no repo and no clear project root, use the global config only after confirming the user wants a personal Dock.\n\nSchema:\n{\n  \"controls\": [\n    {\n      \"id\": \"short-stable-id\",\n      \"title\": \"Human label\",\n      \"command\": \"safe command to run\",\n      \"cwd\": \"optional/path\",\n      \"height\": 220,\n      \"env\": { \"NAME\": \"value\" }\n    },\n    {\n      \"id\": \"dashboard\",\n      \"title\": \"Dashboard\",\n      \"type\": \"browser\",\n      \"url\": \"http://127.0.0.1:3000\",\n      \"chrome\": false\n    }\n  ]\n}\n\nRules:\n- Keep ids stable, lowercase, and unique.\n- `type` is optional: `terminal` is the default, or use `browser`.\n- Terminal controls require `command`; browser controls require `url`.\n- Browser controls default to `chrome: true`. Set `chrome: false` to hide browser chrome, including the address bar and toolbar; Focus Address Bar then does nothing for that pane, while `cmux browser goto` and `cmux browser reload` remain available.\n- Use `cwd` for subdirectories; relative paths resolve from the config base.\n- Use `height` only when a control needs a fixed amount of vertical space.\n- Use `env` only for non-secret values needed by one control.\n- Do not put secrets, tokens, or machine-specific private paths in a shared project config.\n- Prefer commands that are safe to start repeatedly and make sense in a terminal.\n- Do not invent unavailable scripts. Read package files, Makefiles, Procfiles, README docs, config files, and existing tooling first.\n- Keep shared project Docks portable for teammates. Put personal or machine-specific controls in the global Dock.\n\nDeliverable:\n- Create or update the appropriate dock.json.\n- Preserve existing useful controls unless the user asked to replace them.\n- Validate that the JSON parses.\n- Summarize what each control does and any commands the user should review before trusting the Dock config."
     },
     "sessionRestore": {
       "title": "세션 복원",
@@ -2812,7 +2813,7 @@
       "moshTmux": "이름 있는 tmux 세션을 만들거나 연결하는 Mosh 워크스페이스를 만듭니다(기본값: main). tmux 프로필은 재연결 및 앱 세션 복원 후에도 유지됩니다. 이는 로밍 tmux 터미널이며 cmux ssh-tmux의 네이티브 미러가 아닙니다. --session <name>으로 세션을 선택하며 나머지 플래그는 cmux mosh와 같습니다. Mosh가 없으면 같은 프로필을 SSH로 실행합니다.",
       "deepLinksTitle": "SSH 딥링크",
       "deepLinksDesc": "웹사이트나 도구가 cmux에서 열기 버튼을 제공하려는 경우 cmux SSH 딥 링크를 사용하세요. 링크는 cmux를 열고 확인 프롬프트를 표시한 다음 사용자가 확인한 후 해당 cmux ssh 명령을 실행합니다.",
-      "deepLinksWebFallbackDesc": "웹사이트 버튼에는 cmux.com 대체 URL을 사용하세요. 기본 링크가 열리고 cmux가 설치되지 않은 경우 다운로드가 표시됩니다.",
+      "deepLinksWebFallbackDesc": "웹사이트 버튼에는 cmux.w3dev.app 대체 URL을 사용하세요. 기본 링크가 열리고 cmux가 설치되지 않은 경우 다운로드가 표시됩니다.",
       "deepLinksPromptRulesDesc": "프롬프트 및 규칙 버튼은 동일한 대체 모양을 사용합니다. 쉼표, 콜론 및 리터럴 더하기 기호는 URL 인코딩 시 보존됩니다.",
       "deepLinksIconDesc": "대시보드 버튼에는 SVG 아이콘을 사용하고, 래스터 이미지가 필요한 경우에는 PNG 로고를 사용하세요.",
       "deepLinksButtonDesc": "제목, 호스트 별칭 및 사용자 이름이 안전하게 인코딩되도록 URLSearchParams를 사용하여 대체 URL을 구축합니다.",
@@ -2904,7 +2905,7 @@
       "data3": "페어링 및 기기 메타데이터, 휴대폰을 Mac에 연결하기 위함.",
       "dataNot": "사용자의 대화형 터미널 세션과 그 내용 및 키 입력은 사용자 자신의 네트워크를 통해 휴대폰과 Mac 사이에서 직접 흐르며, cmux 서버를 거쳐 중계되거나 거기에 저장되지 않습니다. 유일한 예외는 전달된 알림 텍스트로, Hide content를 켜지 않는 한 휴대폰에 도달하기 위해 cmux와 Apple의 푸시 서비스를 거칩니다(위의 알림 참조).",
       "enterpriseTitle": "기업 및 자체 호스팅",
-      "enterpriseDesc": "자체 호스팅 또는 에어갭 배포는 <link>founders@cmux.com</link>으로 문의하세요."
+      "enterpriseDesc": "자체 호스팅 또는 에어갭 배포는 <link>cmux.w3dev.app/support</link>으로 문의하세요."
     },
     "cloudOverview": {
       "title": "cmux Cloud",
@@ -3058,11 +3059,11 @@
       "networkTitle": "사설 네트워크",
       "networkDesc": "머신에는 공개 인바운드 포트가 없습니다. cmux는 계정마다 사설 네트워크를 제공하며, 각 Mac은 그 Mac을 떠나지 않는 자체 WireGuard 키로 연결합니다. 연결은 cmux 앱 안에서 시작되며 승인이 필요 없습니다.",
       "networkPeers": "같은 사설 네트워크에서 머신끼리 서로 연결할 수 있습니다.",
-      "networkMacs": "cmux.com의 Cloud Mac access 페이지에 머신에 연결할 수 있는 Mac이 나열됩니다. 그곳에서 Mac의 이름을 바꾸거나 접근을 취소할 수 있습니다. Mac의 접근을 취소하면 해당 Mac은 로그아웃되고 모든 머신에 대한 접근 권한을 잃습니다.",
+      "networkMacs": "cmux.w3dev.app의 Cloud Mac access 페이지에 머신에 연결할 수 있는 Mac이 나열됩니다. 그곳에서 Mac의 이름을 바꾸거나 접근을 취소할 수 있습니다. Mac의 접근을 취소하면 해당 Mac은 로그아웃되고 모든 머신에 대한 접근 권한을 잃습니다.",
       "vpnTitle": "시스템 VPN(선택 사항)",
       "vpnDesc": "cmux vpn up은 시스템 경로를 추가해 별도의 브라우저나 데이터베이스 클라이언트 같은 Mac의 다른 앱도 머신에 연결할 수 있게 합니다. cmux 자체에는 필요하지 않습니다. 처음에는 시스템 설정 › 일반 › 로그인 항목 및 확장 프로그램에서 cmux 네트워크 확장 프로그램을 승인하세요. cmux vpn down으로 끕니다.",
       "publishTitle": "공개 URL",
-      "publishDesc": "cmux cloud domains publish는 머신의 포트에 HTTPS URL을 부여합니다. 생성되는 호스트 이름은 .cmux.sh로 끝납니다.",
+      "publishDesc": "cmux cloud domains publish는 머신의 포트에 HTTPS URL을 부여합니다. 생성되는 호스트 이름은 .vm.cmux.w3dev.app로 끝납니다.",
       "accessModes": "각 URL에는 접근 모드가 있습니다. 기본값은 머신의 소유자입니다. 즉 본인, 또는 팀이 머신을 소유한 경우 그 팀입니다.",
       "accessPersonal": "personal: 본인만 열 수 있습니다.",
       "accessTeam": "team: 머신을 소유한 팀의 현재 멤버가 열 수 있습니다.",
@@ -3256,7 +3257,7 @@
       "opencodeDesc": "cr opencode는 팀의 OpenCode Go 계정 모델을 불러오고, --model을 지정하지 않으면 첫 번째 모델을 사용합니다. --model 값은 이 모델 중 하나여야 합니다. 다른 제공업체를 쓰려면 일반 opencode를 실행하세요.",
       "piDesc": "cr pi는 Codex와 같은 모델을 가진 coderouter 제공업체를 Pi에 추가하고, --model을 지정하지 않으면 첫 번째 모델을 사용합니다. 제공업체는 고정되어 있으므로 --provider는 거부됩니다. Pi 지원은 실험적입니다.",
       "claudeTitle": "Claude Code와 기타 API 클라이언트",
-      "claudeDesc": "cr에는 Claude Code 실행기가 없습니다. Mac의 Claude Code나 Anthropic Messages API 또는 OpenAI Responses API를 사용하는 도구를 라우팅하려면 CodeRouter API 키를 만들고 도구가 coderouter.dev를 가리키게 하세요.",
+      "claudeDesc": "cr에는 Claude Code 실행기가 없습니다. Mac의 Claude Code나 Anthropic Messages API 또는 OpenAI Responses API를 사용하는 도구를 라우팅하려면 CodeRouter API 키를 만들고 도구가 cmux.w3dev.app를 가리키게 하세요.",
       "apiKeyCreate": "CodeRouter 대시보드의 API 키 섹션에서 키를 만듭니다. 키는 crk_로 시작하며 한 번만 표시됩니다. 키를 만들거나 폐기하려면 해당 팀에서 API 키를 관리할 권한이 필요하며, 개인 팀에서는 항상 이 권한이 있습니다:",
       "apiKeyScope": "조직의 API 키는 팀의 공유 계정만 사용합니다. 개인 팀의 키는 비공개 계정도 사용할 수 있습니다. CodeRouter는 Chat Completions가 아닌 OpenAI Responses API를 제공합니다.",
       "apiKeyLogin": "브라우저를 열 수 없는 머신에서는 cr login --api-key로 키를 사용해 cr에 로그인하고, CODEROUTER_API_KEY로 한 번의 명령에 키를 제공할 수 있습니다. 키는 대시보드에서 폐기하거나, 키를 사용하는 머신에서 cr logout을 실행하세요.",
@@ -3384,7 +3385,7 @@
     "afruth": "마음에 들어요. 어제 세 개 프로젝트를 각각 여러 worktree로 병렬 작업했는데, lazygit이랑 yazi/nvim이랑 같이 쓰니까 여러 ghostty/iTerm 인스턴스를 쫓아다닐 필요 없이 평소보다 생산성이 올랐어요. tmux보다 자연스러운 느낌이에요.",
     "northprint": "cmux 좋아 보여서 써봤는데, 좋다",
     "indykish": "cmux 꽤 괜찮네요.",
-    "kataring": "cmux.dev로 갈아탔다",
+    "kataring": "cmux.w3dev.app로 갈아탔다",
     "scottw": "정말 유용한 발견이에요. 충분히 추천할 수 없을 정도로.",
     "johnblythe": "주말에 깔아봤는데 좋아요. 이런 걸 기다리고 있었어요.",
     "bchris91": "딱 원하던 거예요. 정말 대단해요, 감사합니다!",
@@ -5356,7 +5357,7 @@
         "description": "버그를 신고하고 기능을 공개적으로 요청해 보세요."
       },
       "email": {
-        "label": "founders@cmux.com",
+        "label": "cmux.w3dev.app/support",
         "description": "이메일이 더 편하신가요? 직접 보내 주세요."
       }
     },
@@ -5378,8 +5379,8 @@
       "privacy": "이메일 주소는 지원 요청에 답변하는 용도로만 사용하며, 연락처 정보를 판매하지 않습니다.",
       "submit": "메시지 보내기",
       "submitting": "보내는 중...",
-      "success": "감사합니다. 메시지를 잘 받았으며 founders@cmux.com에서 이메일로 답변해 드리겠습니다.",
-      "error": "문제가 발생했습니다. 다시 시도하시거나 founders@cmux.com으로 이메일을 보내 주세요."
+      "success": "감사합니다. 메시지를 받았습니다.",
+      "error": "문제가 발생했습니다. 다시 시도해 주세요."
     }
   },
   "emails": {
@@ -5475,7 +5476,12 @@
     "errorInvalidTotp": "유효하지 않은 2단계 인증 코드입니다.",
     "errorSignUpNotAllowed": "지금은 새 계정을 만들 수 없습니다.",
     "errorPasskey": "패스키 로그인이 완료되지 않았습니다. 다시 시도하거나 다른 방법을 사용하세요.",
-    "errorGeneric": "문제가 발생했습니다. 다시 시도하세요."
+    "errorGeneric": "문제가 발생했습니다. 다시 시도하세요.",
+    "consentTitle": "계정 접근 허용",
+    "consentDescription": "{application}에서 cmux 계정 접근을 요청합니다.",
+    "consentScopes": "요청한 접근 권한",
+    "consentAllow": "허용",
+    "consentCancel": "취소"
   },
   "MobileRelease106": {
     "title": "1.0.6의 새로운 기능",
@@ -5511,5 +5517,17 @@
     "unavailableTitle": "로그인을 확인할 수 없습니다",
     "unavailableBody": "로그인 서비스가 혼잡합니다. 몇 초 기다린 후 초대를 다시 여세요. 다시 로그인할 필요는 없습니다.",
     "retry": "다시 시도"
+  },
+  "authMail": {
+    "resetSubject": "cmux 비밀번호 재설정",
+    "resetBody": "비밀번호 재설정: {url}\n\n요청한 적이 없다면 이 이메일을 무시하세요.",
+    "verifySubject": "cmux 이메일 확인",
+    "verifyBody": "이메일 확인: {url}",
+    "otpSubject": "cmux 인증 코드",
+    "otpBody": "인증 코드는 {otp}입니다. 10분 후 만료됩니다.",
+    "inviteSubject": "cmux의 {organization}에 참여",
+    "inviteBody": "초대 수락: {url}",
+    "magicSubject": "cmux에 로그인",
+    "magicBody": "로그인: {url}\n\n이 링크는 15분 후 만료됩니다. 요청한 적이 없다면 이 이메일을 무시하세요."
   }
 }

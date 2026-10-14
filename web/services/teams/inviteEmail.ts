@@ -4,8 +4,8 @@
 import { Resend } from "resend";
 import { env } from "../../app/env";
 
-export const CMUX_DOWNLOAD_URL = "https://cmux.com/download";
-export const DEFAULT_TEAM_INVITE_FROM_EMAIL = "invites@cmux.com";
+export const CMUX_DOWNLOAD_URL = "https://cmux.w3dev.app/download";
+export const DEFAULT_TEAM_INVITE_FROM_EMAIL = "";
 
 export type TeamInviteEmail = {
   readonly from: string;
@@ -84,7 +84,7 @@ export type TeamInviteMailConfig = { readonly resendApiKey: string; readonly fro
 /** Null until RESEND_API_KEY is set; without it an invite is refused, not silently unsent. */
 export function resolveTeamInviteMailConfig(): TeamInviteMailConfig | null {
   const resendApiKey = env.RESEND_API_KEY;
-  if (!resendApiKey) return null;
+  if (!resendApiKey || !env.CMUX_TEAM_INVITE_FROM_EMAIL) return null;
   return { resendApiKey, fromEmail: env.CMUX_TEAM_INVITE_FROM_EMAIL || DEFAULT_TEAM_INVITE_FROM_EMAIL };
 }
 
@@ -95,7 +95,7 @@ export class TeamInviteMailUnavailable extends Error {
 export const resendTeamInviteMailer: TeamInviteMailer = {
   async send(input) {
     const config = resolveTeamInviteMailConfig();
-    if (!config) throw new TeamInviteMailUnavailable("RESEND_API_KEY is not configured");
+    if (!config) throw new TeamInviteMailUnavailable("RESEND_API_KEY and CMUX_TEAM_INVITE_FROM_EMAIL are required");
     const resend = new Resend(config.resendApiKey);
     const payload = buildTeamInviteEmail({ ...input, from: `cmux <${config.fromEmail}>` });
     const { error } = await resend.emails.send(payload);

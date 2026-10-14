@@ -82,7 +82,7 @@ impl SshBootstrapConfig {
             package_installable: NPM_BOOTSTRAP_VERSION.is_some(),
             build_identity: BUILD_IDENTITY.into(),
             local_binary: std::env::current_exe().ok(),
-            payload_base_url: "https://files.cmux.com/cmux-tui".into(),
+            payload_base_url: "https://files.cmux.w3dev.app/cmux-tui".into(),
             payload_cache: crate::ssh_artifacts::default_payload_cache(),
             payload_proxy_pac: None,
             auto_install: true,

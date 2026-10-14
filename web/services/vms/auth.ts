@@ -1,33 +1,11 @@
-import { createHash } from "node:crypto";
-import { eq } from "drizzle-orm";
-import { after } from "next/server";
+import { resolveBetterAuthPrincipal, type BetterAuthPrincipal } from "../auth/betterAuthPrincipal";
 import { getStackServerApp, isStackConfigured } from "../../app/lib/stack";
-import {
-  stackAccessTokenVerifierFromEnv,
-  verifyStackAccessTokenLocally,
-  type StackAccessTokenIdentity,
-} from "../auth/stackAccessToken";
-import { recordAuthResolution } from "../auth/authTelemetry";
+import type { StackAccessTokenIdentity } from "../auth/stackAccessToken";
 import { withStackAuthSpan } from "../auth/stackTelemetry";
-import {
-  deleteIdentitySnapshot,
-  identitySnapshotTtlMs,
-  readIdentitySnapshot,
-  writeIdentitySnapshot,
-} from "../auth/identitySnapshot";
-import { hasAuthRateLimitSignal } from "./authErrors";
-import { cloudDb } from "../../db/client";
-import { accountDeletionTombstones } from "../../db/schema";
-import {
-  accountDeletionUserHash,
-  isBlockingAccountDeletionTombstone,
-} from "../account/deletionLock";
 import {
   billingPlanIdFromMetadata,
   billingSeatsFromMetadata,
-  billingTeamFromUnknown,
   resolveBillingTeam,
-  type BillingTeamLike,
 } from "../billing/teamResolution";
 import {
   isDevelopmentProAccessEnabled,
@@ -89,13 +67,12 @@ export function parseNativeStackTokens(
   const authorization = request.headers.get("authorization");
   const refreshToken = request.headers.get("x-stack-refresh-token")?.trim();
   if (
-    !authorization?.toLowerCase().startsWith("bearer ") ||
-    !refreshToken
+    !authorization?.toLowerCase().startsWith("bearer ")
   ) {
     return null;
   }
   const accessToken = authorization.slice("bearer ".length).trim();
-  return accessToken ? { accessToken, refreshToken } : null;
+  return accessToken ? { accessToken, refreshToken: refreshToken ?? "" } : null;
 }
 
 type VerifyRequestOptions = {
@@ -104,11 +81,7 @@ type VerifyRequestOptions = {
   readonly allowDeletingAccount?: boolean;
   readonly listAllTeams?: boolean;
   readonly subrouterAuthorizationSignal?: AbortSignal;
-  /**
-   * List every team even when the selected team would have answered this
-   * request. Only a complete list may be stored as an identity snapshot: a
-   * partial one would later deny a team the user really belongs to.
-   */
+  /** Compatibility flag: owned auth always resolves complete current organizations. */
   readonly forceCompleteTeamList?: boolean;
   /** Publication management must recheck every membership and ignore stale team selection. */
   readonly requireFreshTeamMembership?: boolean;
@@ -119,147 +92,11 @@ const MAX_SUBROUTER_STACK_AUTH_TIMEOUT_MS = 30_000;
 const MAX_CONCURRENT_STACK_AUTHORIZATION_CALLS = 8;
 const MAX_QUEUED_STACK_AUTHORIZATION_CALLS = 32;
 
-// Native-bearer verification cache. Stack Auth rate-limits server-side token verification,
-// and the Mac client bursts several /api/vm calls per user action (create → attach → status),
-// which surfaced as HTTP 429 rate_limited to end users. Successful verifications are cached
-// for a short TTL keyed by a hash of the exact tokens plus the result-affecting options, so a
-// burst costs one Stack call. Failures and throttles are never cached, and the cookie and
-// subrouter paths are never cached (cookies vary per request; subrouter verification runs
-// under its own deadline and may page through every team).
-const DEFAULT_AUTH_CACHE_TTL_MS = 30_000;
-const MAX_AUTH_CACHE_ENTRIES = 256;
-
-type AuthCacheEntry = {
-  readonly user: AuthedUser;
-  /** Hash of the exact native access/refresh pair, used for sign-out invalidation. */
-  readonly tokenFingerprint: string;
-  readonly expiresAt: number;
-};
-
-const nativeAuthCache = new Map<string, AuthCacheEntry>();
-
-function authCacheTtlMs(raw = process.env.CMUX_VM_AUTH_CACHE_TTL_MS): number {
-  const trimmed = raw?.trim();
-  if (trimmed === undefined || trimmed === "") return DEFAULT_AUTH_CACHE_TTL_MS;
-  const parsed = Number(trimmed);
-  if (!Number.isSafeInteger(parsed) || parsed < 0) return DEFAULT_AUTH_CACHE_TTL_MS;
-  return parsed;
-}
-
-function nativeAuthCacheKey(
-  tokens: NativeStackTokens,
-  options: VerifyRequestOptions,
-): string {
-  const material = [
-    tokens.accessToken,
-    tokens.refreshToken,
-    normalizedOptionalString(options.requestedTeamId) ?? "",
-    options.allowDeletingAccount === true ? "1" : "0",
-    options.listAllTeams === true ? "1" : "0",
-    options.forceCompleteTeamList === true ? "1" : "0",
-  ].join("\n");
-  return createHash("sha256").update(material).digest("hex");
-}
-
-function reusableNativeAuthCacheKey(tokens: NativeStackTokens, options: VerifyRequestOptions): string | null {
-  return options.subrouterAuthorizationSignal === undefined && !options.requireFreshTeamMembership
-    ? nativeAuthCacheKey(tokens, options) : null;
-}
-
-function nativeAuthTokenFingerprint(tokens: NativeStackTokens): string {
-  return createHash("sha256")
-    .update(`${tokens.accessToken}\n${tokens.refreshToken}`)
-    .digest("hex");
-}
-
-function readNativeAuthCache(key: string): AuthedUser | null {
-  const entry = nativeAuthCache.get(key);
-  if (!entry) return null;
-  if (entry.expiresAt <= Date.now()) {
-    nativeAuthCache.delete(key);
-    return null;
-  }
-  return entry.user;
-}
-
-function writeNativeAuthCache(
-  key: string,
-  user: AuthedUser,
-  tokens: NativeStackTokens,
-  ttlMs: number,
-): void {
-  if (ttlMs <= 0) return;
-  if (nativeAuthCache.size >= MAX_AUTH_CACHE_ENTRIES) {
-    const oldest = nativeAuthCache.keys().next().value;
-    if (oldest !== undefined) nativeAuthCache.delete(oldest);
-  }
-  nativeAuthCache.delete(key);
-  nativeAuthCache.set(key, {
-    user,
-    tokenFingerprint: nativeAuthTokenFingerprint(tokens),
-    expiresAt: Date.now() + ttlMs,
-  });
-}
-
-/** Test hook: clear the native verification cache between cases. */
-export function clearNativeAuthCacheForTests(): void {
-  nativeAuthCache.clear();
-}
-
-/**
- * Drop every cached verification for an exact native Stack token pair.
- *
- * Sign-out revokes the Stack session asynchronously, while this process may
- * otherwise continue serving a short-lived positive cache entry. The VM
- * sign-out route calls this immediately after authenticating the request so a
- * second request cannot reuse that entry during the revocation tail.
- */
-export function invalidateNativeAuthCacheForTokens(tokens: NativeStackTokens): void {
-  const fingerprint = nativeAuthTokenFingerprint(tokens);
-  for (const [key, entry] of nativeAuthCache) {
-    if (entry.tokenFingerprint === fingerprint) nativeAuthCache.delete(key);
-  }
-}
-
-/**
- * Drop every cached verification for one user on this instance. The team
- * membership webhook calls this so the instance that handles the removal stops
- * answering from a cached team list at once. Other instances keep theirs until
- * the cache TTL (30 seconds by default) expires.
- */
-export function invalidateNativeAuthCacheForUser(userId: string): void {
-  for (const [key, entry] of nativeAuthCache) {
-    if (entry.user.id === userId) nativeAuthCache.delete(key);
-  }
-}
-
-// Stack throttles per project, not per caller. Once one native verification is
-// throttled, every other native verification from this instance fails the same
-// way for the next few seconds, and the Stack SDK retries each of those calls
-// against three hosts before giving up. Fail fast during that window so a
-// throttled window costs one upstream call per instance instead of multiplying
-// the load that caused the throttle. Successful verifications still come from
-// the positive cache above; the cookie path is interactive and is never gated.
-const STACK_THROTTLE_CIRCUIT_MS = 10_000;
-let stackThrottledUntil = 0;
-
-function assertStackNotThrottled(): void {
-  const remainingMs = stackThrottledUntil - Date.now();
-  if (remainingMs <= 0) return;
-  throw new StackAuthRateLimitedError(
-    `Stack Auth rate limited; circuit open for ${Math.ceil(remainingMs / 1_000)}s`,
-  );
-}
-
-function recordStackThrottle(cause: unknown): StackAuthRateLimitedError {
-  stackThrottledUntil = Date.now() + STACK_THROTTLE_CIRCUIT_MS;
-  return new StackAuthRateLimitedError("Stack Auth rate limited", { cause });
-}
-
-/** Test hook: close the Stack throttle circuit between cases. */
-export function clearStackThrottleCircuitForTests(): void {
-  stackThrottledUntil = 0;
-}
+/** Compatibility hooks: owned auth always checks live session and membership state. */
+export function clearNativeAuthCacheForTests(): void {}
+export function invalidateNativeAuthCacheForTokens(tokens: NativeStackTokens): void { void tokens; }
+export function invalidateNativeAuthCacheForUser(userId: string): void { void userId; }
+export function clearStackThrottleCircuitForTests(): void {}
 
 let activeStackAuthorizationCalls = 0;
 let timedOutStackAuthorizationCalls = 0;
@@ -295,7 +132,7 @@ export async function withSubrouterAuthorizationDeadline<T>(
 }
 
 /**
- * Run a Stack call under a caller's authorization deadline. The call shares
+ * Run an owned auth call under a caller's authorization deadline. The call shares
  * the deadline-gated concurrency slots and `cmux.stack_auth.*` span with
  * verification, and rejects with `SubrouterAuthorizationTimeoutError` once the
  * signal aborts. A call that has not started when the signal aborts never
@@ -307,20 +144,6 @@ export function deadlineGatedStackCall<T>(
   operationName: string,
 ): Promise<T> {
   return stackAuthorizationCall(operation, signal, operationName);
-}
-
-/**
- * Persist the identity snapshot after the response. `after` keeps the
- * function alive on Vercel; outside a request scope (tests, scripts) it
- * throws and the write runs detached. The write already swallows its own
- * failures.
- */
-function deferIdentitySnapshotWrite(write: () => Promise<void>): void {
-  try {
-    after(write);
-  } catch {
-    void write();
-  }
 }
 
 export async function verifySubrouterRequest(
@@ -337,8 +160,7 @@ export async function verifySubrouterRequest(
 /**
  * Verify a browser session without resolving its team or billing state.
  * Dashboard layouts use this narrow check before they render any private UI.
- * The shared authorization slot makes the Stack SDK call obey the caller's
- * deadline even though the SDK does not accept an AbortSignal itself.
+ * The shared authorization slot bounds the owned session lookup with the caller's deadline.
  */
 export async function verifyBrowserSessionRequest(
   request: Request,
@@ -543,207 +365,52 @@ function waitForStackAuthorization<T>(
  *
  * Returns the resolved user or null if unauthenticated.
  */
-export async function verifyRequest(
-  request: Request,
-  options: VerifyRequestOptions = {},
-): Promise<AuthedUser | null> {
-  if (!isStackConfigured()) {
-    return null;
-  }
-
-  const stackServerApp = getStackServerApp();
-  const authHeader = request.headers.get("authorization");
-  const refreshHeader = request.headers.get("x-stack-refresh-token");
-
-  if (authHeader !== null || refreshHeader !== null) {
-    return verifyNativeRequest(request, options, stackServerApp);
-  }
-
-  if (options.allowCookie === false) {
-    return null;
-  }
-
-  // Fall back to the Next.js cookie flow (when browser hits the route).
-  const user = await stackAuthorizationCall(
-    () => stackServerApp.getUser({
-      tokenStore: request as unknown as {
-        headers: { get(name: string): string | null };
-      },
-    }),
-    options.subrouterAuthorizationSignal,
-    "get_user",
-  );
-  if (user) {
-    const resolved = await authedUserFromStackUser(user, options);
-    if (resolved) recordAuthResolution({ source: "cookie", providerCalled: true });
-    return resolved?.user ?? null;
-  }
-  return null;
+export async function verifyRequest(request: Request, options: VerifyRequestOptions = {}): Promise<AuthedUser | null> {
+  if (!isStackConfigured()) return null;
+  const hasNativeHeader = request.headers.has("authorization") || request.headers.has("x-stack-refresh-token");
+  if (hasNativeHeader && !parseNativeStackTokens(request)) return null;
+  if (!hasNativeHeader && options.allowCookie === false) return null;
+  const principal = await stackAuthorizationCall(() => resolveBetterAuthPrincipal(request.headers, { allowDeletingAccount: options.allowDeletingAccount }), options.subrouterAuthorizationSignal, "get_user");
+  if (!principal || principal.isAnonymous || !principal.emailVerified) return null;
+  return authedUserFromPrincipal(principal);
 }
 
-async function verifyNativeRequest(
-  request: Request,
-  options: VerifyRequestOptions,
-  stackServerApp: ReturnType<typeof getStackServerApp>,
-): Promise<AuthedUser | null> {
-  const tokens = parseNativeStackTokens(request);
-  if (!tokens) return null;
-  const cacheable = options.subrouterAuthorizationSignal === undefined;
-  const cacheKey = reusableNativeAuthCacheKey(tokens, options);
-  if (cacheKey) {
-    const cached = readNativeAuthCache(cacheKey);
-    if (cached) {
-      recordAuthResolution({ source: "snapshot", providerCalled: false });
-      return cached;
-    }
-  }
-  // Subrouter calls carry their own deadline and error classes; only the
-  // cacheable native path (device registry, iroh broker, relay) is gated.
-  // The check runs inside the operation so it is evaluated when the call
-  // actually starts, not when it was queued behind the concurrency limiter.
-  let user: Awaited<ReturnType<typeof stackServerApp.getUser>>;
-  try {
-    user = await stackAuthorizationCall(
-      () => {
-        if (cacheable) assertStackNotThrottled();
-        return stackServerApp.getUser({ tokenStore: tokens });
-      },
-      options.subrouterAuthorizationSignal,
-      "get_user",
-    );
-  } catch (error) {
-    // The circuit's own fast-fail must not count as a new upstream throttle,
-    // or steady retry traffic would hold the circuit open forever.
-    if (error instanceof StackAuthRateLimitedError) throw error;
-    if (cacheable && hasAuthRateLimitSignal(error)) throw recordStackThrottle(error);
-    throw error;
-  }
-  if (user) {
-    const resolved = await authedUserFromStackUser(user, options);
-    if (resolved && cacheKey) {
-      writeNativeAuthCache(cacheKey, resolved.user, tokens, authCacheTtlMs());
-    }
-    if (resolved) {
-      recordAuthResolution({ source: "stack", providerCalled: true });
-      const writeSnapshot = () => writeIdentitySnapshot(resolved.user, {
-        completeTeamList: resolved.completeTeamList,
-      });
-      // The snapshot is a best-effort optimization. A deadline-gated caller
-      // must not spend its Stack budget waiting for a database connection:
-      // production traces showed this upsert idle 6-11 s behind a saturated
-      // pool, which alone pushed /api/coderouter/organizations past 10 s.
-      if (options.subrouterAuthorizationSignal) deferIdentitySnapshotWrite(writeSnapshot);
-      else await writeSnapshot();
-    }
-    return resolved?.user ?? null;
-  }
-  // A caller that presents native credentials must succeed or fail as that
-  // native session. Falling back to an ambient browser cookie would let an
-  // invalid bearer bypass mutation-origin checks.
-  return null;
+async function authedUserFromPrincipal(principal: BetterAuthPrincipal): Promise<AuthedUser> {
+  const teams = principal.organizations.map((organization) => ({ id: organization.id, displayName: organization.name, clientReadOnlyMetadata: organization.clientReadOnlyMetadata }));
+  const selectedTeam = teams.find((team) => team.id === principal.activeOrganizationId) ?? null;
+  const billingTeam = await resolveBillingTeam({ selectedTeam, listTeams: async () => teams });
+  const developmentPro = !principal.isAnonymous && isDevelopmentProAccessEnabled();
+  const userBillingPlanId = developmentPro ? PRO_PLAN_ID : billingPlanIdFromMetadata(principal.clientReadOnlyMetadata);
+  const billingPlanId = developmentPro ? PRO_PLAN_ID : billingPlanIdFromMetadata(billingTeam?.clientReadOnlyMetadata) ?? userBillingPlanId;
+  return { id: principal.userId, isAnonymous: principal.isAnonymous, displayName: principal.displayName, primaryEmail: principal.email,
+    billingCustomerType: billingTeam ? "team" : "user", billingTeamId: billingTeam?.id ?? principal.userId, selectedTeamId: selectedTeam?.id ?? null,
+    teams: teams.map((team) => ({ id: team.id, displayName: team.displayName, billingPlanId: developmentPro ? PRO_PLAN_ID : billingPlanIdFromMetadata(team.clientReadOnlyMetadata), billingSeats: billingSeatsFromMetadata(team.clientReadOnlyMetadata) })),
+    teamIds: teams.map((team) => team.id), userBillingPlanId, billingPlanId, billingSeats: billingSeatsFromMetadata(billingTeam?.clientReadOnlyMetadata) };
 }
 
-/**
- * Verify a native request for a route that needs the user's identity AND team
- * membership, at device-registry volume.
- *
- * The access token is checked locally against Stack's published signing keys,
- * and the team membership it does not carry comes from `stack_identity_
- * snapshots`, a shared row refreshed from Stack at most once per TTL per user.
- * A request answered this way makes no call to the auth provider at all. Any
- * miss (no token, token not locally verifiable, no fresh snapshot) falls
- * through to `verifyRequest`, which asks Stack and refreshes the snapshot.
- *
- * Trade-off, stated: team membership can be up to the snapshot TTL stale. The
- * Stack `team_membership.deleted` webhook (`app/api/webhooks/stack`) deletes
- * the removed user's row, so a delivered webhook ends that window at once; the
- * TTL (default ten minutes) remains the bound when a delivery is missed or
- * still retrying. Routes that gate money, account mutation, or admin powers
- * must keep calling `verifyRequest`.
- */
+/** Compatibility entrypoint; verifies current owned session and complete organization membership. */
 export async function verifyRequestFromSnapshot(
   request: Request,
   options: {
     readonly requestedTeamId?: string | null;
+    /** Deprecated compatibility inputs; never override owned authorization. */
     readonly maxSnapshotAgeMs?: number;
-    /** Test seam for the local token verifier. */
+    /** Deprecated compatibility input; owned session authority is always used. */
     readonly verifyAccessToken?: (
       accessToken: string,
     ) => Promise<StackAccessTokenIdentity | null>;
-    /** Test seam for the account-deletion tombstone lookup. */
+    /** Deprecated compatibility input; tombstones are checked by owned auth. */
     readonly isAccountDeleted?: (userId: string) => Promise<boolean>;
   } = {},
 ): Promise<AuthedUser | null> {
-  if (!isStackConfigured()) return null;
-  const tokens = parseNativeStackTokens(request);
-  if (tokens) {
-    const verifier = options.verifyAccessToken
-      ? null
-      : stackAccessTokenVerifierFromEnv();
-    const local = options.verifyAccessToken
-      ? await options.verifyAccessToken(tokens.accessToken)
-      : verifier
-      ? await verifyStackAccessTokenLocally(tokens.accessToken, verifier)
-      : null;
-    if (local) {
-      const snapshot = await readIdentitySnapshot(
-        local.userId,
-        options.maxSnapshotAgeMs ?? identitySnapshotTtlMs(),
-      );
-      if (snapshot) {
-        // Stack's deletion metadata is not in the token, so the tombstone is
-        // read directly rather than behind the usual metadata short-circuit.
-        const isDeleted = options.isAccountDeleted ?? isAccountDeletionTombstoned;
-        if (await isDeleted(local.userId)) {
-          await deleteIdentitySnapshot(local.userId);
-          return null;
-        }
-        recordAuthResolution({
-          source: "snapshot",
-          providerCalled: false,
-          snapshotAgeMs: snapshot.ageMs,
-        });
-        return snapshot.user;
-      }
-    } else {
-      recordAuthResolution({
-        source: "stack",
-        providerCalled: true,
-        localVerifyMiss: verifier || options.verifyAccessToken
-          ? "rejected"
-          : "not_configured",
-      });
-    }
-  }
-  // Refreshing needs the complete team list, or the snapshot it writes could
-  // later deny a team the user really belongs to.
-  return await verifyRequest(request, {
-    requestedTeamId: options.requestedTeamId,
-    allowCookie: false,
-    forceCompleteTeamList: true,
-  });
-}
-
-/** Whether this user id has a tombstone that blocks authentication. */
-async function isAccountDeletionTombstoned(userId: string): Promise<boolean> {
-  const userIdHash = accountDeletionUserHash(userId);
-  const [deletion] = await cloudDb()
-    .select({
-      userIdHash: accountDeletionTombstones.userIdHash,
-      status: accountDeletionTombstones.status,
-      updatedAt: accountDeletionTombstones.updatedAt,
-    })
-    .from(accountDeletionTombstones)
-    .where(eq(accountDeletionTombstones.userIdHash, userIdHash))
-    .limit(1);
-  return deletion?.userIdHash === userIdHash &&
-    isBlockingAccountDeletionTombstone(deletion);
+  // Membership, account state and session revocation are always current.
+  return verifyRequest(request, { requestedTeamId: options.requestedTeamId, allowCookie: false,
+    requireFreshTeamMembership: true, forceCompleteTeamList: true });
 }
 
 /**
- * The caller's complete team membership, freshly listed from Stack for this
- * request, or null when it cannot be established (Stack error, throttle, or no
- * session). Never answered from a cache or an identity snapshot.
+ * The caller's complete current organization membership, or null when the
+ * owned session cannot be established. Never answered from a positive cache.
  *
  * Tunnel enrollment uses this to decide which team networks to keep: the
  * route's normal verification resolves only the selected team, and treating
@@ -779,310 +446,20 @@ type VerifyIdentityOptions = {
   readonly requireStackSession?: boolean;
   /** High-volume native routes reject invalid tokens locally instead of asking Stack. */
   readonly allowStackFallback?: boolean;
-  /** Test seam for the local token verifier. */
+  /** Deprecated compatibility input; owned session authority is always used. */
   readonly verifyAccessToken?: (
     accessToken: string,
   ) => Promise<StackAccessTokenIdentity | null>;
 };
 
-/**
- * Establish only WHO the caller is, for routes that need the user id and
- * nothing else (the iroh trust broker). A native bearer token is verified
- * locally against Stack's published signing keys, so the ~100 req/s of device
- * registration traffic no longer costs one Stack `users/me` call each. Any
- * token the local check cannot accept (expired, unknown key, malformed, keys
- * unavailable) falls back to `verifyRequest`, which asks Stack and refreshes.
- *
- * Trade-off, stated: a session revoked at Stack stays accepted here until its
- * access token expires. Stack access tokens live one hour. Routes that gate
- * money or account mutation must keep using `verifyRequest`.
- */
+/** Resolve identity from the live owned session, including account revocation state. */
 export async function verifyRequestIdentity(
   request: Request,
   options: VerifyIdentityOptions = {},
 ): Promise<VerifiedIdentity | null> {
-  if (!isStackConfigured()) return null;
-  const tokens = parseNativeStackTokens(request);
-  if (tokens && !options.requireStackSession) {
-    const verifier = options.verifyAccessToken
-      ? null
-      : stackAccessTokenVerifierFromEnv();
-    const local = options.verifyAccessToken
-      ? await options.verifyAccessToken(tokens.accessToken)
-      : verifier
-        ? await verifyStackAccessTokenLocally(tokens.accessToken, verifier)
-        : null;
-    if (local) {
-      recordAuthResolution({ source: "access_token", providerCalled: false });
-      return { id: local.userId, source: "access_token" };
-    }
-  }
-  if (options.allowStackFallback === false && !options.requireStackSession) return null;
-  const user = await verifyRequest(request, { allowCookie: options.allowCookie });
+  const user = await verifyRequest(request, { allowCookie: options.allowCookie,
+    requireFreshTeamMembership: true, forceCompleteTeamList: true });
   return user ? { id: user.id, source: "stack" } : null;
-}
-
-/**
- * A user resolved from Stack, plus whether the team list backing it is the
- * user's complete membership. Only a complete list may be snapshotted.
- */
-type ResolvedStackUser = {
-  readonly user: AuthedUser;
-  readonly completeTeamList: boolean;
-};
-
-async function resolveStackTeamMembership(
-  user: StackUserLike,
-  options: VerifyRequestOptions,
-): Promise<{ selectedTeam: BillingTeamLike | null; listedTeams: BillingTeamLike[]; completeTeamList: boolean }> {
-  const selectedTeam = billingTeamFromUnknown(user.selectedTeam);
-  if (options.requireFreshTeamMembership) {
-    // An empty list here must mean "no teams", never "could not list".
-    if (typeof user.listTeams !== "function") {
-      throw new Error("Stack user cannot list teams; fresh team membership is unavailable");
-    }
-    const listedTeams = (await listAllStackTeams(user, options.subrouterAuthorizationSignal))
-      .map(billingTeamFromUnknown).filter((team): team is BillingTeamLike => !!team);
-    return {
-      selectedTeam: listedTeams.find((team) => team.id === selectedTeam?.id) ?? null,
-      listedTeams,
-      completeTeamList: true,
-    };
-  }
-  const requestedTeamId = normalizedOptionalString(options.requestedTeamId);
-  // Stack may return only the selected team's ID. Resolve its details before
-  // choosing billing, or paid members inherit the user's free plan instead.
-  const selectedTeamNeedsDetails = !!selectedTeam && selectedTeam.clientReadOnlyMetadata === undefined;
-  const teamIdsToLookup = uniqueStrings([
-    requestedTeamId && requestedTeamId !== selectedTeam?.id ? requestedTeamId : undefined,
-    selectedTeamNeedsDetails ? selectedTeam.id : undefined,
-  ]);
-  // Snapshot-capable callers need a complete paginated list. Bounded
-  // subrouter callers resolve only the requested and selected IDs so shared VM
-  // authentication does not inherit an unbounded multi-page dependency.
-  const needsListedTeams = options.forceCompleteTeamList === true ||
-    !selectedTeam ||
-    teamIdsToLookup.length > 0;
-  // Whether the branch taken below enumerates every team the user belongs to.
-  // Only that case may be stored as an identity snapshot.
-  let completeTeamList = options.subrouterAuthorizationSignal === undefined
-    ? needsListedTeams && typeof user.listTeams === "function"
-    : options.listAllTeams === true;
-  let listedTeamRaw: readonly unknown[];
-  if (options.subrouterAuthorizationSignal === undefined) {
-    if (!completeTeamList) {
-      listedTeamRaw = [];
-    } else if (options.forceCompleteTeamList === true) {
-      // Snapshot refreshes must fail closed: storing a partial team list could
-      // later deny a team that was omitted by an incomplete page walk.
-      listedTeamRaw = await listAllStackTeams(user, undefined);
-    } else {
-      // VM listing can still use the selected team's ID and user plan when
-      // Stack returns a broken or unexpectedly large pagination chain. Do not
-      // mark the partial result complete, so it is never snapshotted.
-      const listed = await listStackTeams(user, undefined);
-      listedTeamRaw = listed.teams;
-      completeTeamList = listed.complete;
-    }
-  } else if (options.listAllTeams === true) {
-    listedTeamRaw = await listAllStackTeams(user, options.subrouterAuthorizationSignal);
-  } else if (teamIdsToLookup.length > 0) {
-    listedTeamRaw = (await Promise.all(teamIdsToLookup.map((teamId) => findStackTeam(
-      user,
-      teamId,
-      options.subrouterAuthorizationSignal,
-    )))).flat();
-  } else {
-    listedTeamRaw = [];
-  }
-  const listedTeams = listedTeamRaw
-    .map(billingTeamFromUnknown)
-    .filter((team): team is BillingTeamLike => !!team);
-  const resolvedSelectedTeam = selectedTeamNeedsDetails
-    ? listedTeams.find((team) => team.id === selectedTeam.id) ?? selectedTeam
-    : selectedTeam;
-  return { selectedTeam: resolvedSelectedTeam, listedTeams, completeTeamList };
-}
-
-async function authedUserFromStackUser(
-  user: StackUserLike,
-  options: VerifyRequestOptions,
-): Promise<ResolvedStackUser | null> {
-  if (!options.allowDeletingAccount && await isAccountDeletionAuthBlocked(user)) {
-    return null;
-  }
-  const { selectedTeam, listedTeams, completeTeamList } = await resolveStackTeamMembership(user, options);
-  const teamIds = uniqueStrings([
-    selectedTeam?.id,
-    ...listedTeams.map((team) => team.id),
-  ]);
-  const teams = uniqueTeams([selectedTeam, ...listedTeams]);
-  const billingTeam = await resolveBillingTeam({
-    selectedTeam,
-    listTeams: async () => listedTeams,
-  });
-  const developmentPro = !user.isAnonymous && isDevelopmentProAccessEnabled();
-  const userBillingPlanId = developmentPro
-    ? PRO_PLAN_ID
-    : billingPlanIdFromMetadata(user.clientReadOnlyMetadata) ?? null;
-  const billingPlanId = developmentPro
-    ? PRO_PLAN_ID
-    : billingPlanIdFromMetadata(billingTeam?.clientReadOnlyMetadata) ?? userBillingPlanId;
-  const billingSeats = billingSeatsFromMetadata(billingTeam?.clientReadOnlyMetadata);
-  const authedTeams = teams.map((team) => ({
-    id: team.id,
-    displayName: team.displayName,
-    billingPlanId: developmentPro
-      ? PRO_PLAN_ID
-      : billingPlanIdFromMetadata(team.clientReadOnlyMetadata),
-    billingSeats: billingSeatsFromMetadata(team.clientReadOnlyMetadata),
-  }));
-
-  return {
-    user: {
-      id: user.id,
-      isAnonymous: user.isAnonymous === true,
-      displayName: user.displayName,
-      primaryEmail: user.primaryEmail,
-      billingCustomerType: billingTeam ? "team" : "user",
-      billingTeamId: billingTeam?.id ?? user.id,
-      selectedTeamId: selectedTeam?.id ?? null,
-      teams: authedTeams,
-      teamIds,
-      userBillingPlanId,
-      billingPlanId,
-      billingSeats,
-    },
-    completeTeamList,
-  };
-}
-
-const MAX_STACK_TEAM_PAGES = 100;
-const STACK_TEAM_PAGE_SIZE = 100;
-
-type StackTeamPageResult = {
-  readonly teams: readonly unknown[];
-  readonly complete: boolean;
-  readonly incompleteReason?: string;
-};
-
-/** List every available Stack team while retaining pages before a cursor fault. */
-async function listStackTeams(
-  user: StackUserLike,
-  signal: AbortSignal | undefined,
-): Promise<StackTeamPageResult> {
-  if (typeof user.listTeams !== "function") return { teams: [], complete: true };
-
-  const teams: unknown[] = [];
-  const seenCursors = new Set<string>();
-  let cursor: string | undefined;
-  for (let pageIndex = 0; pageIndex < MAX_STACK_TEAM_PAGES; pageIndex++) {
-    const page = await stackAuthorizationCall(
-      () => user.listTeams!({
-        cursor,
-        limit: STACK_TEAM_PAGE_SIZE,
-      }),
-      signal,
-      "list_teams",
-    );
-    teams.push(...page);
-    const nextCursor = normalizedOptionalString(page.nextCursor);
-    if (!nextCursor) return { teams, complete: true };
-    if (seenCursors.has(nextCursor)) {
-      return { teams, complete: false, incompleteReason: "Stack team pagination repeated a cursor" };
-    }
-    seenCursors.add(nextCursor);
-    cursor = nextCursor;
-  }
-  return { teams, complete: false, incompleteReason: "Stack team pagination exceeded its page limit" };
-}
-
-async function listAllStackTeams(
-  user: StackUserLike,
-  signal: AbortSignal | undefined,
-): Promise<readonly unknown[]> {
-  const result = await listStackTeams(user, signal);
-  if (result.complete) return result.teams;
-  throw new Error(result.incompleteReason ?? "Stack team pagination is incomplete");
-}
-
-async function findStackTeam(
-  user: StackUserLike,
-  teamId: string,
-  signal: AbortSignal | undefined,
-): Promise<readonly unknown[]> {
-  if (typeof user.listTeams !== "function") return [];
-  const page = await stackAuthorizationCall(
-    () => user.listTeams!({
-      query: teamId,
-      limit: STACK_TEAM_PAGE_SIZE,
-    }),
-    signal,
-    "list_teams",
-  );
-  const match = page.find(
-    (candidate) => billingTeamFromUnknown(candidate)?.id === teamId,
-  );
-  return match ? [match] : [];
-}
-
-async function isAccountDeletionAuthBlocked(user: StackUserLike): Promise<boolean> {
-  if (!hasAccountDeletionMetadataFlag(user.clientReadOnlyMetadata)) return false;
-  const userIdHash = accountDeletionUserHash(user.id);
-  const [deletion] = await cloudDb()
-    .select({
-      userIdHash: accountDeletionTombstones.userIdHash,
-      status: accountDeletionTombstones.status,
-      updatedAt: accountDeletionTombstones.updatedAt,
-    })
-    .from(accountDeletionTombstones)
-    .where(eq(accountDeletionTombstones.userIdHash, userIdHash))
-    .limit(1);
-  return deletion?.userIdHash === userIdHash &&
-    isBlockingAccountDeletionTombstone(deletion);
-}
-
-function hasAccountDeletionMetadataFlag(metadata: unknown): boolean {
-  return !!metadata &&
-    typeof metadata === "object" &&
-    !Array.isArray(metadata) &&
-    (metadata as { cmuxAccountDeleting?: unknown }).cmuxAccountDeleting === true;
-}
-
-type StackUserLike = {
-  readonly id: string;
-  readonly isAnonymous?: boolean;
-  readonly displayName: string | null;
-  readonly primaryEmail: string | null;
-  readonly clientReadOnlyMetadata?: unknown;
-  readonly selectedTeam?: unknown;
-  readonly listTeams?: (
-    options?: {
-      readonly cursor?: string;
-      readonly limit?: number;
-      readonly query?: string;
-    },
-  ) => Promise<readonly unknown[] & { readonly nextCursor?: string | null }>;
-};
-
-function uniqueStrings(values: readonly (string | undefined)[]): readonly string[] {
-  return [...new Set(values.filter((value): value is string => typeof value === "string" && value.length > 0))];
-}
-
-function uniqueTeams(values: readonly (BillingTeamLike | null | undefined)[]): readonly BillingTeamLike[] {
-  const teams: BillingTeamLike[] = [];
-  const seen = new Set<string>();
-  for (const team of values) {
-    if (!team || seen.has(team.id)) continue;
-    seen.add(team.id);
-    teams.push(team);
-  }
-  return teams;
-}
-
-function normalizedOptionalString(value: string | null | undefined): string | null {
-  const normalized = value?.trim();
-  return normalized ? normalized : null;
 }
 
 export function unauthorized(): Response {

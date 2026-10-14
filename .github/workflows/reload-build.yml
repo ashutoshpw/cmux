@@ -209,7 +209,7 @@ jobs:
           client_bundle="$RUNNER_TEMP/cmux-tui-prebuilt"
           mkdir -p "$client_bundle/Contents"
           env -u CMUX_TUI_CLIENT_LOCAL scripts/install-cmux-tui-client.sh "$client_bundle" \
-            --manifest-url "https://files.cmux.com/cmux-tui/$client_commit/manifest.json" \
+            --manifest-url "https://files.cmux.w3dev.app/cmux-tui/$client_commit/manifest.json" \
             --expected-commit "$client_commit" --require-capability wireguard-hub \
             --attest-signer-workflow "$GITHUB_REPOSITORY/.github/workflows/cmux-tui-artifacts.yml"
           client="$client_bundle/Contents/Resources/bin/cmux-tui"
@@ -669,8 +669,8 @@ jobs:
           # This archive is installed on a physical device. Its localhost is
           # the phone, not the tagged Mac or runner, so Debug device builds use
           # staging unless the dispatcher supplies an explicit reachable URL.
-          api_base_url="${CMUX_IOS_API_BASE_URL:-${CMUX_DEV_API_BASE_URL:-https://cmux-staging.vercel.app}}"
-          iroh_broker_base_url="${CMUX_IOS_IROH_BROKER_BASE_URL:-${CMUX_IROH_BROKER_BASE_URL:-https://cmux-staging.vercel.app}}"
+          api_base_url="${CMUX_IOS_API_BASE_URL:-${CMUX_DEV_API_BASE_URL:-https://staging.cmux.w3dev.app}}"
+          iroh_broker_base_url="${CMUX_IOS_IROH_BROKER_BASE_URL:-${CMUX_IROH_BROKER_BASE_URL:-https://staging.cmux.w3dev.app}}"
 
           # Match ios/scripts/reload.sh --swift-frontend-workaround. Optimized
           # Debug builds need this Xcode 26 codegen path disabled on every lane.

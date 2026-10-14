@@ -113,7 +113,7 @@ describe("dashboard account menu", () => {
 
     expect(html).toContain("Lawrence");
     expect(html).toContain("user@example.com");
-    expect(html).toContain('data-size="24"');
+    expect(html).toContain('width:24px;height:24px');
     expect(html).toContain('href="/dashboard/settings"');
     expect(html).toContain('href="/dashboard/billing"');
     expect(html).toContain("signOut");

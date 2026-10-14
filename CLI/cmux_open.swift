@@ -1085,7 +1085,7 @@ extension CMUXCLI {
 
     private func taggedDiffViewerExecutableURL(socketPath: String) -> URL? {
         let socketName = URL(fileURLWithPath: socketPath).lastPathComponent
-        let prefix = "cmux-debug-"
+        let prefix = "cmux-w3dev-debug-"
         let suffix = ".sock"
         guard socketName.hasPrefix(prefix), socketName.hasSuffix(suffix) else {
             return nil

@@ -88,14 +88,14 @@ extension TerminalController {
                 in: .userDomainMask
             ).first ?? FileManager.default.homeDirectoryForCurrentUser
                 .appendingPathComponent("Library/Application Support", isDirectory: true)
-            let rawBundleID = Bundle.main.bundleIdentifier ?? "com.cmuxterm.app"
+            let rawBundleID = Bundle.main.bundleIdentifier ?? "app.w3dev.cmux"
             let bundleID = rawBundleID.map { character in
                 character.isLetter || character.isNumber || character == "." || character == "-"
                     ? character
                     : "_"
             }
             return appSupport
-                .appendingPathComponent("cmux", isDirectory: true)
+                .appendingPathComponent("cmux-w3dev", isDirectory: true)
                 .appendingPathComponent(
                     "workspace-create-tombstones-\(String(bundleID))-v1.json",
                     isDirectory: false

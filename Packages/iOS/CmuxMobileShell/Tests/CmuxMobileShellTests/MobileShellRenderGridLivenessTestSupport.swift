@@ -87,7 +87,7 @@ actor LivenessHostRouter {
     // tests from exercising the one-shot legacy identity recovery request.
     private var macDeviceID: String? = "test-mac"
     private var macInstanceTag: String? = "default"
-    private var macClientNamespace: String? = "mac:com.cmuxterm.app.debug"
+    private var macClientNamespace: String? = "mac:app.w3dev.cmux.debug"
     private var macDisplayName: String? = "Test Mac"
     private var workspaceListResponseHook: (@Sendable () -> Void)?
     private var workspaceIDs = ["live-workspace"]
@@ -312,7 +312,7 @@ actor LivenessHostRouter {
         deviceID: String?,
         instanceTag: String?,
         displayName: String? = nil,
-        clientNamespace: String? = "mac:com.cmuxterm.app.debug"
+        clientNamespace: String? = "mac:app.w3dev.cmux.debug"
     ) {
         macDeviceID = deviceID
         macInstanceTag = instanceTag
@@ -896,7 +896,7 @@ actor LivenessTransport: CmxByteTransport, CmxByteTransportLivenessObserving {
                 action: params?["action"] as? String,
                 title: params?["title"] as? String,
                 attachToken: auth?["attach_token"] as? String,
-                stackAccessToken: auth?["stack_access_token"] as? String,
+                stackAccessToken: auth?["access_token"] as? String,
                 deviceKind: params?["device_kind"] as? String,
                 deviceName: params?["device_name"] as? String
             )

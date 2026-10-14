@@ -49,7 +49,7 @@ public actor CmuxTUIRemote {
     public func connect(
         on connection: SSHConnection,
         session: String,
-        clientName: String = "cmux-ios",
+        clientName: String = "cmux-w3dev-ios",
         handshakeTimeout: Duration = .seconds(30)
     ) async throws -> CmuxTUIControl {
         try Self.validate(session: session)

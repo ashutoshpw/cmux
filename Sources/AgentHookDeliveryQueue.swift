@@ -2,7 +2,7 @@ import Foundation
 import OSLog
 
 nonisolated private let agentHookDeliveryQueueLogger = Logger(
-    subsystem: "com.cmuxterm.app",
+    subsystem: "app.w3dev.cmux",
     category: "AgentHookDelivery"
 )
 

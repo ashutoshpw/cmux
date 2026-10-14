@@ -56,7 +56,12 @@ type IncomingEvent = {
   readonly timestamp?: string;
 };
 
-export const POST = makeAnalyticsEventsHandler();
+const configuredPOST = makeAnalyticsEventsHandler();
+
+export async function POST(request: Request): Promise<Response> {
+  if (!POSTHOG_PROJECT_KEY || !POSTHOG_HOST) return jsonResponse({ error: "analytics_not_configured" }, 503);
+  return configuredPOST(request);
+}
 
 export function makeAnalyticsEventsHandler(dependencies: AnalyticsEventsDependencies = defaultDependencies) {
   return async function POST(request: Request): Promise<Response> {

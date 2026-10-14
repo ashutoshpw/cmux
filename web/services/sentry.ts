@@ -1,3 +1,4 @@
+import { forkDeployment } from "./deployment/config";
 import type { Event } from "@sentry/nextjs";
 
 const SECRET_KEY =
@@ -44,7 +45,9 @@ export function shouldSendSentryEvent(event: Event): boolean {
   const url = event.request?.url;
   if (!url) return false;
   try {
-    return new URL(url).hostname.toLowerCase() === "coderouter.dev";
+    const requestUrl = new URL(url);
+    return requestUrl.origin === forkDeployment.productionOrigin
+      && /^\/(?:v1|api\/coderouter|coderouter)(?:\/|$)/u.test(requestUrl.pathname);
   } catch {
     return false;
   }

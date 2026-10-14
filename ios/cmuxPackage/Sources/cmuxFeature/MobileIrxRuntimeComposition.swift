@@ -80,7 +80,7 @@ public actor MobileIrxRuntimeComposition {
         self.diagnosticLog = diagnosticLog
         localPaths = MobileIrohV2LocalPathStore(root: configuration.stateDirectory)
         installation = MobileIrohV2InstallationStore(configuration: configuration, accessGroup: keychainAccessGroup)
-        journal = IrxJournal(subsystem: "dev.cmux.ios", category: "iroh-v2",
+        journal = IrxJournal(subsystem: "app.w3dev.cmux.ios.debug", category: "iroh-v2",
             journalFileURL: configuration.stateDirectory.appendingPathComponent("iroh-v2-journal.jsonl"))
     }
 

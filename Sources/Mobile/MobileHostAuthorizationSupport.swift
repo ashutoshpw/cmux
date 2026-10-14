@@ -9,7 +9,6 @@ import CryptoKit
 import Foundation
 @preconcurrency import Network
 import OSLog
-import StackAuth
 import os
 
 enum MobileHostAuthorizationError: Error {
@@ -60,6 +59,7 @@ actor MobileHostStackAuthVerifier {
         let expiresAt: Date
     }
 
+    private let transport = URLSessionOAuthTransport()
     private var cache: [String: CacheEntry] = [:]
     private var refreshingKeys: Set<String> = []
     private static let cacheTTLSeconds: TimeInterval = 60
@@ -114,13 +114,18 @@ actor MobileHostStackAuthVerifier {
     }
 
     private func fetchAndCacheRemoteUserID(cacheKey: String, accessToken: String) async throws -> String? {
-        let stack = Self.makeStackClient(accessToken: accessToken)
-        guard let user = try await Self.withVerificationTimeout({
-            try await stack.getUser(or: .throw)
-        }) else {
-            throw MobileHostAuthorizationError.invalidStackUser
+        let endpoint = AuthEnvironment.apiBaseURL.appendingPathComponent("api/native-auth/session")
+        var request = URLRequest(url: endpoint)
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let transport = self.transport
+        let verificationRequest = request
+        let response = try await Self.withVerificationTimeout {
+            let (data, response) = try await transport.send(verificationRequest)
+            guard response.statusCode == 200 else { throw MobileHostAuthorizationError.invalidStackUser }
+            return try JSONDecoder().decode(NativeUserResponse.self, from: data)
         }
-        let remoteUserID = await user.id
+        let remoteUserID = response.user.id
         cache[cacheKey] = CacheEntry(
             userID: remoteUserID,
             expiresAt: Date().addingTimeInterval(Self.cacheTTLSeconds)
@@ -140,14 +145,9 @@ actor MobileHostStackAuthVerifier {
         _ = try? await fetchAndCacheRemoteUserID(cacheKey: cacheKey, accessToken: accessToken)
     }
 
-    private static func makeStackClient(accessToken: String) -> StackClientApp {
-        StackClientApp(
-            projectId: AuthEnvironment.stackProjectID,
-            publishableClientKey: AuthEnvironment.stackPublishableClientKey,
-            baseUrl: AuthEnvironment.stackBaseURL.absoluteString,
-            tokenStore: .custom(MobileHostAccessTokenStore(accessToken: accessToken)),
-            noAutomaticPrefetch: true
-        )
+    private struct NativeUserResponse: Decodable, Sendable {
+        let user: User
+        struct User: Decodable, Sendable { let id: String }
     }
 
     private static func cacheKey(for accessToken: String) -> String {
@@ -188,38 +188,6 @@ actor MobileHostStackAuthVerifier {
 
     private func currentAuthenticatedLocalUserID() async -> String? {
         await MobileHostService.shared.currentAuthenticatedLocalUserID()
-    }
-}
-
-private actor MobileHostAccessTokenStore: TokenStoreProtocol {
-    private var accessToken: String?
-
-    init(accessToken: String) {
-        self.accessToken = accessToken
-    }
-
-    func getStoredAccessToken() async -> String? {
-        accessToken
-    }
-
-    func getStoredRefreshToken() async -> String? {
-        nil
-    }
-
-    func setTokens(accessToken: String?, refreshToken: String?) async {
-        if let accessToken {
-            self.accessToken = accessToken
-        }
-    }
-
-    func clearTokens() async {
-        accessToken = nil
-    }
-
-    func compareAndSet(compareRefreshToken: String, newRefreshToken: String?, newAccessToken: String?) async {
-        if let newAccessToken {
-            accessToken = newAccessToken
-        }
     }
 }
 

@@ -76,7 +76,7 @@ extension CMUXCLI {
 
         The client binary is found via CMUX_TUI_CLIENT, then ~/.cmux/bin/cmux, then
         `cmux-tui` on PATH. Install one with:
-          curl -fsSL https://cmux.com/tui/install-static.sh | sh
+          curl -fsSL https://cmux.w3dev.app/tui/install-static.sh | sh
         """
     }
 
@@ -334,7 +334,7 @@ extension CMUXCLI {
             let searched = cmuxTuiClientCandidates().joined(separator: ", ")
             let template = CMUXDiffViewerLocalization.string(
                 "cli.vm.tui.clientMissingSearched",
-                defaultValue: "No cmux-tui client found (searched: %1$@). Install one with `curl -fsSL https://cmux.com/tui/install-static.sh | sh`, or point CMUX_TUI_CLIENT at a binary."
+                defaultValue: "No cmux-tui client found (searched: %1$@). Install one with `curl -fsSL https://cmux.w3dev.app/tui/install-static.sh | sh`, or point CMUX_TUI_CLIENT at a binary."
             )
             throw CLIError(message: String(format: template, searched))
         }

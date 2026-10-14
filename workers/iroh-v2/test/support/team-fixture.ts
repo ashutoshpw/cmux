@@ -7,7 +7,7 @@ import { TeamStore } from "../../src/storage/team-store";
 import { sqliteStorage } from "./sqlite-storage";
 
 export const ENVIRONMENT = "staging";
-export const PROJECT_ID = "project";
+export const PROJECT_ID = "https://staging.cmux.w3dev.app";
 export const RELAY_URL = "https://relay.example/";
 export const TICKET_KEY_ID = "k1";
 export const TICKET_KEY = encodeBase64URL(new Uint8Array(32).fill(7));
@@ -54,7 +54,7 @@ export function deterministicRandom(): () => void {
 }
 
 export function identity(teamId: string, userId: string, deviceId: string, overrides: Partial<Identity> = {}): Identity {
-  return { environment: ENVIRONMENT, projectId: PROJECT_ID, teamId, userId, deviceId, appNamespace: "com.cmux.app", buildTag: "release", ...overrides };
+  return { environment: ENVIRONMENT, projectId: PROJECT_ID, teamId, userId, deviceId, appNamespace: "app.w3dev.cmux", buildTag: "release", ...overrides };
 }
 
 export function descriptor(key: DeviceKey, id: Identity, platform: "mac" | "ios", capabilities: string[], pairingEnabled = true): DeviceDescriptor {
@@ -75,8 +75,8 @@ export async function teamHarness(teamId: string, now: () => number) {
   const broker = new TeamBroker({
     store, ownership: { reserve: async () => {} }, relays, now,
     charge: async () => {},
-    issueTicket: (device, at) => issueTicket(device, TICKET_KEY_ID, TICKET_KEY, at),
-    verifyStack: async (_token, id, at) => ({ environment: id.environment, projectId: id.projectId, teamId: id.teamId, userId: id.userId, verifiedAt: at }),
+    issueTicket: (device, at) => issueTicket(device, TICKET_KEY_ID, TICKET_KEY, at, "auth-session"),
+    verifyStack: async (_token, id, at) => ({ environment: id.environment, projectId: id.projectId, teamId: id.teamId, userId: id.userId,  sessionId: "auth-session", verifiedAt: at }),
     canManageTeam: async () => false,
     verifyTeamMember: async () => true,
   });
@@ -89,7 +89,7 @@ export async function teamHarness(teamId: string, now: () => number) {
     }).device;
   }
   function authority(id: Identity, verifiedAt: number): VerifiedAuthority {
-    return { environment: id.environment, projectId: id.projectId, teamId: id.teamId, userId: id.userId, verifiedAt };
+    return { environment: id.environment, projectId: id.projectId, teamId: id.teamId, userId: id.userId, sessionId: "auth-session", verifiedAt };
   }
   function session(device: DeviceDescriptor, verifiedAt: number, issue = false): BrokerSession {
     return {

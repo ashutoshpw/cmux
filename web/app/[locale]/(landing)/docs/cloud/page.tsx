@@ -46,7 +46,7 @@ export default async function CloudOverviewPage({
       <DocsHeading level={2} id="requirements">{t("requirementsTitle")}</DocsHeading>
       <ul>
         <li>{t("reqMac")}</li>
-        <li>{t("reqPlan")} <Link href="/pricing" className={linkClass}>cmux.com/pricing</Link></li>
+        <li>{t("reqPlan")} <Link href="/pricing" className={linkClass}>cmux.w3dev.app/pricing</Link></li>
         {showBetaNote && <li>{t("reqBeta")}</li>}
         <li>{t("reqNoVpn")}</li>
       </ul>

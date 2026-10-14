@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-base_url="${CMUX_DOWNLOAD_BASE_URL:-https://files.cmux.com/cmux-tui/latest}"
+base_url="${CMUX_DOWNLOAD_BASE_URL:-https://files.cmux.w3dev.app/cmux-tui/latest}"
 base_url="${base_url%/}"
 install_root="${CMUX_INSTALL:-$HOME/.cmux}"
 bin_dir="$install_root/bin"
@@ -101,4 +101,4 @@ echo "Installed cmux to $bin_dir/cmux"
 curl --proto '=https' --tlsv1.2 -fsS --max-time 2 \
   -H 'content-type: application/json' \
   -d "{\"product\":\"tui\",\"platform\":\"$os-$arch\",\"method\":\"curl\"}" \
-  https://cmux.com/api/install-events >/dev/null 2>&1 || true
+  https://cmux.w3dev.app/api/install-events >/dev/null 2>&1 || true

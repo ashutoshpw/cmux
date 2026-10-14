@@ -15,11 +15,11 @@ import Testing
         ))
         #expect(filter.isExpectedCLISocketTransportFailure(
             stage: "socket_connect",
-            message: "Failed to connect to socket at /tmp/cmux.sock (Connection refused, errno 61)"
+            message: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Connection refused, errno 61)"
         ))
         #expect(filter.isExpectedCLISocketTransportFailure(
             stage: "socket_connect",
-            message: "Socket not found at /tmp/cmux.sock"
+            message: "Socket not found at /tmp/cmux-w3dev.sock"
         ))
     }
 
@@ -74,7 +74,7 @@ import Testing
         ))
         #expect(!filter.isExpectedCLISocketTransportFailure(
             stage: "socket_connect",
-            message: "Failed to connect to socket at /tmp/cmux.sock (Connection refused, errno 61)",
+            message: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Connection refused, errno 61)",
             cliErrorCode: "not_found"
         ))
     }
@@ -115,7 +115,7 @@ import Testing
         ))
         #expect(!filter.isExpectedCLISocketTransportFailure(
             stage: "socket_startup_wait",
-            message: "cmux app did not start in time (socket not found at /tmp/cmux.sock)"
+            message: "cmux app did not start in time (socket not found at /tmp/cmux-w3dev.sock)"
         ))
         #expect(filter.isExpectedLegacyCLIAppLifecycleMessage(
             "ERROR: TabManager not available"
@@ -135,15 +135,15 @@ import Testing
         ))
         #expect(!filter.isExpectedCLISocketTransportFailure(
             stage: "socket_connect",
-            message: "Failed to connect to socket at /tmp/cmux.sock (Permission denied, errno 13)"
+            message: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Permission denied, errno 13)"
         ))
         #expect(!filter.isExpectedCLISocketTransportFailure(
             stage: "socket_connect",
-            message: "Failed to connect to socket at /tmp/cmux.sock (Operation not permitted, errno 1)"
+            message: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Operation not permitted, errno 1)"
         ))
         #expect(!filter.isExpectedCLISocketTransportFailure(
             stage: "codex-monitor-start",
-            message: "Failed to connect to socket at /tmp/cmux.sock (Operation not permitted, errno 1)",
+            message: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Operation not permitted, errno 1)",
             allowSandboxPolicyDenial: true
         ))
     }
@@ -151,19 +151,19 @@ import Testing
     @Test func dropsSocketPolicyDenialOnlyWithSandboxProvenance() {
         #expect(filter.isExpectedCLISocketTransportFailure(
             stage: "socket_connect",
-            message: "Failed to connect to socket at /tmp/cmux.sock (Operation not permitted, errno 1)",
+            message: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Operation not permitted, errno 1)",
             allowSandboxPolicyDenial: true
         ))
         #expect(!filter.isExpectedCLISocketTransportFailure(
             stage: "socket_connect",
-            message: "Failed to connect to socket at /tmp/cmux.sock (Operation not permitted, errno 1)"
+            message: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Operation not permitted, errno 1)"
         ))
     }
 
     @Test func errnoMatchingRequiresExactCode() {
         #expect(!filter.isExpectedCLISocketTransportFailure(
             stage: "socket_connect",
-            message: "Failed to connect to socket at /tmp/cmux.sock (Invalid argument, errno 22)"
+            message: "Failed to connect to socket at /tmp/cmux-w3dev.sock (Invalid argument, errno 22)"
         ))
         #expect(!filter.isExpectedCLISocketTransportFailure(
             stage: "socket_command",
@@ -171,7 +171,7 @@ import Testing
         ))
         #expect(filter.isExpectedCLISocketTransportFailure(
             stage: "socket_connect",
-            message: "Failed to connect to socket at /tmp/cmux.sock (errno=2)"
+            message: "Failed to connect to socket at /tmp/cmux-w3dev.sock (errno=2)"
         ))
     }
 

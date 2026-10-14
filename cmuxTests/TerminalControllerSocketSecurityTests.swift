@@ -1327,7 +1327,7 @@ final class TerminalControllerSocketSecurityTests {
             relayPort: 64_011,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         sourceWorkspace.configureRemoteConnection(configuration, autoConnect: false)
@@ -2189,7 +2189,7 @@ final class TerminalControllerSocketSecurityTests {
             relayPort: 64011,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: nil,
             preserveAfterTerminalExit: true
         )

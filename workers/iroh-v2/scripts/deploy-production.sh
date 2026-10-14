@@ -1,30 +1,34 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# The production deployment is pinned to the expected project and account. The
-# scope probes catch a Worker whose production secrets were populated from dev.
+# Deployment requires the explicitly declared owned Cloudflare account.
+# Scope probes bind each Worker to its owned application authority.
+script_dir="$(cd "${BASH_SOURCE[0]%/*}" && pwd)"
+source "$script_dir/../../../scripts/lib/fork-deployment.env"
 readonly account_id="${CLOUDFLARE_ACCOUNT_ID:-}"
-readonly expected_account="0c1675e0def6de1ab3a50a4e17dc5656"
+readonly expected_account="${CMUX_FORK_CLOUDFLARE_ACCOUNT_ID:-}"
 readonly environment="${1:-production}"
 case "$environment" in
   production)
-    expected_project="9790718f-14cd-4f7e-824d-eaf527a82b82"
-    worker_name="cmux-v2"
+    expected_project="$CMUX_FORK_PRODUCTION_ORIGIN"
+    worker_name="w3dev-cmux-v2"
+    worker_url="$CMUX_FORK_IROH_V2_ORIGIN"
     foreign_environment="development"
-    foreign_project="454ecd03-1db2-4050-845e-4ce5b0cd9895"
+    foreign_project="$CMUX_FORK_STAGING_ORIGIN"
     ;;
   staging)
-    expected_project="454ecd03-1db2-4050-845e-4ce5b0cd9895"
-    worker_name="cmux-v2-staging"
+    expected_project="$CMUX_FORK_STAGING_ORIGIN"
+    worker_name="w3dev-cmux-v2-staging"
+    worker_url="$CMUX_FORK_DEVELOPMENT_IROH_V2_ORIGIN"
     foreign_environment="production"
-    foreign_project="9790718f-14cd-4f7e-824d-eaf527a82b82"
+    foreign_project="$CMUX_FORK_PRODUCTION_ORIGIN"
     ;;
   *) echo "refusing deployment: unsupported environment" >&2; exit 2 ;;
 esac
-readonly worker_url="https://${worker_name}.debussy.workers.dev"
+readonly worker_url
 
-if [[ "$account_id" != "$expected_account" ]]; then
-  echo "refusing production deploy: invalid production account configuration" >&2
+if [[ ! "$expected_account" =~ ^[0-9a-f]{32}$ || "$account_id" != "$expected_account" || "$expected_account" == "0c1675e0def6de1ab3a50a4e17dc5656" ]]; then
+  echo "refusing production deploy: explicit owned Cloudflare account configuration is required" >&2
   exit 2
 fi
 
@@ -99,7 +103,7 @@ base = {
     "identity": {
       "environment": sys.argv[3], "projectId": project,
       "teamId": "production-config-probe", "userId": "production-config-probe",
-      "deviceId": "production-config-probe", "appNamespace": "com.cmux.config.probe", "buildTag": "probe"
+      "deviceId": "production-config-probe", "appNamespace": "app.w3dev.cmux.config.probe", "buildTag": "probe"
     },
     "endpointId": "a" * 64, "identityGeneration": 0,
     "metadata": {"platform": "ios", "displayName": "probe", "appVersion": "1", "pairingEnabled": True, "capabilities": [], "relayURLs": []}
@@ -197,7 +201,7 @@ bun scripts/rollout-policy.ts pre "$environment" "$probe_dir/previous-version.js
 
 # Production promotes the same clean revision already verified in staging.
 if [[ "$environment" == "production" ]]; then
-  wrangler deployments status --env staging --name cmux-v2-staging --json >"$probe_dir/staging-deployment.json"
+  wrangler deployments status --env staging --name w3dev-cmux-v2-staging --json >"$probe_dir/staging-deployment.json"
   staging_version="$(python3 - "$probe_dir/staging-deployment.json" <<'PY_STAGING'
 import json,sys
 value=json.load(open(sys.argv[1]))
@@ -206,14 +210,14 @@ if len(versions)!=1 or versions[0]["percentage"]!=100: raise SystemExit("staging
 print(versions[0]["version_id"])
 PY_STAGING
 )"
-  wrangler versions view "$staging_version" --env staging --name cmux-v2-staging --json >"$probe_dir/staging-version.json"
+  wrangler versions view "$staging_version" --env staging --name w3dev-cmux-v2-staging --json >"$probe_dir/staging-version.json"
   staging_status="$(curl -sS --connect-timeout 10 --max-time 30 --max-filesize 65536 \
-    -o "$probe_dir/staging-health.json" -w '%{http_code}' https://cmux-v2-staging.debussy.workers.dev/v2/health)"
+    -o "$probe_dir/staging-health.json" -w '%{http_code}' "$CMUX_FORK_DEVELOPMENT_IROH_V2_ORIGIN/v2/health")"
   if (( migration_plan == 10 )); then
     bun scripts/rollout-policy.ts migrated staging "$probe_dir/staging-version.json"
   fi
   bun scripts/rollout-policy.ts post staging "$probe_dir/staging-version.json" "$probe_dir/staging-health.json" "$staging_status" "$probe_dir/staging-version.json" "${source_revision_vars##*:}"
-  wrangler deployments status --env staging --name cmux-v2-staging --json >"$probe_dir/staging-after.json"
+  wrangler deployments status --env staging --name w3dev-cmux-v2-staging --json >"$probe_dir/staging-after.json"
   python3 - "$probe_dir/staging-deployment.json" "$probe_dir/staging-after.json" <<'PY_STABLE'
 import json,sys
 before,after=(json.load(open(path)) for path in sys.argv[1:])

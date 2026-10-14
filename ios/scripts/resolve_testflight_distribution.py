@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import os
+import re
 from pathlib import Path
 from typing import NamedTuple
 
@@ -24,7 +26,10 @@ class DistributionDecision(NamedTuple):
 def resolve_distribution(
     variant: str,
     marketing_version_override: str,
+    signing_team: str,
 ) -> DistributionDecision:
+    if not re.fullmatch(r"[A-Z0-9]{10}", signing_team):
+        raise ValueError("CMUX_APPLE_TEAM_ID must identify the fork signing team")
     override = marketing_version_override.strip()
     if variant not in {"internal", "demo"}:
         raise ValueError(f"unsupported TestFlight variant: {variant}")
@@ -34,10 +39,10 @@ def resolve_distribution(
         )
     if override:
         return DistributionDecision(
-            bundle_id="dev.cmux.app.beta",
+            bundle_id="app.w3dev.cmux.ios.beta",
             display_name="cmux BETA",
             profile_type="beta",
-            expected_app_id="7WLXT3NR37.dev.cmux.app.beta",
+            expected_app_id=signing_team + ".app.w3dev.cmux.ios.beta",
             assign_external_group=True,
             assign_internal_group=False,
             metadata_artifact="ios-testflight-build-metadata-override",
@@ -47,10 +52,10 @@ def resolve_distribution(
         )
     if variant == "demo":
         return DistributionDecision(
-            bundle_id="dev.cmux.app.demo",
+            bundle_id="app.w3dev.cmux.ios.demo",
             display_name="cmux DEMO",
             profile_type="demo",
-            expected_app_id="7WLXT3NR37.dev.cmux.app.demo",
+            expected_app_id=signing_team + ".app.w3dev.cmux.ios.demo",
             assign_external_group=False,
             assign_internal_group=True,
             metadata_artifact="ios-testflight-build-metadata-demo",
@@ -59,10 +64,10 @@ def resolve_distribution(
             review_note="no beta review needed",
         )
     return DistributionDecision(
-        bundle_id="dev.cmux.app.internal",
+        bundle_id="app.w3dev.cmux.ios.internal",
         display_name="cmux INTERNAL",
         profile_type="internal",
-        expected_app_id="7WLXT3NR37.dev.cmux.app.internal",
+        expected_app_id=signing_team + ".app.w3dev.cmux.ios.internal",
         assign_external_group=False,
         assign_internal_group=True,
         metadata_artifact="ios-testflight-build-metadata",
@@ -104,6 +109,7 @@ def main() -> None:
         decision = resolve_distribution(
             args.variant,
             args.marketing_version_override,
+            os.environ.get("CMUX_APPLE_TEAM_ID", ""),
         )
     except ValueError as error:
         parser.error(str(error))

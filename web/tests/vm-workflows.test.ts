@@ -4401,7 +4401,9 @@ describe("VM Effect workflows", () => {
       }),
     };
     const reservation: VmCreateCreditReservation = {
-      kind: "stack_item",
+      kind: "owned_credit",
+      operationKey: "test-reservation",
+      vmId: "83b2a08c-a00a-4d89-886d-b812cd59ca61",
       itemId: "cmux-vm-create-credit",
       customerType: "team",
       customerId: requested.billingTeamId!,
@@ -6968,7 +6970,9 @@ describe("VM Effect workflows", () => {
         Effect.sync(() => {
           reserveCalls += 1;
           return {
-            kind: "stack_item" as const,
+            kind: "owned_credit" as const,
+            operationKey: "test-reservation",
+            vmId: "83b2a08c-a00a-4d89-886d-b812cd59ca61",
             itemId: "cmux-vm-create-credit",
             customerType: "team" as const,
             customerId: "team-workflow-credit-idem",
@@ -7034,7 +7038,9 @@ describe("VM Effect workflows", () => {
     const billing: VmBillingGatewayShape = {
       ...noOpVmBillingGateway(),
       resolveInitialCreateCreditGrant: () => ({
-        kind: "stack_item" as const,
+        kind: "owned_credit" as const,
+        operationKey: "test-reservation",
+        vmId: "83b2a08c-a00a-4d89-886d-b812cd59ca61",
         itemId: "cmux-vm-create-credit",
         customerType: "team" as const,
         customerId: "team-workflow-credit-grant",
@@ -7049,7 +7055,9 @@ describe("VM Effect workflows", () => {
         Effect.sync(() => {
           reserveCalls += 1;
           return {
-            kind: "stack_item" as const,
+            kind: "owned_credit" as const,
+            operationKey: "test-reservation",
+            vmId: "83b2a08c-a00a-4d89-886d-b812cd59ca61",
             itemId: "cmux-vm-create-credit",
             customerType: "team" as const,
             customerId: "team-workflow-credit-grant",
@@ -7567,7 +7575,9 @@ describe("VM Effect workflows", () => {
     const billing: VmBillingGatewayShape = {
       ...noOpVmBillingGateway(),
       reserveCreate: () => Effect.succeed({
-        kind: "stack_item" as const,
+        kind: "owned_credit" as const,
+        operationKey: "test-reservation",
+        vmId: "83b2a08c-a00a-4d89-886d-b812cd59ca61",
         itemId: "cmux-vm-create-credit",
         customerType: "team" as const,
         customerId: "team-workflow-credit-refund",

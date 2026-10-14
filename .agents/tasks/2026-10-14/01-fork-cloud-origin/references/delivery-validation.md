@@ -2,9 +2,9 @@
 
 ## P0 — Establish a clean implementation baseline
 
-Finish the current rebase using its existing task, then refresh this source inventory and confirm origin still points to ashutoshpw/cmux. Preserve all existing changes.
+Preserve the current unresolved session-save rebase in the original checkout. Confirm origin points to ashutoshpw/cmux and use a separate named worktree from the inspected source snapshot for this migration.
 
-Create the implementation branch in ~/.worktrees/ashutoshpw/cmux/fork-cloud-origin. If the branch already exists remotely, use git worktree add <path> --track -b <local-branch> origin/<remote-branch>; never detach the worktree. For a brand-new branch, create it from refreshed origin/main with a named local branch. Use fork PRs and origin/main as the delivery target.
+Create the implementation branch in ~/.worktrees/ashutoshpw/cmux/fork-cloud-origin. If the branch already exists remotely, use git worktree add <path> --track -b <local-branch> origin/<remote-branch>; never detach the worktree. The inspected baseline is substantially ahead of fork main, which also owns a separate session-save commit. Publish a snapshot baseline and migration branch for a draft comparison PR; integrate with main deliberately without force updates or dropping session-save work.
 
 Record provisioned service ownership, target hostnames, auth project IDs and app identities. Search open upstream PRs by origin/auth/config symptom before implementation, as repository instructions require; reuse/credit outside work according to those instructions. Keep fork-specific changes independently reviewable for future upstream rebases.
 
@@ -20,7 +20,7 @@ Keep one shared action/config boundary for all entrypoints. A static source inve
 
 Centralize canonical URL generation and replace upstream defaults. Update exact host and callback allowlists, account/session handoffs, email and billing links, CLI auth confirmation, web metadata and routing. Keep token issuer/JWKS/project checks intact.
 
-Retarget Stack/Hexclave production and development projects and verify SDK/REST/issuer behavior. Register provider origins, OAuth redirect URIs and selected email callbacks. Preserve callback state, nonce, expiry and safe-return URL enforcement.
+Use the adopted Better Auth PostgreSQL/Organization/OAuth Provider contract. Register exact public PKCE clients and owned social provider callbacks. Preserve callback state, nonce, expiry, MFA and safe-return URL enforcement; verify live session/member revocation.
 
 Exit evidence: focused auth/origin/CSRF tests pass, web typecheck/lint/build pass with fork public config, and a protected staging login works. No canonical redirect or generated link returns upstream.
 
@@ -76,7 +76,7 @@ Run these commands only after implementation and fork-target configuration. This
 | Installer/relay/CLI | Relevant cmux-tui manifest verifier, SSH bootstrap and CodeRouter Rust tests; mock/intercept network requests and validate artifact signer/digest |
 | Generated config/catalogs | Deterministic generated-config --check plus web/tools/generate-managed-iroh-relay-catalog.ts --check |
 | Localization | ./scripts/localize-changes; python3 scripts/localization_catalog.py check; changed web locale key/placeholder checks |
-| End-to-end VM flow | Fork-retargeted web/scripts/cloud-vm/smoke-vm-api.mjs and dogfood-journey.mjs; preserve target safeguards and record created resource cleanup |
+| End-to-end VM flow | Legacy Stack-dependent smoke/dogfood entrypoints are retired before credential access. Implement owned-session operator journeys before hosted VM verification; preserve target safeguards and record created resource cleanup |
 | Mobile soak | Follow docs/ios-connectivity-soak.md on same-tag isolated Mac/iOS builds; physical-device auth gate and persisted reconnect receipt |
 | Final network evidence | Captured first-party outbound requests, redirects, WebSocket connections and artifact downloads for each enabled journey; no upstream service destinations |
 

@@ -1,4 +1,4 @@
-import type { CurrentUser } from "@hexclave/next";
+import type { CurrentUser } from "@/app/lib/stack-client";
 import type { SignInFacts } from "../../lib/sign-in-methods";
 
 /**

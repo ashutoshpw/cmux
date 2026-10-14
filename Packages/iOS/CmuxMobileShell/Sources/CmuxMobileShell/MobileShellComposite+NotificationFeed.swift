@@ -6,7 +6,7 @@ import Foundation
 internal import OSLog
 
 private let notificationFeedLog = Logger(
-    subsystem: Bundle.main.bundleIdentifier ?? "dev.cmux.ios",
+    subsystem: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux.ios.debug",
     category: "notification-feed"
 )
 

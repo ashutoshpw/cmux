@@ -144,7 +144,7 @@ struct HermesFirstClassSupportTests {
         )
         let store = SessionSnapshotRepository<AppSessionSnapshot>(
             schemaVersion: SessionSnapshotSchema.currentVersion,
-            bundleIdentifier: "com.cmuxterm.tests.hermes-snapshot",
+            bundleIdentifier: "app.w3dev.cmux.tests.hermes-snapshot",
             appSupportDirectory: root
         )
         let fileURL = try #require(store.defaultSnapshotFileURL())
@@ -1426,7 +1426,7 @@ struct HermesFirstClassSupportTests {
         let pinnedCLI = root.appendingPathComponent("cmux pinned cli", isDirectory: false)
         try "#!/bin/sh\nexit 0\n".write(to: pinnedCLI, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: pinnedCLI.path)
-        let socketPath = root.appendingPathComponent("cmux-debug-hermes-first-class.sock").path
+        let socketPath = root.appendingPathComponent("cmux-w3dev-debug-hermes-first-class.sock").path
         let cliPath = try BundledCLITestSupport.bundledCLIPath(for: HermesFirstClassBundleToken.self)
         let allowlistURL = hermesHome.appendingPathComponent("shell-hooks-allowlist.json")
         let legacyCommand = #"sh -c 'cmux_cli=cmux; "$cmux_cli" hooks hermes-agent prompt-submit'"#

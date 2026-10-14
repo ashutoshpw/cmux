@@ -120,22 +120,6 @@ function handleHostAndMachineRoutes(
   host: string,
   pathname: string,
 ): NextResponse | undefined {
-  // 301 redirect cmux.dev (and www.cmux.dev) to cmux.com, preserving path and query
-  if (host === "cmux.dev" || host === "www.cmux.dev") {
-    const url = new URL(request.url);
-    url.host = "cmux.com";
-    url.protocol = "https:";
-    return NextResponse.redirect(url.toString(), 301);
-  }
-
-  if (
-    (host === "coderouter.dev" || host === "www.coderouter.dev") &&
-    (pathname === "/" || pathname === "/en" || pathname === "/en/")
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/coderouter";
-    return NextResponse.rewrite(url);
-  }
 
   // OpenAI-compatible coderouter traffic is a machine endpoint, never a
   // localized page. Keep this explicit in addition to the matcher exclusion
@@ -145,7 +129,7 @@ function handleHostAndMachineRoutes(
   }
 
   // coderouter has one hostname-independent landing page. In particular,
-  // cmux.com/coderouter must not be rewritten to /<locale>/coderouter, because
+  // cmux.w3dev.app/coderouter must not be rewritten to /<locale>/coderouter, because
   // the page deliberately lives outside the localized cmux site tree.
   if (isCoderouterLandingPath(pathname)) {
     return NextResponse.next();

@@ -2,7 +2,7 @@ import Foundation
 import OSLog
 
 nonisolated private let agentHookDeliveryLogger = Logger(
-    subsystem: "com.cmuxterm.cli",
+    subsystem: "app.w3dev.cmux.cli",
     category: "AgentHookDelivery"
 )
 
@@ -74,7 +74,7 @@ extension CMUXCLI {
             "underlying_error_type": errorType,
         ]
         let reportableError = NSError(
-            domain: "com.cmuxterm.cli.agent-hook.\(stage.rawValue)",
+            domain: "app.w3dev.cmux.cli.agent-hook.\(stage.rawValue)",
             code: 1,
             userInfo: userInfo
         )

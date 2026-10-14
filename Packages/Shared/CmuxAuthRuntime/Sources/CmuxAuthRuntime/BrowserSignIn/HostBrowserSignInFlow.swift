@@ -25,6 +25,7 @@ public final class HostBrowserSignInFlow {
     private let callbackRouter: AuthCallbackRouter
     private let makeSignInURL: @MainActor (_ callbackState: String) -> URL
     private let callbackScheme: @MainActor () -> String
+    private let callbackExchange: (@MainActor (URL, UInt64?) async throws -> AuthCallbackPayload)?
     /// Opens a URL in the user's default browser. Returns `true` when the
     /// launch was handed to a browser, `false` when it could not be opened.
     @ObservationIgnored private let openExternalURL: @MainActor (URL) -> Bool
@@ -47,6 +48,8 @@ public final class HostBrowserSignInFlow {
     @ObservationIgnored private var slowSignInHintTask: Task<Void, Never>?
     @ObservationIgnored private var nextAttemptID: UInt64 = 0
     @ObservationIgnored private var activeAttemptID: UInt64?
+    @ObservationIgnored private var activeAuthorizationGeneration: UInt64?
+    @ObservationIgnored private var issuedAuthorizationGenerations: [String: UInt64] = [:]
     @ObservationIgnored private var handedOffAttemptID: UInt64?
     @ObservationIgnored private var activeCallbackState: String?
     @ObservationIgnored private var activeAttemptSelectsAccount = false
@@ -71,6 +74,7 @@ public final class HostBrowserSignInFlow {
         callbackRouter: AuthCallbackRouter,
         makeSignInURL: @escaping @MainActor (_ callbackState: String) -> URL,
         callbackScheme: @escaping @MainActor () -> String,
+        callbackExchange: (@MainActor (URL, UInt64?) async throws -> AuthCallbackPayload)? = nil,
         openExternalURL: @escaping @MainActor (URL) -> Bool,
         approveUnsolicitedCallback: @escaping @MainActor (UnsolicitedAuthCallbackApprovalRequest) async -> Bool = { _ in false },
         clock: any Clock<Duration> = ContinuousClock(),
@@ -89,6 +93,7 @@ public final class HostBrowserSignInFlow {
         self.callbackRouter = callbackRouter
         self.makeSignInURL = makeSignInURL
         self.callbackScheme = callbackScheme
+        self.callbackExchange = callbackExchange
         self.openExternalURL = openExternalURL
         self.approveUnsolicitedCallback = approveUnsolicitedCallback
         self.clock = clock
@@ -187,7 +192,7 @@ public final class HostBrowserSignInFlow {
         if let state {
             // Validate the payload before consuming, so a malformed delivery
             // cannot burn the user's still-pending state.
-            guard callbackRouter.callbackPayload(from: url) != nil else {
+            guard callbackExchange != nil || callbackRouter.callbackPayload(from: url) != nil else {
                 log.log("auth.callback.external.reject reason=invalidPayload")
                 lastFailure = .invalidCallback
                 return false
@@ -197,7 +202,13 @@ public final class HostBrowserSignInFlow {
                 return false
             }
             log.log("auth.callback.external.routeToIssuedState")
-            return await completeCallback(url: url, attemptID: nil, acceptedExternalState: state)
+            let authorizationGeneration = issuedAuthorizationGenerations.removeValue(forKey: state)
+            return await completeCallback(url: url, attemptID: nil, acceptedExternalState: state,
+                                          authorizationGeneration: authorizationGeneration)
+        }
+        guard callbackExchange == nil else {
+            lastFailure = .invalidCallback
+            return false
         }
         switch delivery {
         case .trustedEmbeddedBrowser:
@@ -307,6 +318,22 @@ public final class HostBrowserSignInFlow {
             guard let self else { return false }
             defer { self.finishAttempt(attemptID) }
             guard self.activeAttemptID == attemptID else { return false }
+            do {
+                let generation = try await self.coordinator.prepareBrowserSignIn()
+                guard self.activeAttemptID == attemptID, !Task.isCancelled else {
+                    if let generation {
+                        await self.coordinator.cancelBrowserSignIn(attemptGeneration: generation)
+                    }
+                    return false
+                }
+                self.activeAuthorizationGeneration = generation
+                if let generation { self.issuedAuthorizationGenerations[callbackState] = generation }
+            } catch {
+                guard self.activeAttemptID == attemptID else { return false }
+                self.lastFailure = AuthError(displaySafe: error) ?? .networkError
+                return false
+            }
+            guard self.activeAttemptID == attemptID, !Task.isCancelled else { return false }
             guard let result = await self.runBrowserSession(attemptID: attemptID) else {
                 self.log.log("auth.browser.attempt.noResult id=\(attemptID) signedIn=\(self.coordinator.isAuthenticated)")
                 return self.coordinator.isAuthenticated
@@ -406,6 +433,7 @@ public final class HostBrowserSignInFlow {
         cancelAttemptTimeout()
         cancelSlowSignInHint()
         activeAttemptID = nil
+        activeAuthorizationGeneration = nil
         activeAttemptTask = nil
         handedOffAttemptID = nil
         activeCallbackState = nil
@@ -425,11 +453,18 @@ public final class HostBrowserSignInFlow {
         cancelAttemptTimeout()
         cancelSlowSignInHint()
         cancelRateLimitWait()
+        activeAttemptTask?.cancel()
+        if let generation = activeAuthorizationGeneration {
+            let coordinator = self.coordinator
+            Task { await coordinator.cancelBrowserSignIn(attemptGeneration: generation) }
+        }
+        activeAuthorizationGeneration = nil
         activeAttemptID = nil
         activeAttemptTask = nil
         handedOffAttemptID = nil
         activeCallbackState = nil
         issuedCallbackStates.removeAll()
+        issuedAuthorizationGenerations.removeAll()
         activeSession?.cancel()
         activeSession = nil
         isSigningIn = false
@@ -511,13 +546,9 @@ public final class HostBrowserSignInFlow {
 
     /// Seed the callback tokens and publish the session through the shared
     /// coordinator, guarding against a sign-out racing the round trip.
-    private func completeCallback(url: URL, attemptID: UInt64?, acceptedExternalState: String? = nil) async -> Bool {
+    private func completeCallback(url: URL, attemptID: UInt64?, acceptedExternalState: String? = nil,
+                                  authorizationGeneration: UInt64? = nil) async -> Bool {
         log.log("auth.callback.complete.begin attempt=\(attemptID.map(String.init) ?? "external") \(authCallbackSummary(url))")
-        guard let payload = callbackRouter.callbackPayload(from: url) else {
-            log.log("auth.callback rejected: invalid payload")
-            lastFailure = .invalidCallback
-            return false
-        }
         if let attemptID {
             guard HostBrowserIssuedCallbackStates.constantTimeEquals(authCallbackState(from: url), activeCallbackState) else {
                 log.log("auth.callback rejected: state mismatch attempt=\(attemptID)")
@@ -531,16 +562,28 @@ public final class HostBrowserSignInFlow {
             return false
         }
         let generation = signOutGeneration
-        log.log("auth.callback.tokens.seed attempt=\(attemptID.map(String.init) ?? "external") generation=\(generation)")
-        await tokenStore.seed(accessToken: payload.accessToken, refreshToken: payload.refreshToken)
+        let exchangeGeneration = attemptID == nil ? authorizationGeneration : activeAuthorizationGeneration
+        let payload: AuthCallbackPayload
+        do {
+            if let callbackExchange {
+                payload = try await callbackExchange(url, exchangeGeneration)
+            } else if let parsed = callbackRouter.callbackPayload(from: url) {
+                payload = parsed
+                await tokenStore.seed(accessToken: payload.accessToken, refreshToken: payload.refreshToken)
+            } else {
+                throw AuthError.invalidCallback
+            }
+        } catch {
+            guard signOutGeneration == generation,
+                  attemptID == nil || activeAttemptID == attemptID else { return false }
+            lastFailure = AuthError(displaySafe: error) ?? .invalidCallback
+            return false
+        }
         guard signOutGeneration == generation,
               attemptID == nil || activeAttemptID == attemptID else {
             // Drop raced tokens instead of resurrecting a signed-out/replaced session.
             log.log("auth.callback.tokens.clear attempt=\(attemptID.map(String.init) ?? "external") reason=raced generation=\(signOutGeneration) active=\(activeAttemptID.map(String.init) ?? "nil")")
-            await tokenStore.clearTokensIfCurrent(
-                accessToken: payload.accessToken,
-                refreshToken: payload.refreshToken
-            )
+            await clearCallbackTokensIfCurrent(payload)
             return false
         }
         // A 429 from the sign-in service is retried here, keeping the seeded
@@ -615,19 +658,30 @@ public final class HostBrowserSignInFlow {
             // has been durably quarantined.
             log.log("auth.callback.coordinator.rollback attempt=\(attemptID.map(String.init) ?? "external") reason=signOutRaced generation=\(signOutGeneration)")
             await signOut()
-            await tokenStore.clearTokensIfCurrent(
-                accessToken: payload.accessToken,
-                refreshToken: payload.refreshToken
-            )
+            await clearCallbackTokensIfCurrent(payload)
             return false
         }
         if let state = authCallbackState(from: url) {
             // Single use: the popup's state may also have been issued for the
             // default-browser fallback.
             issuedCallbackStates.remove(state)
+            issuedAuthorizationGenerations[state] = nil
         }
         lastFailure = nil
         return true
+    }
+
+    private func clearCallbackTokensIfCurrent(_ payload: AuthCallbackPayload) async {
+        if let generation = payload.authorizationGeneration,
+           let store = tokenStore as? any OAuthTokenStoring {
+            do {
+                _ = try await store.clearAuthorization(generation: generation)
+            } catch {
+                log.log("auth.callback.tokens.rollbackFailed")
+            }
+        } else {
+            await tokenStore.clearTokensIfCurrent(accessToken: payload.accessToken, refreshToken: payload.refreshToken)
+        }
     }
 
     /// Register an app-issued state for use after the popup ends. It lives
@@ -635,6 +689,7 @@ public final class HostBrowserSignInFlow {
     private func issueCallbackState(_ state: String) {
         let lifetime = browserAttemptTimeout > 0 ? browserAttemptTimeout : 10 * 60
         issuedCallbackStates.issue(state, clock: clock, lifetime: .seconds(lifetime))
+        if let generation = activeAuthorizationGeneration { issuedAuthorizationGenerations[state] = generation }
     }
 
     private func resumeActiveSessionContinuation(

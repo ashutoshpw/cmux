@@ -78,7 +78,7 @@ jobs:
           set -euo pipefail
           export CMUX_INSTALL="$RUNNER_TEMP/cmux"
           started=$(date +%s%3N)
-          curl -fsSL https://cmux.com/tui/install.sh | sh
+          curl -fsSL https://cmux.w3dev.app/tui/install.sh | sh
           echo "CMUX_TUI_BIN=$CMUX_INSTALL/bin/cmux" >> "$GITHUB_ENV"
           echo "CMUX_TUI_INSTALL_MS=$(( $(date +%s%3N) - started ))" >> "$GITHUB_ENV"
 

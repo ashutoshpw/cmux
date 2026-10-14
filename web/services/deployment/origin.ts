@@ -20,9 +20,7 @@ export function trustedApplicationOrigin(value: string, environment: Environment
   )) {
     throw new Error("Production application origin must use an approved fork origin");
   }
-  if (/(^|\.)cmux\.(com|dev|sh|run)$/u.test(url.hostname)
-    || url.hostname.endsWith(".debussy.workers.dev")
-    || url.hostname === "cmux-staging.vercel.app") {
+  if (isUpstreamServiceHost(url.hostname)) {
     throw new Error("Upstream application origins are not available in this fork");
   }
   return url.origin;
@@ -32,4 +30,13 @@ export function trustedApplicationOrigin(value: string, environment: Environment
 export function applicationOrigin(environment: Environment = process.env): string {
   const value = environment.CMUX_APP_ORIGIN?.trim() || environment.BETTER_AUTH_URL?.trim();
   return value ? trustedApplicationOrigin(value, environment) : deployment.productionOrigin;
+}
+
+/** Upstream application and model gateways must never receive fork credentials. */
+export function isUpstreamServiceHost(hostname: string): boolean {
+  const host = hostname.toLowerCase().replace(/\.+$/u, "");
+  return /(^|\.)cmux\.(com|dev|sh|run)$/u.test(host)
+    || /(^|\.)coderouter\.dev$/u.test(host)
+    || host.endsWith(".debussy.workers.dev")
+    || host === "cmux-staging.vercel.app";
 }

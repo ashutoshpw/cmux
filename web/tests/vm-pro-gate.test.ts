@@ -31,7 +31,7 @@ describe("Cloud VM Pro gate", () => {
     }, {
       NODE_ENV: "development",
       CMUX_LOCAL_DEV_PRO: "1",
-      NEXT_PUBLIC_STACK_PROJECT_ID: "454ecd03-1db2-4050-845e-4ce5b0cd9895",
+      BETTER_AUTH_URL: "http://localhost:3777",
     });
     expect(entitlements.planId).toBe(PRO_PLAN_ID);
     expect(entitlements.maxActiveVms).toBeGreaterThan(0);
@@ -113,9 +113,9 @@ describe("vm_requires_pro response copy", () => {
     expect(payload).toMatchObject({
       error: "vm_requires_pro",
       message: "Cloud VMs require a cmux Pro plan.",
-      action: "Upgrade to cmux Pro at https://cmux.com/pricing to create Cloud VMs.",
+      action: "Upgrade to cmux Pro at https://cmux.w3dev.app/pricing to create Cloud VMs.",
       upgradeRequired: true,
-      upgradeUrl: "https://cmux.com/pricing",
+      upgradeUrl: "https://cmux.w3dev.app/pricing",
       ui: { title: "cmux Pro required" },
     });
   });
@@ -123,7 +123,7 @@ describe("vm_requires_pro response copy", () => {
   test("resolves the upgrade instruction from the requested locale", async () => {
     const payload = await (await vmRequiresProResponse("ja")).json() as Record<string, unknown>;
     expect(payload.message).toBe("Cloud VM を利用するには cmux Pro プランが必要です。");
-    expect(String(payload.action)).toContain("https://cmux.com/pricing");
+    expect(String(payload.action)).toContain("https://cmux.w3dev.app/pricing");
     expect(String(payload.action)).toContain("cmux Pro にアップグレード");
     // Clients key off these, never the prose.
     expect(payload).toMatchObject({
@@ -150,7 +150,7 @@ describe("vm_requires_pro response copy", () => {
         // ui.title must come from the catalog, never the English status fallback.
         uiTitleIsLocalized: Boolean(copy?.title) && payload.ui.title === copy?.title,
         actionHasPlaceholder: copy?.action?.includes("{upgradeUrl}") ?? false,
-        renderedHasUrl: payload.action.includes("https://cmux.com/pricing"),
+        renderedHasUrl: payload.action.includes("https://cmux.w3dev.app/pricing"),
         renderedHasRawPlaceholder: payload.action.includes("{upgradeUrl}"),
       }).toEqual({
         locale,

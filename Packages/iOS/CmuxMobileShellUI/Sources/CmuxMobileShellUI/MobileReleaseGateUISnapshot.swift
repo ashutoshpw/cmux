@@ -17,8 +17,8 @@ public struct MobileReleaseGateUISnapshot {
     /// back. The latency was already recorded at the presentation boundary.
     /// Requests and waits for a simulator-composited terminal screenshot.
     public func captureTerminal() async throws {
-        let ready = "dev.cmux.ios.iroh-release-gate.ui-terminal-ready"
-        let captured = "dev.cmux.ios.iroh-release-gate.ui-terminal-captured"
+        let ready = "app.w3dev.cmux.ios.debug.iroh-release-gate.ui-terminal-ready"
+        let captured = "app.w3dev.cmux.ios.debug.iroh-release-gate.ui-terminal-captured"
         let (stream, continuation) = AsyncStream<Void>.makeStream(bufferingPolicy: .bufferingNewest(1))
         var token: Int32 = 0
         guard notify_register_dispatch(captured, &token, .main, { _ in continuation.yield(()) }) == 0 else {

@@ -7,6 +7,7 @@ import { Client, Pool, Query as PgQuery } from "pg";
 import postgres, { type Sql } from "postgres";
 import { cloudDbConfig, cloudDbConfigKey, type CloudDbAwsRdsIamConfig } from "./config";
 import { currentCloudDbQuerySignal } from "./queryScope";
+import { currentCloudDbTransaction } from "./transactionScope";
 import { tagCloudDbQuery } from "./queryTags";
 import { observePostgresJsQueryTiming, onPostgresJsQuerySent } from "./queryTiming";
 import * as schema from "./schema";
@@ -262,6 +263,9 @@ function awsRdsConnectionOptions(config: CloudDbAwsRdsIamConfig) {
 }
 
 export function cloudDb(): CloudDb {
+  const transaction = currentCloudDbTransaction();
+  // Drizzle transactions expose this shared query surface; .transaction() creates a savepoint.
+  if (transaction) return transaction as unknown as CloudDb;
   const config = cloudDbConfig();
   const key = cloudDbConfigKey(config);
 

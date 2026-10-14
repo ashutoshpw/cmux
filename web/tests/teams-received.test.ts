@@ -141,7 +141,7 @@ describe("invite email", () => {
     expect(email.subject).toBe("Ada invited you to Acme <Labs> on cmux");
     expect(email.text).toContain("Ada invited you to Acme <Labs> on cmux as an admin.");
     expect(email.text).toContain("Accept: https://cmux.com/en/join/tok");
-    expect(email.text).toContain("Download it for Mac at https://cmux.com/download");
+    expect(email.text).toContain("Download it for Mac at https://cmux.w3dev.app/download");
     expect(email.text).toContain("sign in with this address (new@example.com)");
     expect(email.text).toContain("expires on 2026-10-07");
     expect(email.html).toContain("Acme &lt;Labs&gt;");

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# This legacy harness provisions Stack identities and is not compatible with
+# fork Better Auth. Fail before reading credentials or contacting a provider.
+echo 'error: this Stack auth harness is retired; use fork Better Auth OAuth/PKCE with an exact registered callback.' >&2
+exit 2
+
 # Per-run backend for the iOS e2e lane, on the Linux runner that hosts it.
 #
 # One fresh, isolated copy of every service on the Mac<->iPhone critical path,

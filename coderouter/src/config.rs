@@ -81,7 +81,10 @@ pub fn save(config: &Config) -> Result<(), Error> {
 }
 
 pub fn path() -> Result<PathBuf, Error> {
-    Ok(data_directory()?.join("coderouter").join("config.json"))
+    Ok(data_directory()?
+        .join("cmux-w3dev")
+        .join("coderouter")
+        .join("config.json"))
 }
 
 pub fn data_directory() -> Result<PathBuf, Error> {

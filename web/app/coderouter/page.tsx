@@ -1,3 +1,4 @@
+import { forkDeployment } from "../../services/deployment/config";
 import type { Metadata } from "next";
 import { CoderouterInstallCommand } from "./install-command";
 
@@ -7,7 +8,7 @@ const tagline =
 export const metadata: Metadata = {
   title: "coderouter",
   description: tagline,
-  alternates: { canonical: "https://coderouter.dev" },
+  alternates: { canonical: `${forkDeployment.productionOrigin}/coderouter` },
 };
 
 export default function CoderouterLandingPage() {
@@ -61,8 +62,8 @@ export default function CoderouterLandingPage() {
       </section>
 
       <footer className="mx-auto flex h-16 max-w-2xl items-center justify-between border-t border-[#d9d2c5] px-6 font-mono text-[11px] text-black/30">
-        <span>coderouter.dev</span>
-        <a className="underline underline-offset-4" href="https://cmux.com">
+        <span>{new URL(forkDeployment.productionOrigin).host}/coderouter</span>
+        <a className="underline underline-offset-4" href="https://cmux.w3dev.app">
           by cmux
         </a>
       </footer>

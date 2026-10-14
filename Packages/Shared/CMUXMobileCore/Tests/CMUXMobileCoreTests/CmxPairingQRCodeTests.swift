@@ -45,7 +45,7 @@ import Testing
     /// untagged development scheme -- the same value the macOS host fallback
     /// produced, which is why the expected URLs below are unchanged.
     private static let pairingScheme = CmxPairingURLScheme(
-        rawValue: "cmux-ios-dev.cmux.ios"
+        rawValue: "cmux-w3dev-ios-app.w3dev.cmux.ios.debug"
     )
 
     private func encodeLegacy(_ ticket: CmxAttachTicket) -> String? {

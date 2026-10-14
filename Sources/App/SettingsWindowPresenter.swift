@@ -55,10 +55,10 @@ final class SettingsWindowPresenter: NSObject {
     static let shared = SettingsWindowPresenter()
     /// Release-safe diagnostics so intermittent "Settings won't open" reports
     /// become attributable from
-    /// `log show --predicate 'subsystem == "com.cmuxterm.app" && category == "Settings"'`.
+    /// `log show --predicate 'subsystem == "app.w3dev.cmux" && category == "Settings"'`.
     /// Internal (not private) so the geometry/recovery extension file logs
     /// through the same channel.
-    nonisolated static let log = Logger(subsystem: "com.cmuxterm.app", category: "Settings")
+    nonisolated static let log = Logger(subsystem: "app.w3dev.cmux", category: "Settings")
 
     private let windowFactory: @MainActor (SettingsWindowPresenter) -> NSWindow
     /// Strong while open: the presenter owns the window's lifetime. Cleared

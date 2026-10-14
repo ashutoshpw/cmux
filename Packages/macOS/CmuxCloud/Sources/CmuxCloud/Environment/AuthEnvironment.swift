@@ -11,10 +11,10 @@ public enum AuthEnvironment: Sendable {
         #endif
     }
 
-    private static let developmentStackProjectID = "454ecd03-1db2-4050-845e-4ce5b0cd9895"
-    private static let developmentStackPublishableClientKey = "pck_xb63160bwe9699vtxfzfj6emmxpafg5mkjrtp6ehzxv5g"
-    private static let productionStackProjectID = "9790718f-14cd-4f7e-824d-eaf527a82b82"
-    private static let productionStackPublishableClientKey = "pck_kzj80gx4mh2jrzn1cx6y5e8jk0kwa01vkevh2p9zd4twr"
+    private static let developmentStackProjectID = ForkDeployment.productionOrigin
+    private static let developmentStackPublishableClientKey = ForkDeployment.macOSOAuthClientID
+    private static let productionStackProjectID = ForkDeployment.productionOrigin
+    private static let productionStackPublishableClientKey = ForkDeployment.macOSOAuthClientID
 
     /// Debug-only values that may be changed after the app is built. The file
     /// is intentionally an allowlist of routing/channel knobs, never secrets.
@@ -32,10 +32,8 @@ public enum AuthEnvironment: Sendable {
         "CMUX_IROH_V2_BASE_URL",
         "CMUX_IROH_V2_ENVIRONMENT",
         "CMUX_IROH_V2_FORCE_RELAY",
-        "CMUX_STACK_BASE_URL",
-        "CMUX_STACK_PROJECT_ID",
-        "CMUX_STACK_PUBLISHABLE_CLIENT_KEY",
-        "CMUX_AUTH_ENVIRONMENT",
+        "CMUX_OAUTH_CLIENT_ID",
+                        "CMUX_AUTH_ENVIRONMENT",
         "CMUX_AUTH_CALLBACK_SCHEME",
         "CMUX_PORT",
         "PORT",
@@ -116,13 +114,13 @@ public enum AuthEnvironment: Sendable {
                 .trimmingCharacters(in: .whitespacesAndNewlines),
                !tag.isEmpty,
                let schemeTag = sanitizedCallbackSchemeTag(tag) {
-                return "cmux-dev-\(schemeTag)"
+                return "cmux-w3dev-dev-\(schemeTag)"
             }
-            return "cmux-dev"
+            return "cmux-w3dev-dev"
         }
-        if bundleIdentifier == "com.cmuxterm.app.nightly" { return "cmux-nightly" }
-        if bundleIdentifier == "com.cmuxterm.app.rc" { return "cmux-rc" }
-        return "cmux"
+        if bundleIdentifier == "app.w3dev.cmux.nightly" { return "cmux-w3dev-nightly" }
+        if bundleIdentifier == "app.w3dev.cmux.rc" { return "cmux-w3dev-rc" }
+        return ForkDeployment.macOSCallbackScheme
     }
 
     static func sanitizedCallbackSchemeTag(_ rawTag: String) -> String? {
@@ -146,6 +144,38 @@ public enum AuthEnvironment: Sendable {
 
     public static var callbackURL: URL {
         URL(string: "\(callbackScheme)://auth-callback")!
+    }
+
+    /// Uses the same merged runtime configuration as the issuer and callback.
+    public static var oauthClientID: String {
+        oauthClientID(
+            environment: runtimeEnvironment,
+            bundleClientID: Bundle.main.object(forInfoDictionaryKey: "CMUX_OAUTH_CLIENT_ID") as? String,
+            callbackScheme: callbackScheme
+        )
+    }
+
+    /// Selects the public OAuth client registered for this exact callback in every build channel.
+    public static func oauthClientID(
+        environment: [String: String],
+        bundleClientID: String?,
+        callbackScheme: String
+    ) -> String {
+        for candidate in [environment["CMUX_OAUTH_CLIENT_ID"], bundleClientID] {
+            if let value = candidate?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !value.isEmpty, !value.contains("$(") {
+                return value
+            }
+        }
+        if callbackScheme == ForkDeployment.macOSCallbackScheme {
+            return ForkDeployment.macOSOAuthClientID
+        }
+        let prefix = ForkDeployment.macOSCallbackScheme + "-"
+        if callbackScheme.hasPrefix(prefix) {
+            return ForkDeployment.macOSOAuthClientID + "-" + String(callbackScheme.dropFirst(prefix.count))
+        }
+        // A custom callback requires an explicitly registered custom client.
+        preconditionFailure("CMUX_OAUTH_CLIENT_ID is required for a custom OAuth callback scheme")
     }
 
     static func resolvedCallbackURL(
@@ -199,7 +229,7 @@ public enum AuthEnvironment: Sendable {
         environment: [String: String],
         isDebugBuild: Bool
     ) -> URL {
-        let productionOrigin = URL(string: "https://cmux.com")!
+        let productionOrigin = URL(string: ForkDeployment.productionOrigin)!
         guard isDebugBuild else { return productionOrigin }
 
         let candidate = canonicalizedLoopbackURL(appWebOrigin(environment: environment))
@@ -300,14 +330,14 @@ public enum AuthEnvironment: Sendable {
                 environment: environment,
                 isDebugBuild: isDebugBuild
             ) == .production {
-            return URL(string: "https://cmux.com")!
+            return URL(string: ForkDeployment.productionOrigin)!
         }
         return canonicalizedLoopbackURL(
             resolvedURL(
                 environmentKey: "CMUX_API_BASE_URL",
                 fallback: isDebugBuild
                     ? "http://localhost:\(resolvedCmuxPort(environment: environment))"
-                    : "https://cmux.com",
+                    : ForkDeployment.productionOrigin,
                 environment: environment
             )
         )
@@ -332,7 +362,7 @@ public enum AuthEnvironment: Sendable {
                 environment: environment,
                 isDebugBuild: debugBuild
             ) == .production {
-            return URL(string: "https://cmux.com")!
+            return URL(string: ForkDeployment.productionOrigin)!
         }
         if let overridden = environment["CMUX_VM_API_BASE_URL"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
@@ -370,7 +400,7 @@ public enum AuthEnvironment: Sendable {
                 environment: environment,
                 isDebugBuild: debugBuild
             ) == .production {
-            return URL(string: "https://cmux.com")!
+            return URL(string: ForkDeployment.productionOrigin)!
         }
         if let overridden = environment["CMUX_PUSH_API_BASE_URL"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
@@ -383,7 +413,7 @@ public enum AuthEnvironment: Sendable {
            let url = URL(string: override) {
             return canonicalizedLoopbackURL(url)
         }
-        return URL(string: "https://cmux-staging.vercel.app")!
+        return URL(string: ForkDeployment.stagingOrigin)!
         #else
         return vmAPIBaseURL
         #endif
@@ -412,7 +442,7 @@ public enum AuthEnvironment: Sendable {
                 environment: environment,
                 isDebugBuild: debugBuild
             ) == .production {
-            return URL(string: "https://cmux.com")!
+            return URL(string: ForkDeployment.productionOrigin)!
         }
         if let overridden = environment["CMUX_DEVICE_REGISTRY_API_BASE_URL"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
@@ -435,7 +465,7 @@ public enum AuthEnvironment: Sendable {
         isDebugBuild: Bool,
         vmAPIBaseURL: URL
     ) -> URL {
-        isDebugBuild ? URL(string: "https://cmux-staging.vercel.app")! : vmAPIBaseURL
+        isDebugBuild ? URL(string: ForkDeployment.stagingOrigin)! : vmAPIBaseURL
     }
 
     /// Authenticated route broker shared by matching tagged Mac and iOS builds.
@@ -455,7 +485,7 @@ public enum AuthEnvironment: Sendable {
                 environment: environment,
                 isDebugBuild: debugBuild
             ) == .production {
-            return validatedIrohBrokerURL("https://cmux.com")
+            return validatedIrohBrokerURL(ForkDeployment.productionOrigin)
         }
         if let overridden = environment["CMUX_IROH_BROKER_BASE_URL"]?
            .trimmingCharacters(in: .whitespacesAndNewlines),
@@ -485,7 +515,7 @@ public enum AuthEnvironment: Sendable {
                 environment: environment,
                 isDebugBuild: isDebugBuild
             ) == .production {
-            return validatedIrohBrokerURL("https://cmux.com")
+            return validatedIrohBrokerURL(ForkDeployment.productionOrigin)
         }
         if let explicit = environment["CMUX_IROH_BROKER_BASE_URL"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
@@ -493,8 +523,8 @@ public enum AuthEnvironment: Sendable {
             return validatedIrohBrokerURL(explicit)
         }
         let fallback = isDebugBuild
-            ? "https://cmux-staging.vercel.app"
-            : "https://cmux.com"
+            ? ForkDeployment.stagingOrigin
+            : ForkDeployment.productionOrigin
         return validatedIrohBrokerURL(fallback)
     }
 
@@ -573,7 +603,7 @@ public enum AuthEnvironment: Sendable {
                 environment: environment,
                 isDebugBuild: debugBuild
             ) == .production {
-            return URL(string: "https://cmux.com")!
+            return URL(string: ForkDeployment.productionOrigin)!
         }
         if let overridden = environmentURL("CMUX_BILLING_WWW_ORIGIN", environment: environment) {
             return overridden
@@ -592,7 +622,7 @@ public enum AuthEnvironment: Sendable {
                 environment: environment,
                 isDebugBuild: debugBuild
             ) == .production {
-            return URL(string: "https://cmux.com")!
+            return URL(string: ForkDeployment.productionOrigin)!
         }
         if let authWebsite = environmentURL("CMUX_AUTH_WWW_ORIGIN", environment: environment) {
             return canonicalizedLoopbackURL(authWebsite)
@@ -611,7 +641,7 @@ public enum AuthEnvironment: Sendable {
                 environment: environment,
                 isDebugBuild: debugBuild
             ) == .production {
-            return URL(string: "https://cmux.com")!
+            return URL(string: ForkDeployment.productionOrigin)!
         }
         if let explicitWebsite = environmentURL("CMUX_WWW_ORIGIN", environment: environment) {
             return canonicalizedLoopbackURL(explicitWebsite)
@@ -686,7 +716,7 @@ public enum AuthEnvironment: Sendable {
                 environment: environment,
                 isDebugBuild: debugBuild
             ) == .production {
-            return "https://cmux.com"
+            return ForkDeployment.productionOrigin
         }
         if let origin = environment["CMUX_WWW_ORIGIN"]?
             .trimmingCharacters(in: .whitespacesAndNewlines),
@@ -696,7 +726,7 @@ public enum AuthEnvironment: Sendable {
         #if DEBUG
         return "http://localhost:\(resolvedCmuxPort(environment: environment))"
         #else
-        return "https://cmux.com"
+        return ForkDeployment.productionOrigin
         #endif
     }
 
@@ -704,7 +734,7 @@ public enum AuthEnvironment: Sendable {
         #if DEBUG
         return "http://localhost:\(cmuxPort)"
         #else
-        return "https://cmux.com"
+        return ForkDeployment.productionOrigin
         #endif
     }
 
@@ -717,14 +747,14 @@ public enum AuthEnvironment: Sendable {
         #if DEBUG
         return "http://localhost:\(cmuxPort)"
         #else
-        return "https://api.cmux.sh"
+        return ForkDeployment.productionOrigin
         #endif
     }
 
     public static var stackBaseURL: URL {
         resolvedURL(
-            environmentKey: "CMUX_STACK_BASE_URL",
-            fallback: "https://api.stack-auth.com"
+            environmentKey: "CMUX_OAUTH_CLIENT_ID",
+            fallback: ForkDeployment.productionOrigin + "/api/auth"
         )
     }
 
@@ -773,11 +803,6 @@ public enum AuthEnvironment: Sendable {
         ) == .production {
             return productionStackProjectID
         }
-        if let projectID = environment["CMUX_STACK_PROJECT_ID"]?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-           !projectID.isEmpty {
-            return projectID
-        }
         switch resolvedStackAuthEnvironment(
             environment: environment,
             isDebugBuild: isDebugBuild
@@ -812,11 +837,6 @@ public enum AuthEnvironment: Sendable {
             isDebugBuild: isDebugBuild
         ) == .production {
             return productionStackPublishableClientKey
-        }
-        if let clientKey = environment["CMUX_STACK_PUBLISHABLE_CLIENT_KEY"]?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-           !clientKey.isEmpty {
-            return clientKey
         }
         switch resolvedStackAuthEnvironment(
             environment: environment,

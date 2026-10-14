@@ -35,8 +35,8 @@ function validatedCatalog(value: unknown): Catalog {
   ) {
     throw new Error("managed relay catalog requires version 1 and a positive integer sequence");
   }
-  if (!Array.isArray(source.relays) || source.relays.length === 0) {
-    throw new Error("managed relay catalog requires at least one relay");
+  if (!Array.isArray(source.relays)) {
+    throw new Error("managed relay catalog requires a relay array");
   }
 
   const ids = new Set<string>();
@@ -89,11 +89,15 @@ function generatedSource(catalog: Catalog): string {
  * again and remove. Run web/tools/generate-managed-iroh-relay-catalog.ts after
  * every edit. Signing keys and relay credentials never belong in this file.
  */
-export const MANAGED_IROH_RELAY_CATALOG = ${JSON.stringify(catalog, null, 2)} as const;
+export const MANAGED_IROH_RELAY_CATALOG: {
+  readonly version: 1;
+  readonly sequence: number;
+  readonly relays: readonly { readonly id: string; readonly provider: string; readonly region: string; readonly url: string }[];
+} = ${JSON.stringify(catalog, null, 2)} as const;
 
 /** Exact managed relay origins derived from the canonical catalog. */
 export const MANAGED_IROH_RELAY_URLS = MANAGED_IROH_RELAY_CATALOG.relays.map(
-  (relay) => relay.url,
+  (relay: { readonly url: string }) => relay.url,
 );
 `;
 }

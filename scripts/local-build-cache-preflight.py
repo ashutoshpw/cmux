@@ -24,7 +24,7 @@ import tarfile
 import tempfile
 import time
 
-DEFAULT_URL = "https://ci-cache.cmux.com"
+DEFAULT_URL = ""
 LOCKFILE = "cmux.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved"
 SPM_CACHE_LAYOUT = "scripts/ci/swiftpm-cache-layout"
 MAX_ARCHIVE = 2 * 1024**3
@@ -278,6 +278,8 @@ def seed_spm(repo, destination, cache, url, namespace, deadline, *, allow_networ
               "destination": str(destination) if destination is not None else None}
     if destination is not None and populated(destination):
         return {**result, "status": "existing", "reason": "preserved populated destination"}
+    if not url:
+        return {**result, "status": "miss", "reason": "CI_CACHE_R2_PUBLIC_URL is not configured"}
     origin = hashlib.sha256(url.encode()).hexdigest()[:16]
     seed_root = cache / "spm" / origin / namespace
     seed_root.mkdir(parents=True, exist_ok=True)

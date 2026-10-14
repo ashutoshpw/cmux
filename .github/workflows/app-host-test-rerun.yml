@@ -140,7 +140,7 @@ jobs:
       CMUX_SKIP_ZIG_BUILD: "1"
       CMUX_UNIT_TEST_TIMEOUT_SECONDS: "900"
       CMUX_XCODEBUILD_NONINTERACTIVE_IDLE_TIMEOUT_SECONDS: "600"
-      CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+      CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
       SOURCE_SHA: ${{ needs.plan.outputs.source_sha }}
       TEST_SHA: ${{ needs.plan.outputs.sha }}
     steps:

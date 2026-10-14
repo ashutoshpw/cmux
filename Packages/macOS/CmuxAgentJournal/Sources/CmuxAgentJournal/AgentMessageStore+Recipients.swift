@@ -1,7 +1,7 @@
 import Foundation
 internal import os
 
-private let optOutLogger = Logger(subsystem: "com.cmuxterm.app", category: "AgentMessages")
+private let optOutLogger = Logger(subsystem: "app.w3dev.cmux", category: "AgentMessages")
 
 /// The off switches: the app-wide `isEnabled` closure and per-surface or
 /// per-workspace opt-outs kept in the journal.

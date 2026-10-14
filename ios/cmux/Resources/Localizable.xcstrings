@@ -1,6 +1,65 @@
 {
   "sourceLanguage": "en",
   "strings": {
+  "auth.error.client_not_registered": {
+    "comment": "A tagged public OAuth client must be registered for its exact native callback.",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "This build is not registered for sign-in. Register its OAuth client and callback URL on the cmux server."
+        }
+      },
+      "de": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Dieser Build ist nicht für die Anmeldung registriert. Registriere seinen OAuth-Client und seine Callback-URL auf dem cmux-Server."
+        }
+      },
+      "fr": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Cette version n’est pas enregistrée pour la connexion. Enregistrez son client OAuth et son URL de rappel sur le serveur cmux."
+        }
+      },
+      "ar": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "هذا الإصدار غير مسجل لتسجيل الدخول. سجّل عميل OAuth وعنوان URL لمعاودة الاتصال على خادم cmux."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Esta compilación no está registrada para iniciar sesión. Registra su cliente OAuth y su URL de devolución de llamada en el servidor cmux."
+        }
+      },
+      "zh-Hant": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此版本尚未註冊登入。請在 cmux 伺服器上註冊其 OAuth 用戶端和回呼 URL。"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "此版本尚未注册登录。请在 cmux 服务器上注册其 OAuth 客户端和回调 URL。"
+        }
+      },
+      "ko": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "이 빌드는 로그인용으로 등록되지 않았습니다. cmux 서버에 OAuth 클라이언트와 콜백 URL을 등록하세요."
+        }
+      },
+      "ja": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "このビルドはサインイン用に登録されていません。cmux サーバーに OAuth クライアントとコールバック URL を登録してください。"
+        }
+      }
+    }
+  },
     "mobile.workspace.newOnMachine": {
       "extractionState": "manual",
       "localizations": {

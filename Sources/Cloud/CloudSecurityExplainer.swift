@@ -4,7 +4,7 @@ import SwiftUI
 /// A small info button next to the Network control that explains what
 /// isolates a Cloud machine, with a link to the full security page.
 struct CloudSecurityExplainer: View {
-    static let learnMoreURL = URL(string: "https://cmux.com/docs/cloud-security")!
+    static let learnMoreURL = URL(string: "https://cmux.w3dev.app/docs/cloud-security")!
 
     var body: some View {
         CloudInfoPopoverButton(
@@ -23,7 +23,7 @@ struct CloudSecurityExplainer: View {
 /// coding agents up to date" does, with a link to the Machines docs section.
 /// The same text is the tooltip of the machine menu's "Keep Agents Up to Date".
 struct CloudAgentUpdatesExplainer: View {
-    static let learnMoreURL = URL(string: "https://cmux.com/docs/cloud/machines#agent-updates")!
+    static let learnMoreURL = URL(string: "https://cmux.w3dev.app/docs/cloud/machines#agent-updates")!
 
     static var title: String {
         String(localized: "cloud.agentUpdates.info", defaultValue: "How agents stay up to date")

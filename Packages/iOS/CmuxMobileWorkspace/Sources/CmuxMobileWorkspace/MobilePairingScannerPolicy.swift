@@ -4,7 +4,7 @@ import Foundation
 /// Pure policy deciding whether a scanned QR payload is a cmux pairing link.
 ///
 /// cmux pairing QR codes carry a channel-specific pairing deep link
-/// (`cmux-ios://` for release builds, `cmux-ios-dev://` for development; see
+/// (`cmux-ios://` for release builds, `cmux-w3dev-ios-dev://` for development; see
 /// ``CmxPairingURLScheme``); any other QR content (a website URL, a Wi-Fi join
 /// code) must be ignored so the scanner never hands the connection layer a
 /// non-pairing string. The in-app scanner accepts every channel's scheme so a

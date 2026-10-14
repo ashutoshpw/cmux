@@ -77,7 +77,7 @@ const context: ReflectionContext = {
 
 const signedToken = await vmToken(SELF_ID);
 function guestRequest(headers: Record<string, string> = {}): Request {
-  return new Request("https://coderouter.dev/api/vm/reflection", {
+  return new Request("https://cmux.w3dev.app/api/vm/reflection", {
     headers: {
       authorization: "Bearer cmux-vm-edge-placeholder",
       "x-cmux-authorization": `Bearer ${signedToken}`,
@@ -104,7 +104,7 @@ describe("requireVmPrincipal", () => {
   });
 
   test("rejects requests without a machine credential, a forged VM id, and an unbound token", async () => {
-    const noToken = new Request("https://coderouter.dev/api/vm/reflection", {
+    const noToken = new Request("https://cmux.w3dev.app/api/vm/reflection", {
       headers: { authorization: "Bearer cmux-vm-edge-placeholder" },
     });
     expect(await requireVmPrincipal(noToken, { authenticate: boundIdentity, loadVm: async () => self })).toEqual({ ok: false, reason: "missing_route_token" });
@@ -112,7 +112,7 @@ describe("requireVmPrincipal", () => {
     expect(await requireVmPrincipal(guestRequest({ "x-cmux-authorization": "Bearer invalid" }), { authenticate: boundIdentity, loadVm: async () => self })).toEqual({ ok: false, reason: "invalid_route_token" });
     const unbound = async () => ({ teamId: "team-1", stackUserId: "user-1", vmId: null });
     expect(await requireVmPrincipal(guestRequest(), { authenticate: unbound, loadVm: async () => self })).toEqual({ ok: false, reason: "vm_mismatch" });
-    const unboundRequest = new Request("https://coderouter.dev/api/vm/reflection", {
+    const unboundRequest = new Request("https://cmux.w3dev.app/api/vm/reflection", {
       headers: { authorization: "Bearer cmux-vm-edge-placeholder", [ROUTE_TOKEN_HEADER]: "crt_edge-injected" },
     });
     expect(await requireVmPrincipal(unboundRequest, { authenticate: unbound, loadVm: async () => self })).toEqual({ ok: false, reason: "vm_bound_token_required" });

@@ -19,10 +19,10 @@ describe("dependencyNameForHost", () => {
     expect(dependencyNameForHost("api2.stack-auth.com")).toBe("stack-auth");
     expect(dependencyNameForHost("api.stripe.com:443")).toBe("stripe");
     expect(dependencyNameForHost("us.i.posthog.com")).toBe("posthog");
-    expect(dependencyNameForHost("r.cmux.com")).toBe("posthog");
+    expect(dependencyNameForHost("r.cmux.com")).toBe("r.cmux.com");
     expect(dependencyNameForHost("hooks.slack.com")).toBe("slack");
-    expect(dependencyNameForHost("machine-abc.vm.cmux.sh")).toBe("cmux-vm");
-    expect(dependencyNameForHost("files.cmux.com")).toBe("cmux");
+    expect(dependencyNameForHost("machine-abc.vm.cmux.w3dev.app")).toBe("cmux-vm");
+    expect(dependencyNameForHost("files.cmux.w3dev.app")).toBe("cmux");
     expect(dependencyNameForHost("example.internal")).toBe("example.internal");
   });
 });

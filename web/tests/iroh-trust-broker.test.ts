@@ -51,17 +51,17 @@ describe("Iroh build compatibility", () => {
     const ios = binding({
       platform: "ios",
       tag: "default",
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
     });
     const stableMac = binding({
       platform: "mac",
       tag: "default",
-      clientNamespace: "mac:com.cmuxterm.app",
+      clientNamespace: "mac:app.w3dev.cmux",
     });
     const stagingMac = binding({
       platform: "mac",
       tag: "default",
-      clientNamespace: "mac:com.cmuxterm.app.staging",
+      clientNamespace: "mac:app.w3dev.cmux.staging",
     });
 
     expect(stableMac.clientNamespace).not.toBe(stagingMac.clientNamespace);
@@ -73,7 +73,7 @@ describe("Iroh build compatibility", () => {
     const ios = binding({
       platform: "ios",
       tag: "mdev",
-      clientNamespace: "dev.cmux.ios.mdev",
+      clientNamespace: "app.w3dev.cmux.ios.debug.mdev",
     });
     const siblingTags = ["msta", "mnyt", "cdial"];
 
@@ -81,38 +81,38 @@ describe("Iroh build compatibility", () => {
       expect(canIOSBindingUseMac(ios, binding({
         platform: "mac",
         tag,
-        clientNamespace: `mac:com.cmuxterm.app.debug.${tag}`,
+        clientNamespace: `mac:app.w3dev.cmux.debug.${tag}`,
       }))).toBe(true);
     }
     expect(canIOSBindingUseMac(ios, binding({
       platform: "mac",
       tag: "default",
-      clientNamespace: "mac:com.cmuxterm.app",
+      clientNamespace: "mac:app.w3dev.cmux",
     }))).toBe(false);
     expect(canIOSBindingUseMac(ios, binding({
       platform: "mac",
       tag: "rc",
-      clientNamespace: "mac:com.cmuxterm.app.rc",
+      clientNamespace: "mac:app.w3dev.cmux.rc",
     }))).toBe(false);
     expect(canIOSBindingUseMac(ios, binding({
       platform: "mac",
       tag: "staging",
-      clientNamespace: "mac:com.cmuxterm.app.staging",
+      clientNamespace: "mac:app.w3dev.cmux.staging",
     }))).toBe(false);
     expect(canIOSBindingUseMac(ios, binding({
       platform: "mac",
       tag: "rc",
-      clientNamespace: "mac:com.cmuxterm.app.debug.rc",
+      clientNamespace: "mac:app.w3dev.cmux.debug.rc",
     }))).toBe(false);
     expect(canIOSBindingUseMac(ios, binding({
       platform: "mac",
       tag: "staging",
-      clientNamespace: "mac:com.cmuxterm.app.debug.staging",
+      clientNamespace: "mac:app.w3dev.cmux.debug.staging",
     }))).toBe(false);
     expect(canIOSBindingForgetMac(ios, binding({
       platform: "mac",
       tag: "msta",
-      clientNamespace: "mac:com.cmuxterm.app.debug.msta",
+      clientNamespace: "mac:app.w3dev.cmux.debug.msta",
     }))).toBe(false);
   });
 
@@ -120,18 +120,18 @@ describe("Iroh build compatibility", () => {
     const ios = binding({
       platform: "ios",
       tag: "mdev",
-      clientNamespace: "dev.cmux.ios.mdev",
+      clientNamespace: "app.w3dev.cmux.ios.debug.mdev",
     });
 
     expect(canIOSBindingUseMac(ios, binding({
       platform: "mac",
       tag: "mdev",
-      clientNamespace: "mac:com.cmuxterm.app.staging.mdev",
+      clientNamespace: "mac:app.w3dev.cmux.staging.mdev",
     }))).toBe(false);
     expect(canIOSBindingUseMac(ios, binding({
       platform: "mac",
       tag: "mdev",
-      clientNamespace: "mac:com.cmuxterm.app.debug.mdev",
+      clientNamespace: "mac:app.w3dev.cmux.debug.mdev",
     }))).toBe(true);
   });
 
@@ -144,17 +144,17 @@ describe("Iroh build compatibility", () => {
     const defaultMac = binding({
       platform: "mac",
       tag: "default",
-      clientNamespace: "mac:com.cmuxterm.app",
+      clientNamespace: "mac:app.w3dev.cmux",
     });
     const nightlyMac = binding({
       platform: "mac",
       tag: "nightly",
-      clientNamespace: "mac:com.cmuxterm.app.nightly",
+      clientNamespace: "mac:app.w3dev.cmux.nightly",
     });
     const featureMac = binding({
       platform: "mac",
       tag: "feature-b",
-      clientNamespace: "mac:com.cmuxterm.app.debug.feature-b",
+      clientNamespace: "mac:app.w3dev.cmux.debug.feature-b",
     });
 
     expect(canIOSBindingUseMac(legacyIos, defaultMac)).toBe(true);
@@ -171,12 +171,12 @@ describe("Iroh build compatibility", () => {
     const nightlyMac = binding({
       platform: "mac",
       tag: "nightly",
-      clientNamespace: "mac:com.cmuxterm.app.nightly",
+      clientNamespace: "mac:app.w3dev.cmux.nightly",
     });
     const sameLaneMac = binding({
       platform: "mac",
       tag: "feature-a",
-      clientNamespace: "mac:com.cmuxterm.app.debug.feature-a",
+      clientNamespace: "mac:app.w3dev.cmux.debug.feature-a",
     });
 
     expect(canIOSBindingUseMac(taggedLegacyIos, nightlyMac)).toBe(false);
@@ -192,12 +192,12 @@ describe("Iroh build compatibility", () => {
     const defaultMac = binding({
       platform: "mac",
       tag: "default",
-      clientNamespace: "mac:com.cmuxterm.app",
+      clientNamespace: "mac:app.w3dev.cmux",
     });
     const nightlyMac = binding({
       platform: "mac",
       tag: "nightly",
-      clientNamespace: "mac:com.cmuxterm.app.nightly",
+      clientNamespace: "mac:app.w3dev.cmux.nightly",
     });
 
     expect(canIOSBindingForgetMac(legacyIos, defaultMac)).toBe(true);
@@ -577,33 +577,33 @@ describe("Iroh trust broker registration", () => {
     const internal = makeFixture({
       repository,
       deviceId,
-      registrationClientNamespace: "dev.cmux.app.internal",
+      registrationClientNamespace: "app.w3dev.cmux.ios.internal",
     });
     await Effect.runPromise(internal.broker.register(
       USER_A,
       await internal.signedRegistration(),
       NOW,
-      "dev.cmux.app.internal",
+      "app.w3dev.cmux.ios.internal",
     ));
     const internalBindingId = repository.bindings[0]!.id;
 
     const beta = makeFixture({
       repository,
       deviceId,
-      registrationClientNamespace: "dev.cmux.app.beta",
+      registrationClientNamespace: "app.w3dev.cmux.ios.beta",
     });
     await Effect.runPromise(beta.broker.register(
       USER_A,
       await beta.signedRegistration(),
       NOW,
-      "dev.cmux.app.beta",
+      "app.w3dev.cmux.ios.beta",
     ));
 
     const active = repository.bindings.filter((row) => !row.revokedAt);
     expect(active).toHaveLength(2);
     expect(active.map((row) => row.clientNamespace).sort()).toEqual([
-      "dev.cmux.app.beta",
-      "dev.cmux.app.internal",
+      "app.w3dev.cmux.ios.beta",
+      "app.w3dev.cmux.ios.internal",
     ]);
     expect(repository.bindings.find((row) => row.id === internalBindingId)?.revokedAt).toBeNull();
   });
@@ -641,16 +641,16 @@ describe("Iroh trust broker registration", () => {
       await fixture.signedRegistration(
         "mac",
         undefined,
-        "mac:com.cmuxterm.app",
+        "mac:app.w3dev.cmux",
       ),
       NOW,
-      "mac:com.cmuxterm.app",
+      "mac:app.w3dev.cmux",
     )) as { binding: { binding_id: string } };
 
     expect(adopted.binding.binding_id).toBe(tagOnly.binding.binding_id);
     expect(fixture.repository.bindings).toHaveLength(1);
     expect(fixture.repository.bindings[0]?.clientNamespace)
-      .toBe("mac:com.cmuxterm.app");
+      .toBe("mac:app.w3dev.cmux");
   });
 });
 
@@ -876,7 +876,7 @@ describe("Iroh discovery and grants", () => {
       userId: USER_A,
       deviceUuid: fixture.deviceId,
       appInstanceId: fixture.appInstanceId,
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
       tag: "current",
       platform: "ios",
       endpointId: fixture.endpointId,
@@ -894,7 +894,7 @@ describe("Iroh discovery and grants", () => {
       userId: USER_A,
       deviceUuid: fixture.deviceId,
       appInstanceId: randomUUID(),
-      clientNamespace: "dev.cmux.app.beta",
+      clientNamespace: "app.w3dev.cmux.ios.beta",
       tag: "older",
       platform: "ios",
       endpointId: fixture.endpointId,
@@ -941,13 +941,13 @@ describe("Iroh discovery and grants", () => {
 
   test("a namespaced client can drain its migrated legacy revocation", async () => {
     const fixture = makeFixture({
-      registrationClientNamespace: "dev.cmux.app.internal",
+      registrationClientNamespace: "app.w3dev.cmux.ios.internal",
     });
     const current = binding({
       userId: USER_A,
       deviceUuid: fixture.deviceId,
       appInstanceId: fixture.appInstanceId,
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
       tag: "stable",
       platform: "ios",
       endpointId: fixture.endpointId,
@@ -967,7 +967,7 @@ describe("Iroh discovery and grants", () => {
       USER_A,
       body,
       NOW,
-      "dev.cmux.app.internal",
+      "app.w3dev.cmux.ios.internal",
       fixture.bindingProof(
         current.id,
         "DELETE",
@@ -986,13 +986,13 @@ describe("Iroh discovery and grants", () => {
 
   test("a namespaced self-revocation retry authenticates with its soft-revoked binding", async () => {
     const fixture = makeFixture({
-      registrationClientNamespace: "dev.cmux.app.internal",
+      registrationClientNamespace: "app.w3dev.cmux.ios.internal",
     });
     const current = binding({
       userId: USER_A,
       deviceUuid: fixture.deviceId,
       appInstanceId: fixture.appInstanceId,
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
       tag: "stable",
       platform: "ios",
       endpointId: fixture.endpointId,
@@ -1031,13 +1031,13 @@ describe("Iroh discovery and grants", () => {
 
   test("a soft-revoked proof cannot revoke another live binding", async () => {
     const fixture = makeFixture({
-      registrationClientNamespace: "dev.cmux.app.internal",
+      registrationClientNamespace: "app.w3dev.cmux.ios.internal",
     });
     const retired = binding({
       userId: USER_A,
       deviceUuid: fixture.deviceId,
       appInstanceId: fixture.appInstanceId,
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
       tag: "stable",
       platform: "ios",
       endpointId: fixture.endpointId,
@@ -1045,7 +1045,7 @@ describe("Iroh discovery and grants", () => {
     });
     const live = binding({
       userId: USER_A,
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
       platform: "ios",
     });
     fixture.repository.bindings.push(retired, live);
@@ -1068,13 +1068,13 @@ describe("Iroh discovery and grants", () => {
 
   test("a reincarnated slot can finish an already-completed revocation", async () => {
     const fixture = makeFixture({
-      registrationClientNamespace: "dev.cmux.app.internal",
+      registrationClientNamespace: "app.w3dev.cmux.ios.internal",
     });
     const current = binding({
       userId: USER_A,
       deviceUuid: fixture.deviceId,
       appInstanceId: fixture.appInstanceId,
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
       tag: "stable",
       platform: "ios",
       endpointId: fixture.endpointId,
@@ -1084,7 +1084,7 @@ describe("Iroh discovery and grants", () => {
       userId: USER_A,
       deviceUuid: fixture.deviceId,
       appInstanceId: randomUUID(),
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
       tag: "stable",
       platform: "ios",
       revokedAt: retiredAt,
@@ -1096,7 +1096,7 @@ describe("Iroh discovery and grants", () => {
       USER_A,
       body,
       NOW,
-      "dev.cmux.app.internal",
+      "app.w3dev.cmux.ios.internal",
       fixture.bindingProof(
         current.id,
         "DELETE",
@@ -1117,7 +1117,7 @@ describe("Iroh discovery and grants", () => {
     const fixture = makeFixture();
     const current = binding({
       userId: USER_A,
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
       endpointId: fixture.endpointId,
     });
     fixture.repository.bindings.push(current);
@@ -1127,7 +1127,7 @@ describe("Iroh discovery and grants", () => {
         USER_A,
         NOW,
         undefined,
-        "dev.cmux.app.beta",
+        "app.w3dev.cmux.ios.beta",
         fixture.bindingProof(
           current.id,
           "GET",
@@ -1144,7 +1144,7 @@ describe("Iroh discovery and grants", () => {
     const ios = binding({
       userId: USER_A,
       deviceUuid: fixture.deviceId,
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
       tag: "stable",
       platform: "ios",
       endpointId: fixture.endpointId,
@@ -1212,7 +1212,7 @@ describe("Iroh discovery and grants", () => {
     const ios = binding({
       userId: USER_A,
       deviceUuid: fixture.deviceId,
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
       tag: "default",
       platform: "ios",
       endpointId: fixture.endpointId,
@@ -1452,14 +1452,14 @@ describe("Iroh discovery and grants", () => {
     const fixture = makeFixture();
     const initiator = binding({
       userId: USER_A,
-      clientNamespace: "dev.cmux.ios.feature-a",
+      clientNamespace: "app.w3dev.cmux.ios.debug.feature-a",
       tag: "feature-a",
       platform: "ios",
       endpointId: fixture.endpointId,
     });
     const acceptor = binding({
       userId: USER_A,
-      clientNamespace: "mac:com.cmuxterm.app.debug.feature-b",
+      clientNamespace: "mac:app.w3dev.cmux.debug.feature-b",
       tag: "feature-b",
       platform: "mac",
       pairingEnabled: true,
@@ -1491,7 +1491,7 @@ describe("Iroh discovery and grants", () => {
     const fixture = makeFixture();
     const initiator = binding({
       userId: USER_A,
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
       tag: "default",
       platform: "ios",
       endpointId: fixture.endpointId,
@@ -1536,7 +1536,7 @@ describe("Iroh discovery and grants", () => {
     });
     const acceptor = binding({
       userId: USER_A,
-      clientNamespace: "mac:com.cmuxterm.app.nightly",
+      clientNamespace: "mac:app.w3dev.cmux.nightly",
       tag: "nightly",
       platform: "mac",
       pairingEnabled: true,
@@ -1564,7 +1564,7 @@ describe("Iroh discovery and grants", () => {
     });
     const acceptor = binding({
       userId: USER_A,
-      clientNamespace: "mac:com.cmuxterm.app.nightly",
+      clientNamespace: "mac:app.w3dev.cmux.nightly",
       tag: "nightly",
       platform: "mac",
       pairingEnabled: true,
@@ -1590,7 +1590,7 @@ describe("Iroh discovery and grants", () => {
     });
     const nightlyMac = binding({
       userId: USER_A,
-      clientNamespace: "mac:com.cmuxterm.app.nightly",
+      clientNamespace: "mac:app.w3dev.cmux.nightly",
       tag: "nightly",
       platform: "mac",
     });
@@ -1625,11 +1625,11 @@ describe("Iroh discovery and grants", () => {
     const fixture = makeFixture();
     const internal = binding({
       platform: "ios",
-      clientNamespace: "dev.cmux.app.internal",
+      clientNamespace: "app.w3dev.cmux.ios.internal",
     });
     const beta = binding({
       platform: "ios",
-      clientNamespace: "dev.cmux.app.beta",
+      clientNamespace: "app.w3dev.cmux.ios.beta",
       endpointId: fixture.endpointId,
     });
     const mac = binding({
@@ -1644,7 +1644,7 @@ describe("Iroh discovery and grants", () => {
         USER_A,
         NOW,
         undefined,
-        "dev.cmux.app.beta",
+        "app.w3dev.cmux.ios.beta",
         fixture.bindingProof(
           beta.id,
           "GET",
@@ -1692,7 +1692,7 @@ describe("Iroh discovery and grants", () => {
       USER_A,
       revokeBody,
       NOW,
-      "dev.cmux.app.beta",
+      "app.w3dev.cmux.ios.beta",
       fixture.bindingProof(
         beta.id,
         "DELETE",
@@ -1710,7 +1710,7 @@ describe("Iroh discovery and grants", () => {
       USER_A,
       bindingBody,
       NOW,
-      "dev.cmux.app.beta",
+      "app.w3dev.cmux.ios.beta",
       fixture.bindingProof(
         beta.id,
         "POST",
@@ -1722,7 +1722,7 @@ describe("Iroh discovery and grants", () => {
       USER_A,
       bindingBody,
       NOW,
-      "dev.cmux.app.beta",
+      "app.w3dev.cmux.ios.beta",
       fixture.bindingProof(
         beta.id,
         "POST",
@@ -1738,7 +1738,7 @@ describe("Iroh discovery and grants", () => {
       USER_A,
       pairBody,
       NOW,
-      "dev.cmux.app.beta",
+      "app.w3dev.cmux.ios.beta",
       fixture.bindingProof(
         beta.id,
         "POST",
@@ -1756,18 +1756,18 @@ describe("Iroh discovery and grants", () => {
     const fixture = makeFixture();
     const iosA = binding({
       platform: "ios",
-      clientNamespace: "dev.cmux.ios.feature-a",
+      clientNamespace: "app.w3dev.cmux.ios.debug.feature-a",
       tag: "feature-a",
       endpointId: fixture.endpointId,
     });
     const macA = binding({
       platform: "mac",
-      clientNamespace: "mac:com.cmuxterm.app.debug.feature-a",
+      clientNamespace: "mac:app.w3dev.cmux.debug.feature-a",
       tag: "feature-a",
     });
     const macB = binding({
       platform: "mac",
-      clientNamespace: "mac:com.cmuxterm.app.debug.feature-b",
+      clientNamespace: "mac:app.w3dev.cmux.debug.feature-b",
       tag: "feature-b",
     });
     fixture.repository.bindings.push(iosA, macA, macB);

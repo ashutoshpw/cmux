@@ -6,10 +6,10 @@ import { CONTROL_PLANE_RULES } from "../src/rules";
 import { deterministicRandom, descriptor, deviceKey, identity, teamHarness } from "./support/team-fixture";
 
 /**
- * Byte-for-byte team wire responses that existing iOS and Mac clients parse,
- * captured from main before the account directory existed. Any change to these
- * frames, the published rules or an existing generated contract is a protocol
- * change for shipped clients and fails here.
+ * Exact owned-fork team responses parsed by its distinct native clients.
+ * This baseline records the owned namespace and session-bound ticket format.
+ * Changes to these frames, published rules or generated contracts require an
+ * intentional protocol change and fail here until the baseline is reviewed.
  *
  * Regenerate only for a deliberate, reviewed protocol change:
  *   UPDATE_TEAM_WIRE_GOLDEN=1 bun test ./test/team-wire-golden.test.ts
@@ -76,7 +76,7 @@ async function generatedContracts(names?: string[]): Promise<Record<string, stri
   return result;
 }
 
-test("team wire responses, rules and existing generated contracts are byte-for-byte unchanged", async () => {
+test("owned team wire responses and rules match the registered namespace and current session-bound tickets", async () => {
   const frames = await captureFrames();
   if (process.env.UPDATE_TEAM_WIRE_GOLDEN === "1") {
     writeFileSync(goldenPath, JSON.stringify({ rules: [...CONTROL_PLANE_RULES], frames, generatedContracts: await generatedContracts() }, null, 2) + "\n");

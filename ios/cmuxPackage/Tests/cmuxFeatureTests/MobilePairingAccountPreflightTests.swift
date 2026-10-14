@@ -61,7 +61,7 @@ import Testing
 
     @Test func prodPhoneScanningDevMacQRNamesTheAuthEnvironmentToo() throws {
         // The reverse direction: a production-auth phone scanning a dev Mac's
-        // QR (scheme cmux-ios-dev)
+        // QR (scheme cmux-w3dev-ios-dev)
         // hits the same per-project impossibility and must get the truthful
         // channel copy — not the "same email" advice.
         let category = MobilePairingAccountPreflight(
@@ -93,7 +93,7 @@ import Testing
     }
 
     @Test func devPhoneScanningDevMacQRMismatchIsAGenuineAccountFailure() throws {
-        // dev↔dev (scheme cmux-ios-dev): both ids come from the development
+        // dev↔dev (scheme cmux-w3dev-ios-dev): both ids come from the development
         // Stack project, so a mismatch means genuinely different accounts —
         // the #6028 copy ("same email") is correct there, and the
         // cross-channel explanation would be factually wrong.

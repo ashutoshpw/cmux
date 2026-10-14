@@ -1,3 +1,4 @@
+import { applicationOrigin } from "../../../services/deployment/origin";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -64,7 +65,7 @@ export default async function CloudPublicationAccessPage({
   }
   const requestHeaders = await headers();
   const user = await verifyRequest(
-    new Request("https://cmux.com/cloud/access", { headers: requestHeaders }),
+    new Request(`${applicationOrigin()}/cloud/access`, { headers: requestHeaders }),
     { listAllTeams: true },
   );
   const viewer: PublicationAccessUser | null = user
@@ -121,7 +122,7 @@ export default async function CloudPublicationAccessPage({
  * The sign-out route only honours this exact same-origin shape.
  */
 function publicationSwitchAccountHref(transaction: string, state: string): string {
-  const switchAccount = new URL("/handler/sign-out-and-sign-in", "https://cmux.com");
+  const switchAccount = new URL("/handler/sign-out-and-sign-in", `${applicationOrigin()}`);
   switchAccount.searchParams.set(
     "after_auth_return_to",
     publicationSignInHref(transaction, state),
@@ -130,15 +131,15 @@ function publicationSwitchAccountHref(transaction: string, state: string): strin
 }
 
 function publicationSignInHref(transaction: string, state: string): string {
-  const access = new URL("/cloud/access", "https://cmux.com");
+  const access = new URL("/cloud/access", `${applicationOrigin()}`);
   access.searchParams.set("transaction", transaction);
   access.searchParams.set("state", state);
-  const afterSignIn = new URL("/handler/after-sign-in", "https://cmux.com");
+  const afterSignIn = new URL("/handler/after-sign-in", `${applicationOrigin()}`);
   afterSignIn.searchParams.set(
     "after_auth_return_to",
     `${access.pathname}${access.search}`,
   );
-  const signIn = new URL("/handler/sign-in", "https://cmux.com");
+  const signIn = new URL("/handler/sign-in", `${applicationOrigin()}`);
   signIn.searchParams.set(
     "after_auth_return_to",
     `${afterSignIn.pathname}${afterSignIn.search}`,

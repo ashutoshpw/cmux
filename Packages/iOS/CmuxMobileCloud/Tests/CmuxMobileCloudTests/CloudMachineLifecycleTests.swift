@@ -49,24 +49,24 @@ import Testing
     }
 
     @Test func requestsReachTheServersLifecycleRoutes() throws {
-        let builder = CloudAPIRequestBuilder(baseURL: "https://cmux.com/")
+        let builder = CloudAPIRequestBuilder(baseURL: "https://cmux.w3dev.app/")
         let pause = try builder.pauseMachine(id: "vm-1", accessToken: "a", refreshToken: "r")
         #expect(pause.httpMethod == "POST")
-        #expect(pause.url?.absoluteString == "https://cmux.com/api/vm/vm-1/pause")
+        #expect(pause.url?.absoluteString == "https://cmux.w3dev.app/api/vm/vm-1/pause")
 
         let resume = try builder.resumeMachine(id: "vm-1", accessToken: "a", refreshToken: "r")
         #expect(resume.httpMethod == "POST")
-        #expect(resume.url?.absoluteString == "https://cmux.com/api/vm/vm-1/resume")
+        #expect(resume.url?.absoluteString == "https://cmux.w3dev.app/api/vm/vm-1/resume")
         #expect(resume.timeoutInterval == CloudAPIRequestBuilder.resumeTimeout)
 
         let delete = try builder.deleteMachine(id: "vm-1", accessToken: "a", refreshToken: "r")
         #expect(delete.httpMethod == "DELETE")
-        #expect(delete.url?.absoluteString == "https://cmux.com/api/vm/vm-1")
+        #expect(delete.url?.absoluteString == "https://cmux.w3dev.app/api/vm/vm-1")
 
         // A machine id cannot change which route a request reaches: a slash
         // is encoded, so it stays one path segment.
         let hostile = try builder.deleteMachine(id: "vm-1/pause", accessToken: "a", refreshToken: "r")
-        #expect(hostile.url?.absoluteString == "https://cmux.com/api/vm/vm-1%2Fpause")
+        #expect(hostile.url?.absoluteString == "https://cmux.w3dev.app/api/vm/vm-1%2Fpause")
         for invalidID in ["  ", ".", ".."] {
             #expect(throws: CloudAPIError.self) {
                 try builder.deleteMachine(id: invalidID, accessToken: "a", refreshToken: "r")

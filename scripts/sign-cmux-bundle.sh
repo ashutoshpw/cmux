@@ -8,7 +8,7 @@
 #   scripts/sign-cmux-bundle.sh \
 #     "build-universal/Build/Products/Release/cmux NIGHTLY.app" \
 #     cmux.nightly.entitlements \
-#     "Developer ID Application: Manaflow, Inc. (7WLXT3NR37)"
+#     "Developer ID Application: Your Organization (YOURTEAMID)"
 #
 # Optional env:
 #   CMUX_HELPER_ENTITLEMENTS  (default: cmux-helper.entitlements)
@@ -71,6 +71,28 @@ if [[ ! -f "$HELPER_ENTITLEMENTS" ]]; then
   echo "error: helper entitlements not found at $HELPER_ENTITLEMENTS" >&2
   exit 1
 fi
+# Fail before querying platform signing tools when the required profile is missing.
+if [[ ! -f "$APP_PATH/Contents/embedded.provisionprofile" ]] && \
+    python3 -c 'import plistlib,sys; ent=plistlib.load(open(sys.argv[1], "rb")); sys.exit(0 if "com.apple.developer.networking.networkextension" in ent else 1)' "$APP_ENTITLEMENTS"; then
+  echo "error: app entitlements require the Cloud tunnel, but no embedded app profile is available" >&2
+  exit 1
+fi
+# Read the selected identity from Security's validated identity inventory. A
+# configured fork team may narrow it, but cannot supply the certificate's team.
+SIGNING_TEAM="$(security find-identity -v -p codesigning | python3 -c '
+import os,re,sys
+identity=sys.argv[1]
+matches=[]
+for line in sys.stdin:
+    match=re.search(r"[0-9]+\) ([0-9A-Fa-f]{40}) \"([^\"]+)\"", line)
+    if match and identity in match.groups():
+        team=re.search(r"^Developer ID Application: .* \(([A-Z0-9]{10})\)$", match[2])
+        if team: matches.append(team[1])
+if len(matches) != 1: raise SystemExit("error: select one valid Developer ID Application identity")
+configured=os.environ.get("CMUX_APPLE_TEAM_ID", "")
+if configured and configured != matches[0]: raise SystemExit("error: signing certificate does not belong to CMUX_APPLE_TEAM_ID")
+print(matches[0])
+' "$IDENTITY")"
 case "$SIGN_MODE" in
   all|all-except-computer-use|main-only) ;;
   *)
@@ -105,11 +127,14 @@ TUNNEL_ENTITLEMENTS="${CMUX_TUNNEL_ENTITLEMENTS:-$DEFAULT_TUNNEL_ENTITLEMENTS}"
 # provisioning profile. Deterministic, so every CMUX_SIGN_MODE pass agrees.
 EFFECTIVE_APP_ENTITLEMENTS="$(mktemp "${TMPDIR:-/tmp}/cmux-effective-entitlements.XXXXXX")"
 RECONCILE_SUMMARY="$(mktemp "${TMPDIR:-/tmp}/cmux-entitlements-summary.XXXXXX")"
-trap 'rm -f "$EFFECTIVE_APP_ENTITLEMENTS" "$RECONCILE_SUMMARY"' EXIT
+EFFECTIVE_TUNNEL_ENTITLEMENTS="$(mktemp "${TMPDIR:-/tmp}/cmux-effective-tunnel-entitlements.XXXXXX")"
+trap 'rm -f "$EFFECTIVE_APP_ENTITLEMENTS" "$EFFECTIVE_TUNNEL_ENTITLEMENTS" "$RECONCILE_SUMMARY"' EXIT
+APP_BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Contents/Info.plist")"
 APP_PROFILE="$APP_PATH/Contents/embedded.provisionprofile"
 if [[ -f "$APP_PROFILE" ]]; then
   python3 "$SCRIPT_DIR/reconcile-entitlements-with-profile.py" \
     --entitlements "$APP_ENTITLEMENTS" --profile "$APP_PROFILE" \
+    --bundle-identifier "$APP_BUNDLE_ID" --team-identifier "$SIGNING_TEAM" \
     --output "$EFFECTIVE_APP_ENTITLEMENTS" --json > "$RECONCILE_SUMMARY"
 else
   python3 "$SCRIPT_DIR/reconcile-entitlements-with-profile.py" \
@@ -118,6 +143,7 @@ else
 fi
 TUNNEL_SUPPORTED="$(python3 -c 'import json,sys; print("1" if json.load(open(sys.argv[1]))["tunnel_supported"] else "0")' "$RECONCILE_SUMMARY")"
 TUNNEL_REQUESTED="$(python3 -c 'import json,sys; print("1" if json.load(open(sys.argv[1]))["tunnel_requested"] else "0")' "$RECONCILE_SUMMARY")"
+python3 -c 'import json,sys; missing=json.load(open(sys.argv[1]))["missing_restricted"]; sys.exit("error: profile does not grant " + ", ".join(missing) if missing else 0)' "$RECONCILE_SUMMARY"
 
 if [[ "$TUNNEL_REQUESTED" == "1" && "$TUNNEL_SUPPORTED" != "1" ]]; then
   echo "error: app entitlements require the Cloud tunnel, but the embedded app profile does not grant it" >&2
@@ -194,8 +220,18 @@ if [[ "$SIGN_MODE" == "all" || "$SIGN_MODE" == "all-except-computer-use" ]]; the
       # Real engine or nothing: the stub cannot carry traffic (see the verifier
       # for why a section check beats a marker symbol after stripping).
       "$SCRIPT_DIR/verify-tunnel-extension-engine.sh" "$binary"
+      tunnel_bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$sysext/Contents/Info.plist")"
+      [[ "$tunnel_bundle_id" == "$APP_BUNDLE_ID.tunnel" ]] || {
+        echo "error: tunnel bundle must belong to $APP_BUNDLE_ID" >&2
+        exit 1
+      }
+      python3 "$SCRIPT_DIR/reconcile-entitlements-with-profile.py" \
+        --entitlements "$TUNNEL_ENTITLEMENTS" --profile "$sysext/Contents/embedded.provisionprofile" \
+        --bundle-identifier "$tunnel_bundle_id" --team-identifier "$SIGNING_TEAM" \
+        --output "$EFFECTIVE_TUNNEL_ENTITLEMENTS" --json > "$RECONCILE_SUMMARY"
+      python3 -c 'import json,sys; result=json.load(open(sys.argv[1])); sys.exit(0 if result["tunnel_supported"] and not result["missing_restricted"] else "error: tunnel profile does not grant the requested capabilities")' "$RECONCILE_SUMMARY"
       echo "==> signing system extension $name"
-      /usr/bin/codesign "${SYSTEM_EXTENSION_COMMON[@]}" --entitlements "$TUNNEL_ENTITLEMENTS" "$sysext"
+      /usr/bin/codesign "${SYSTEM_EXTENSION_COMMON[@]}" --entitlements "$EFFECTIVE_TUNNEL_ENTITLEMENTS" "$sysext"
     done < <(find "$SYSTEM_EXTENSIONS_DIR" -mindepth 1 -maxdepth 1 -name '*.systemextension' -print0)
   fi
 fi
@@ -220,7 +256,7 @@ fi
   --require-signed
 
 APP_ID="$(/usr/libexec/PlistBuddy -c "Print :com.apple.application-identifier" \
-  /dev/stdin <<<"$(plutil -convert xml1 -o - "$APP_ENTITLEMENTS")" 2>/dev/null || true)"
+  /dev/stdin <<<"$(plutil -convert xml1 -o - "$EFFECTIVE_APP_ENTITLEMENTS")" 2>/dev/null || true)"
 
 if [[ -n "$APP_ID" ]]; then
   /usr/bin/codesign -d --entitlements :- "$APP_PATH" 2>&1 | grep -q "$APP_ID" || {
@@ -247,7 +283,7 @@ fi
 # requests to macOS personal-information services. Keep this check next to the
 # signing step so a release cannot silently regress to the old denial behavior.
 SIGNED_ENTITLEMENTS="$(mktemp "${TMPDIR:-/tmp}/cmux-signed-entitlements.XXXXXX")"
-trap 'rm -f "$SIGNED_ENTITLEMENTS" "$EFFECTIVE_APP_ENTITLEMENTS" "$RECONCILE_SUMMARY"' EXIT
+trap 'rm -f "$SIGNED_ENTITLEMENTS" "$EFFECTIVE_APP_ENTITLEMENTS" "$EFFECTIVE_TUNNEL_ENTITLEMENTS" "$RECONCILE_SUMMARY"' EXIT
 /usr/bin/codesign -d --entitlements :- "$APP_PATH" 2>/dev/null > "$SIGNED_ENTITLEMENTS" || {
   echo "error: unable to read signed app entitlements" >&2
   exit 1

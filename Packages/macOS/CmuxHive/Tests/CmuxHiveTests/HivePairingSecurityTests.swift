@@ -479,7 +479,7 @@ private actor PairingPeer: CmxByteTransport {
             let method = try #require(request["method"] as? String)
             methods.append(method)
             let auth = request["auth"] as? [String: Any]
-            tokens.append(auth?["stack_access_token"] as? String ?? "")
+            tokens.append(auth?["access_token"] as? String ?? "")
             var result: [String: Any] = ["workspaces": []]
             if method == "mobile.host.status" {
                 statusContinuation.yield(())

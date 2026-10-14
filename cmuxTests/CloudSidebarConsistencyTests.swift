@@ -135,7 +135,7 @@ struct CloudSidebarConsistencyTests {
         let catalog = SurfaceCatalog()
         var document = try #require(state(tabs: ["a"]).snapshotObject())
         document["tabs"] = [["id": "tab_a", "pane_id": "pane_main", "content_kind": "browser", "content_id": "browser_a"]]
-        document["browsers"] = [["id": "browser_a", "tab_id": "tab_a", "title": "Docs", "url": "https://cmux.com/docs"]]
+        document["browsers"] = [["id": "browser_a", "tab_id": "tab_a", "title": "Docs", "url": "https://cmux.w3dev.app/docs"]]
         let graph = try #require(CmuxTuiSnapshotParser.state(fromSnapshot: document, machine: machine))
         install(graph, in: catalog)
         let row = try #require(workspaceRows(catalog).first)

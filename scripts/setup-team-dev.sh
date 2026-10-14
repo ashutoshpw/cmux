@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# This legacy harness provisions Stack identities and is not compatible with
+# fork Better Auth. Fail before reading credentials or contacting a provider.
+echo 'error: this Stack auth harness is retired; use fork Better Auth OAuth/PKCE with an exact registered callback.' >&2
+exit 2
+
 # Configure named development profiles and optional production verification.
 # All credentials stay outside the repository, are verified before saving, and
 # are read with the same parser used by the development launchers.

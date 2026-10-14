@@ -8,7 +8,7 @@ import Testing
 /// iOS Simulator without a host app. This is the untagged development scheme,
 /// the same value the host fallback produced.
 private let pairingScheme = CmxPairingURLScheme(
-    rawValue: "cmux-ios-dev.cmux.ios"
+    rawValue: "cmux-w3dev-ios-app.w3dev.cmux.ios.debug"
 )
 
 

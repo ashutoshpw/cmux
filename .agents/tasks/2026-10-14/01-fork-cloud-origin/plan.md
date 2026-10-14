@@ -23,13 +23,15 @@ Use a validated, nonsecret deployment manifest with generated inputs for existin
 - [x] Inventory origin consumers, upstream service dependencies, and deployment guards.
 - [x] Define the destination contract, prerequisites, and verification gates.
 - [x] P0: Preserve the rebase, record source identities, and create an isolated migration worktree.
-- [ ] P1: Add the deployment manifest, validated config adapters, and behavioral regressions.
-- [ ] P2: Replace web/API/auth URL generation, trust rules, callbacks, emails, and metadata.
-- [ ] P3: Replace macOS/iOS production defaults, shared auth defaults, CLI and model-catalog routes.
-- [ ] P4: Retarget presence, Iroh, relay policy, VM publications, and guest networking.
-- [ ] P5: Publish fork artifacts and images; retarget installers, updater feeds, CI, and deployment guards.
-- [ ] Add .github/workflows/deploy-vercel.yml using W3Dev/vercel-deploy with the exact hardcoded Vercel team/project IDs; validate builds and prevent duplicate deployment triggers.
-- [ ] P6: Update product links and translations; complete scoped validation and open fork PRs.
+- [x] P1: Add the deployment manifest, validated config adapters, and behavioral regressions.
+- [x] P2: Replace web/API/auth URL generation, trust rules, callbacks, emails, and metadata.
+- [x] P3: Replace macOS/iOS production defaults, shared auth defaults, CLI and model-catalog routes.
+- [x] P4: Retarget presence, Iroh, relay policy, VM publications, and guest networking.
+- [x] P5 source: Retarget installers, updater feeds, CI and deployment guards; leave images and relays explicitly unprovisioned.
+- [ ] P5 publication: Build, verify and publish fork-owned artifacts, images and relays using actual provider/signing configuration.
+- [x] Add .github/workflows/deploy-vercel.yml using W3Dev/vercel-deploy with the exact hardcoded Vercel team/project IDs; validate builds and prevent duplicate deployment triggers.
+- [x] P6 source: Update product destinations and translations; run local verification.
+- [ ] P6 delivery: Finish independent repair reviews and publish a draft fork PR against the snapshot baseline.
 - [ ] P7: Deploy to fork staging, verify authenticated journeys, promote the same revision, and release fork clients.
 - [ ] P8: Record production receipts and prove upstream outage cannot activate an old destination.
 
@@ -52,3 +54,4 @@ Use a validated, nonsecret deployment manifest with generated inputs for existin
 - [references/domain-inventory.md](references/domain-inventory.md) — tracked-source domain occurrences with file and line numbers.
 - [references/auth-decision.md](references/auth-decision.md) — Better Auth decision, prerequisites, and confirmed fork identity choice.
 - [references/vercel-workflow.md](references/vercel-workflow.md) — confirmed hardcoded target IDs and GitHub Actions deployment specification.
+- [references/implementation.md](references/implementation.md) — current source contracts, local evidence and unresolved release gates.

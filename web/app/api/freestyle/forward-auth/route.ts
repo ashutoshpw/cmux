@@ -98,7 +98,7 @@ export async function enforcePublicationSignInRateLimit(input: {
  * before any publication lookup or auth artifact is touched.
  *
  * The publication is identified by `x-freestyle-tls-rule-id` alone. Vercel
- * replaces `x-forwarded-host` with the function's own host (cmux.com) before
+ * replaces `x-forwarded-host` with the function's own host (cmux.w3dev.app) before
  * the route runs, so the value Freestyle sends never arrives; every hostname
  * this route acts on is read from the resolved publication row instead.
  */

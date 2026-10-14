@@ -218,10 +218,10 @@ const { GET: GET_PRO_USERS } = await import("../app/api/admin/pro-users/route");
 const { GET: GET_PRO_SCAN } = await import("../app/api/admin/pro-users/scan/route");
 
 const adminUser = () =>
-  stackUser({ id: "admin-1", primaryEmail: "admin@manaflow.ai" });
+  stackUser({ id: "admin-1", primaryEmail: "admin@w3dev.app" });
 
 function getRequest(query: string) {
-  return new NextRequest(`https://cmux.com/api/admin/users?q=${encodeURIComponent(query)}`);
+  return new NextRequest(`https://w3dev.app/api/admin/users?q=${encodeURIComponent(query)}`);
 }
 
 function postRequest(
@@ -230,11 +230,11 @@ function postRequest(
   path = "/api/admin/users",
   method: "POST" | "DELETE" = "POST",
 ) {
-  return new NextRequest(`https://cmux.com${path}`, {
+  return new NextRequest(`https://w3dev.app${path}`, {
     method,
     headers: {
       "content-type": "application/json",
-      origin: "https://cmux.com",
+      origin: "https://w3dev.app",
       "sec-fetch-site": "same-origin",
       ...headers,
     },
@@ -273,7 +273,7 @@ describe("admin users route", () => {
   test("GET returns 401 for signed-out and anonymous callers", async () => {
     currentUser = null;
     expect((await GET(getRequest("pat"))).status).toBe(401);
-    currentUser = stackUser({ id: "anon", primaryEmail: "admin@manaflow.ai", isAnonymous: true });
+    currentUser = stackUser({ id: "anon", primaryEmail: "admin@w3dev.app", isAnonymous: true });
     expect((await GET(getRequest("pat"))).status).toBe(401);
     expect(listUsers).not.toHaveBeenCalled();
   });
@@ -281,10 +281,10 @@ describe("admin users route", () => {
   test("GET returns 403 for non-admin, lookalike, and unverified company callers", async () => {
     for (const user of [
       stackUser({ id: "user", primaryEmail: "pat@example.com" }),
-      stackUser({ id: "lookalike", primaryEmail: "pat@manaflow.ai.evil.com" }),
-      stackUser({ id: "subdomain", primaryEmail: "pat@sub.cmux.com" }),
-      stackUser({ id: "unverified", primaryEmail: "impostor@manaflow.ai", primaryEmailVerified: false }),
-      stackUser({ id: "unverified-cmux", primaryEmail: "impostor@cmux.com", primaryEmailVerified: false }),
+      stackUser({ id: "lookalike", primaryEmail: "pat@w3dev.app.evil.com" }),
+      stackUser({ id: "subdomain", primaryEmail: "pat@sub.w3dev.app" }),
+      stackUser({ id: "unverified", primaryEmail: "impostor@w3dev.app", primaryEmailVerified: false }),
+      stackUser({ id: "unverified-cmux", primaryEmail: "impostor@w3dev.app", primaryEmailVerified: false }),
       stackUser({ id: "no-email", primaryEmail: null }),
     ]) {
       currentUser = user;
@@ -296,7 +296,7 @@ describe("admin users route", () => {
   });
 
   test("GET admits verified admins on every company domain", async () => {
-    for (const email of ["a@cmux.com", "b@manaflow.ai", "c@manaflow.com"]) {
+    for (const email of ["a@w3dev.app", "b@w3dev.app", "c@w3dev.app"]) {
       currentUser = stackUser({ id: "admin", primaryEmail: email });
       expect((await GET(getRequest("pat"))).status).toBe(200);
     }
@@ -314,7 +314,7 @@ describe("admin users route", () => {
       email: "sam.future@example.com",
       plan: "pro",
       grantedByUserId: "admin-1",
-      grantedByEmail: "admin@manaflow.ai",
+      grantedByEmail: "admin@w3dev.app",
       appliedAt: null,
       revokedAt: null,
       createdAt: new Date("2026-09-02T00:00:00.000Z"),
@@ -379,7 +379,7 @@ describe("admin users route", () => {
     expect(target.serverMetadata.cmuxAdminPlanGrant).toMatchObject({
       plan: "pro",
       byUserId: "admin-1",
-      byEmail: "admin@manaflow.ai",
+      byEmail: "admin@w3dev.app",
     });
   });
 
@@ -471,7 +471,7 @@ describe("admin email grants route", () => {
     expect(body.pendingGrant).not.toHaveProperty("unclearedUserIds");
     expect(body.unclearedUserIds).toEqual([]);
     expect(pendingGrantRows).toHaveLength(1);
-    expect(pendingGrantRows[0]).toMatchObject({ grantedByUserId: "admin-1", grantedByEmail: "admin@manaflow.ai" });
+    expect(pendingGrantRows[0]).toMatchObject({ grantedByUserId: "admin-1", grantedByEmail: "admin@w3dev.app" });
 
     const revoked = await DELETE_EMAIL_GRANTS(
       postRequest({ grantId: body.pendingGrant.id }, {}, "/api/admin/email-grants", "DELETE"),
@@ -550,17 +550,17 @@ describe("admin pro-users routes", () => {
     for (const user of [
       null,
       stackUser({ id: "user", primaryEmail: "pat@example.com" }),
-      stackUser({ id: "impostor", primaryEmail: "x@manaflow.ai", primaryEmailVerified: false }),
-      stackUser({ id: "anon", primaryEmail: "a@cmux.com", isAnonymous: true }),
+      stackUser({ id: "impostor", primaryEmail: "x@w3dev.app", primaryEmailVerified: false }),
+      stackUser({ id: "anon", primaryEmail: "a@w3dev.app", isAnonymous: true }),
     ]) {
       currentUser = user;
       const expected = user === null || user.isAnonymous ? 401 : 403;
-      expect((await GET_PRO_USERS(new NextRequest("https://cmux.com/api/admin/pro-users"))).status).toBe(expected);
-      expect((await GET_PRO_SCAN(new NextRequest("https://cmux.com/api/admin/pro-users/scan?kind=users"))).status).toBe(expected);
+      expect((await GET_PRO_USERS(new NextRequest("https://w3dev.app/api/admin/pro-users"))).status).toBe(expected);
+      expect((await GET_PRO_SCAN(new NextRequest("https://w3dev.app/api/admin/pro-users/scan?kind=users"))).status).toBe(expected);
     }
     expect(listUsers).not.toHaveBeenCalled();
     currentUser = adminUser();
-    const response = await GET_PRO_USERS(new NextRequest("https://cmux.com/api/admin/pro-users"));
+    const response = await GET_PRO_USERS(new NextRequest("https://w3dev.app/api/admin/pro-users"));
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
     const body = (await response.json()) as { subscribers: Array<Record<string, unknown>>; truncated: Record<string, boolean> };
@@ -571,10 +571,10 @@ describe("admin pro-users routes", () => {
   });
 
   test("the scan validates its query and returns paid manual overrides", async () => {
-    expect((await GET_PRO_SCAN(new NextRequest("https://cmux.com/api/admin/pro-users/scan"))).status).toBe(400);
-    expect((await GET_PRO_SCAN(new NextRequest("https://cmux.com/api/admin/pro-users/scan?kind=nope"))).status).toBe(400);
-    expect((await GET_PRO_SCAN(new NextRequest("https://cmux.com/api/admin/pro-users/scan?kind=users&cursor=a%20b"))).status).toBe(400);
-    const response = await GET_PRO_SCAN(new NextRequest("https://cmux.com/api/admin/pro-users/scan?kind=users"));
+    expect((await GET_PRO_SCAN(new NextRequest("https://w3dev.app/api/admin/pro-users/scan"))).status).toBe(400);
+    expect((await GET_PRO_SCAN(new NextRequest("https://w3dev.app/api/admin/pro-users/scan?kind=nope"))).status).toBe(400);
+    expect((await GET_PRO_SCAN(new NextRequest("https://w3dev.app/api/admin/pro-users/scan?kind=users&cursor=a%20b"))).status).toBe(400);
+    const response = await GET_PRO_SCAN(new NextRequest("https://w3dev.app/api/admin/pro-users/scan?kind=users"));
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
     const body = (await response.json()) as { rows: Array<Record<string, unknown>>; nextCursor: string | null };

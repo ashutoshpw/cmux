@@ -1,4 +1,4 @@
-import { jsonResponse } from "../vms/routeHelpers";
+import { jsonResponse } from "../http/jsonResponse";
 
 /** Every team API error code. Messages are English and for developers. */
 export type TeamErrorCode =

@@ -3,7 +3,7 @@ import CMUXAgentLaunch
 import OSLog
 
 nonisolated private let codexResumeBindingLogger = Logger(
-    subsystem: "com.cmuxterm.cli",
+    subsystem: "app.w3dev.cmux.cli",
     category: "CodexResumeBinding"
 )
 

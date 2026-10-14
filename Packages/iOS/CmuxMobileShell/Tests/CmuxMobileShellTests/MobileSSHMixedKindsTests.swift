@@ -13,7 +13,7 @@ import Testing
 
     @Test func localIDsEncodeKindAndRoundTrip() throws {
         let ids: [MobileSSHLocalID] = [
-            .cmuxTUI(session: "cmux-ios", id: "5f0e-key"),
+            .cmuxTUI(session: "cmux-w3dev-ios", id: "5f0e-key"),
             .cmuxTUI(session: "main", id: "term_abc"),
             .tmux("work"),
             .tmux("a/b/%12"),
@@ -42,7 +42,7 @@ import Testing
         let workspace = MobileSSHWorkspace(id: "1", name: "one", terminals: [MobileSSHTerminal(id: "1", name: "one")])
         let shell = MobileSSHHostProviders.rekey(workspace, kind: .shell, session: nil)
         let tmux = MobileSSHHostProviders.rekey(workspace, kind: .tmux, session: nil)
-        let own = MobileSSHHostProviders.rekey(workspace, kind: .cmuxTUI, session: "cmux-ios")
+        let own = MobileSSHHostProviders.rekey(workspace, kind: .cmuxTUI, session: "cmux-w3dev-ios")
         let laptop = MobileSSHHostProviders.rekey(workspace, kind: .cmuxTUI, session: "main")
         #expect(Set([shell.id, tmux.id, own.id, laptop.id]).count == 4)
         #expect(shell.terminals[0].id == "shell:1")

@@ -9,7 +9,7 @@ import Security
 import CmuxFoundation
 
 private nonisolated let computerUseLogger = Logger(
-    subsystem: "com.cmuxterm.app",
+    subsystem: "app.w3dev.cmux",
     category: "ComputerUse"
 )
 
@@ -907,7 +907,7 @@ public final class ComputerUseRuntimeService {
         // Only a Developer ID signed helper may be installed: this build's own
         // nested helper in a release, else an installed NIGHTLY, RC or release
         // helper. An ad-hoc copy cannot satisfy the TCC rows of
-        // com.cmuxterm.cua, and a grant to it replaces the release row.
+        // app.w3dev.cmux.cua, and a grant to it replaces the release row.
         let trust = helperTrust
         let nested = bundledHelperAppURL
         let sourceTask = Task.detached(priority: .userInitiated) {

@@ -101,7 +101,7 @@ public actor PushRegistrationService: PushRegistering {
             in: .userDomainMask
         ).first ?? FileManager.default.temporaryDirectory
         return root
-            .appendingPathComponent("cmux", isDirectory: true)
+            .appendingPathComponent("cmux-w3dev", isDirectory: true)
             .appendingPathComponent(
                 "push-cleanup-\(String(namespace)).sqlite3"
             )
@@ -932,7 +932,6 @@ public actor PushRegistrationService: PushRegistering {
         var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         request.setValue(bundleID, forHTTPHeaderField: "X-Cmux-App-Namespace")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try? JSONSerialization.data(withJSONObject: body)

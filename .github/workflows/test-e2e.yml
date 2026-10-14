@@ -510,7 +510,7 @@ jobs:
         continue-on-error: true
         timeout-minutes: 3
         env:
-          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
         run: |
           set -euo pipefail
           script="$RUNNER_TEMP/git-seed.sh"
@@ -691,7 +691,7 @@ jobs:
         continue-on-error: true
         env:
           WORKFLOW_SHA: ${{ github.workflow_sha }}
-          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
         run: |
           set -euo pipefail
           # Each canonical root keeps its own state, as ci-macos.yml's
@@ -770,7 +770,7 @@ jobs:
         id: swift-package-cache
         if: ${{ steps.reuse.outputs.hit != 'true' && steps.owned-state.outputs.packages != 'true' }}
         env:
-          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
         uses: ./.github/actions/cache-restore
         with:
           backend: ${{ vars.CI_CACHE_BACKEND || 'r2' }}
@@ -807,7 +807,7 @@ jobs:
           OWNED_TOOLS: ${{ steps.owned-state.outputs.tools }}
           OWNED_STORE: ${{ steps.owned-state.outputs.store }}
           CMUX_SEED_LOCAL_CACHE: ${{ steps.owned-state.outputs.seeds }}
-          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
           GH_TOKEN: ${{ github.token }}
         run: |
           python3 "$OWNED_TOOLS/owned_build_state.py" prefer "$OWNED_STORE" "$PWD" \
@@ -822,7 +822,7 @@ jobs:
         timeout-minutes: 3
         env:
           SEED_PREFIX: ${{ steps.seed-key.outputs.prefix }}
-          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
           GH_TOKEN: ${{ github.token }}
           # An owned Mac clones a seed it keeps (or glaeda fetched ahead)
           # instead of downloading it, and takes the one prefer-seed compared.
@@ -861,7 +861,7 @@ jobs:
         timeout-minutes: 8
         env:
           SEED_PREFIX: ${{ steps.seed-key.outputs.prefix }}
-          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
           GH_TOKEN: ${{ github.token }}
           CMUX_SEED_LOCAL_CACHE: ${{ vars.CI_OWNED_PREFER_SEED != '' && steps.owned-state.outputs.seeds || '' }}
           CMUX_SEED_EXACT: ${{ steps.prefer-seed.outputs.local == 'true' && steps.prefer-seed.outputs.seed_key || '' }}
@@ -1286,7 +1286,7 @@ jobs:
         continue-on-error: true
         timeout-minutes: 3
         env:
-          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+          CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
         run: |
           set -euo pipefail
           script="$RUNNER_TEMP/git-seed.sh"

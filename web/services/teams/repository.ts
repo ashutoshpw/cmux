@@ -1,5 +1,6 @@
 import { and, desc, eq, gt, inArray, isNull, lt, or, sql } from "drizzle-orm";
 import { cloudDb } from "../../db/client";
+import { withCloudDbTransaction } from "../../db/transactionScope";
 import {
   teamEmailInvitations,
   teamInviteLinkRedemptions,
@@ -459,6 +460,6 @@ export const databaseTeamInviteStore: TeamInviteStore = {
 export async function withTeamAdminLock<T>(stackTeamId: string, operation: (db: TeamLockDb) => Promise<T>): Promise<T> {
   return cloudDb().transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${`team-admin:${stackTeamId}`}, 0))`);
-    return operation(tx);
+    return withCloudDbTransaction(tx, () => operation(tx));
   });
 }

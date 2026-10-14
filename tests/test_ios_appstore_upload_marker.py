@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github/workflows/ios-appstore-upload.yml"
 RECORD = "Record completed upload before group assignment"
 RETAIN = "Retain completed upload for assignment retries"
-APP_ID = "6783338052"
+APP_ID = "1234567890"
 RECEIPT = {"uploadId": "41b619d5", "fileName": "cmux-resigned.ipa", "uploaded": True}
 
 
@@ -70,6 +70,7 @@ class UploadMarkerTests(unittest.TestCase):
                 "RUNNER_TEMP": str(temp),
                 "GITHUB_OUTPUT": str(output),
                 "GITHUB_SHA": "head-sha",
+                "ASC_APP_ID": APP_ID,
             }
             for key, value in (record.get("env") or {}).items():
                 value = str(value)

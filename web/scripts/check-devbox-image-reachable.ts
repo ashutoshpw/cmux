@@ -7,7 +7,7 @@
  * was made. This covers the image we are shipping right now, against the
  * cmux-tui build we are shipping right now, which is the pair that can drift
  * apart without anyone touching either: the manifest pins a snapshot with a
- * baked daemon, while files.cmux.com moves to a new client with every release.
+ * baked daemon, while files.cmux.w3dev.app moves to a new client with every release.
  *
  * The check is a real round trip, not a port probe: enroll a device, connect
  * over `ws://[::1]:1337/v1/link`, open a workspace, run a process, read its

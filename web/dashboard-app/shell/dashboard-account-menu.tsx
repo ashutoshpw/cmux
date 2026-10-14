@@ -2,7 +2,7 @@
 
 import { Menu } from "@base-ui-components/react/menu";
 import { useQuery } from "@tanstack/react-query";
-import { UserAvatar, useStackApp } from "@hexclave/next";
+import { UserAvatar, useStackApp } from "@/app/lib/stack-client";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { localizedVaultPath, vaultSignInHref, vaultSwitchAccountHref } from "@/app/lib/vault-auth";

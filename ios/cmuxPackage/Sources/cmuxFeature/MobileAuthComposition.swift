@@ -5,14 +5,13 @@ import CmuxPhonePush
 import CmuxMobileSupport
 import CmuxMobileTransport
 import Foundation
-import StackAuth
 
 /// The auth composition root for the iOS app.
 ///
 /// Constructs the de-singletonized auth graph once at app startup: resolves
 /// ``CmuxAuthRuntime/AuthConfig`` from the environment + an injected
 /// `LocalConfig.plist` override table, builds the ``CmuxAuthRuntime/AuthCoordinator``
-/// (with a `StackAuthClient`, persistence caches over an injected `UserDefaults`,
+/// (with a `BetterAuthClient`, persistence caches over an injected `UserDefaults`,
 /// and an ``CmuxAuthRuntime/AuthPresentationContextProvider``), and the
 /// ``CmuxAuthRuntime/PushRegistrationService``. Replaces `AuthManager.shared`,
 /// `StackAuthApp.shared`, `AuthPresentationContextProvider.shared`,
@@ -38,9 +37,6 @@ public struct MobileAuthComposition {
     public let appNamespace: MobileIOSAppNamespace?
     /// Exact Keychain group claimed by this signed bundle.
     public let keychainAccessGroup: String?
-
-    /// iOS OAuth must not inherit Safari cookies from another cmux build.
-    nonisolated static let oauthBrowserSessionPrivacy: OAuthBrowserSessionPrivacy = .ephemeral
 
     /// UIKit protected-data availability bridge used by auth session restore.
     private let protectedDataAvailability: ProtectedDataAvailability
@@ -102,15 +98,24 @@ public struct MobileAuthComposition {
         )
         self.config = resolvedConfig
 
-        let client = StackAuthClient(
-            config: resolvedConfig,
-            tokenStore: Self.tokenStore(
-                appNamespace: appNamespace,
-                accessGroup: keychainAccessGroup,
-                legacyProjectID: resolvedConfig.stack.projectId
-            ),
-            oauthBrowserSessionPrivacy: Self.oauthBrowserSessionPrivacy
+        let issuer = URL(string: resolvedConfig.apiBaseURL)!
+        let oauthConfiguration = Self.makeOAuthConfiguration(
+            origin: issuer,
+            bundleIdentifier: bundle.bundleIdentifier,
+            isDevelopmentBuild: Self.isDevelopmentBuild,
+            overrides: overrides,
+            bakedClientID: bundle.object(forInfoDictionaryKey: "CMUXOAuthClientID") as? String,
+            bakedCallbackScheme: bundle.object(forInfoDictionaryKey: "CMUXOAuthCallbackScheme") as? String
         )
+        let callbackScheme = oauthConfiguration.redirectURI.scheme!
+        let clientID = oauthConfiguration.clientID
+        let transport = URLSessionOAuthTransport()
+        let oauthBrowser = OAuthAuthorizationFlow(configuration: oauthConfiguration, transport: transport, ephemeralSession: true)
+        let secureStore = KeychainOAuthTokenStore(
+            service: "\(bundle.bundleIdentifier ?? ForkDeployment.iOSBundleID).oauth.\(Data(issuer.absoluteString.utf8).base64EncodedString())",
+            accessGroup: keychainAccessGroup
+        )
+        let client = BetterAuthClient(configuration: oauthConfiguration, store: secureStore, transport: transport, browser: oauthBrowser)
         let availability = ProtectedDataAvailability()
         let sessionCache = CMUXAuthSessionCache(
             keyValueStore: defaults,
@@ -134,27 +139,18 @@ public struct MobileAuthComposition {
         // whose UI-test semantics stop priming and would suppress the dogfood
         // auto-login on the very next normal reload).
         let authProjectSwitched = Self.detectAuthProjectSwitch(
-            resolvedProjectID: resolvedConfig.stack.projectId,
-            buildDefaultProjectID: AuthConfig(
-                environment: Self.isDevelopmentBuild ? .development : .production,
-                overrides: overrides
-            ).stack.projectId,
+            resolvedProjectID: issuer.absoluteString + "|" + clientID,
+            buildDefaultProjectID: issuer.absoluteString + "|" + clientID,
             defaults: defaults
         )
-        let includesDevAuth = Self.includesDevAuth(
-            policy: policy,
-            resolvedEnvironment: resolvedEnvironment
-        )
+        let includesDevAuth = false
         let launch = AuthLaunchOptions(
             clearAuthRequested: environment["CMUX_UITEST_CLEAR_AUTH"] == "1",
             mockDataEnabled: UITestConfig.mockDataEnabled,
             environment: environment,
             includesDevAuth: includesDevAuth,
             clearStaleAuthOnLaunch: authProjectSwitched,
-            replaceStoredSessionWithAutoLogin: Self.shouldReplaceStoredSessionWithAutoLogin(
-                includesDevAuth: includesDevAuth,
-                environment: environment
-            )
+            replaceStoredSessionWithAutoLogin: false
         )
         // Break the coordinator <-> push cycle: the coordinator is built first
         // and reaches the push service (for its post-sign-in token re-upload)
@@ -260,8 +256,52 @@ public struct MobileAuthComposition {
     /// Cloud machines live independently of the paired Mac. A development
     /// build may still use a loopback API origin for Mac pairing, but Cloud
     /// requests must move to the shared remote control plane in that case.
-    nonisolated static let developmentCloudAPIBaseURL = "https://cmux-staging.vercel.app"
-    nonisolated static let productionCloudAPIBaseURL = "https://cmux.com"
+    nonisolated static let developmentCloudAPIBaseURL = ForkDeployment.stagingOrigin
+    nonisolated static let productionCloudAPIBaseURL = ForkDeployment.productionOrigin
+
+    /// Resolve the registration shipped by this signed build, including Release channels.
+    nonisolated static func makeOAuthConfiguration(
+        origin: URL,
+        bundleIdentifier: String?,
+        isDevelopmentBuild: Bool,
+        overrides: [String: String],
+        bakedClientID: String?,
+        bakedCallbackScheme: String?
+    ) -> OAuthClientConfiguration {
+        func configured(_ raw: String?) -> String? {
+            guard let value = raw?.trimmingCharacters(in: .whitespacesAndNewlines),
+                  !value.isEmpty, !value.contains("$(") else { return nil }
+            return value
+        }
+        let defaultScheme: String
+        if isDevelopmentBuild {
+            defaultScheme = ForkDeployment.iOSCallbackScheme + "-dev-"
+                + (bundleIdentifier ?? "unknown").replacingOccurrences(of: ".", with: "-")
+        } else if let bundleIdentifier,
+                  bundleIdentifier.hasPrefix(ForkDeployment.iOSBundleID + ".") {
+            defaultScheme = ForkDeployment.iOSCallbackScheme + "-"
+                + String(bundleIdentifier.dropFirst((ForkDeployment.iOSBundleID + ".").count))
+                    .replacingOccurrences(of: ".", with: "-")
+        } else {
+            defaultScheme = ForkDeployment.iOSCallbackScheme
+        }
+        let callbackScheme = configured(bakedCallbackScheme) ?? defaultScheme
+        let configuredClientID = (isDevelopmentBuild ? configured(overrides["OAuthClientID"]) : nil)
+            ?? configured(bakedClientID)
+        if configuredClientID == nil,
+           callbackScheme != ForkDeployment.iOSCallbackScheme,
+           !callbackScheme.hasPrefix(ForkDeployment.iOSCallbackScheme + "-") {
+            preconditionFailure("CMUXOAuthClientID is required for a custom OAuth callback scheme")
+        }
+        let clientID = configuredClientID ?? (callbackScheme == ForkDeployment.iOSCallbackScheme
+                ? ForkDeployment.iOSOAuthClientID
+                : callbackScheme)
+        guard let redirectURI = URL(string: "\(callbackScheme)://auth-callback"),
+              redirectURI.scheme == callbackScheme, redirectURI.host == "auth-callback" else {
+            preconditionFailure("The baked OAuth callback scheme is invalid")
+        }
+        return OAuthClientConfiguration(origin: origin, clientID: clientID, redirectURI: redirectURI)
+    }
 
     nonisolated static func cloudAPIBaseURL(
         authEnvironment: CMUXAuthEnvironment,
@@ -344,35 +384,8 @@ public struct MobileAuthComposition {
         guard authEnvironment == .production else { return overrides }
         var safe = overrides
         safe[authEnvironmentOverrideKey] = "production"
-        safe["ApiBaseURL"] = "https://cmux.com"
+        safe["ApiBaseURL"] = ForkDeployment.productionOrigin
         return safe
-    }
-
-    /// Whether launch enables the `42` debug sign-in shortcut. It signs in
-    /// with fixed development-project credentials, so it exists only where
-    /// those credentials belong: builds whose RESOLVED auth environment is
-    /// development. A `--prod-auth` build still compiles the shortcut (DEBUG
-    /// policy) but must not expose a known-credential sign-in path against
-    /// the production Stack project.
-    nonisolated static func includesDevAuth(
-        policy: MobileAuthBuildPolicy,
-        resolvedEnvironment: CMUXAuthEnvironment
-    ) -> Bool {
-        policy.includesFortyTwoShortcut && resolvedEnvironment == .development
-    }
-
-    /// Whether an explicit resolved development-auth profile may replace a
-    /// persisted session. A DEBUG build can be pointed at production with
-    /// `--prod-auth`; that channel must never let the replacement marker clear
-    /// a valid production session.
-    nonisolated static func shouldReplaceStoredSessionWithAutoLogin(
-        includesDevAuth: Bool,
-        environment: [String: String]
-    ) -> Bool {
-        includesDevAuth
-            && environment["CMUX_DEV_AUTH_REPLACE_SESSION"] == "1"
-            && !(environment["CMUX_UITEST_STACK_EMAIL"] ?? "").isEmpty
-            && !(environment["CMUX_UITEST_STACK_PASSWORD"] ?? "").isEmpty
     }
 
     /// The defaults key persisting which Stack project id this install last
@@ -435,58 +448,6 @@ public struct MobileAuthComposition {
         "sandbox"
         #else
         "production"
-        #endif
-    }
-
-    /// - Parameter simulatorSupportDirectory: Where the simulator build keeps
-    ///   its sandboxed token files. Injected so a test can exercise the
-    ///   unresolvable-directory path; production always passes the default.
-    static func tokenStore(
-        appNamespace: MobileIOSAppNamespace?,
-        accessGroup: String?,
-        legacyProjectID: String,
-        simulatorSupportDirectory: URL? = FileManager.default.urls(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask
-        ).first
-    ) -> TokenStoreInit {
-        guard let appNamespace else {
-            // A malformed or test bundle must not leave StackClientApp without
-            // a token store: any authenticated operation would fatalError in
-            // the SDK. Memory storage keeps the failure recoverable (and
-            // deliberately avoids attributing persisted credentials to an
-            // unknown bundle).
-            return .memory
-        }
-        #if DEBUG && targetEnvironment(simulator)
-        // Unsigned simulator apps cannot rely on Keychain entitlements. Keep
-        // tokens in this simulator app's sandbox so a process restart exercises
-        // real session restoration. Bundle and Stack project remain isolated.
-        guard let support = simulatorSupportDirectory else {
-            // Same reasoning as a missing app identity above: .none leaves
-            // StackClientApp with a NullTokenStore, so the next authenticated
-            // operation fatalErrors. Losing the session on relaunch is
-            // recoverable; trapping the process is not.
-            return .memory
-        }
-        let projectComponent = Data(legacyProjectID.utf8).base64EncodedString()
-            .replacingOccurrences(of: "+", with: "-")
-            .replacingOccurrences(of: "/", with: "_")
-            .replacingOccurrences(of: "=", with: "")
-        return .custom(FileStackTokenStore(directory: support
-            .appendingPathComponent("cmux-simulator-auth", isDirectory: true)
-            .appendingPathComponent(appNamespace.bundleIdentifier, isDirectory: true)
-            .appendingPathComponent("project-\(projectComponent)", isDirectory: true)))
-        #else
-        return .custom(
-            KeychainStackTokenStore(
-                service: appNamespace.keychainService(
-                    base: "com.cmuxterm.app.auth"
-                ),
-                accessGroup: accessGroup,
-                legacyProjectID: legacyProjectID
-            )
-        )
         #endif
     }
 

@@ -94,7 +94,6 @@ public struct HTTPMobileNetworkOutcomeUploader: AnalyticsUploading {
             }
             guard !Task.isCancelled else { return .drop }
             if let refreshToken = await tokenProvider.refreshToken() {
-                request.setValue(refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
             }
             guard !Task.isCancelled else { return .drop }
             do {

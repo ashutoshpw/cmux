@@ -82,18 +82,18 @@ private func agentHookDebugLogPath(socketPath: String?, env: [String: String]) -
     }
     if let socketPath {
         let socketName = URL(fileURLWithPath: socketPath).lastPathComponent
-        if socketName.hasPrefix("cmux-debug-"), socketName.hasSuffix(".sock") {
+        if socketName.hasPrefix("cmux-w3dev-debug-"), socketName.hasSuffix(".sock") {
             let logName = String(socketName.dropLast(".sock".count)) + ".log"
             return URL(fileURLWithPath: "/tmp", isDirectory: true)
                 .appendingPathComponent(logName, isDirectory: false)
                 .path
         }
     }
-    if let lastPath = OwnedMarkerFileReader().trimmedContents(atPath: "/tmp/cmux-last-debug-log-path"),
+    if let lastPath = OwnedMarkerFileReader().trimmedContents(atPath: "/tmp/cmux-w3dev-last-debug-log-path"),
        let normalized = agentHookDebugNonEmpty(lastPath) {
         return NSString(string: normalized).expandingTildeInPath
     }
-    return "/tmp/cmux-debug.log"
+    return "/tmp/cmux-w3dev-debug.log"
 }
 private func agentHookDebugNonEmpty(_ value: String?) -> String? {
     guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines),
@@ -2957,7 +2957,7 @@ private enum TopTextFormat: Equatable {
 }
 
 enum SocketPasswordResolver {
-    private static let service = "com.cmuxterm.app.socket-control"
+    private static let service = "app.w3dev.cmux.socket-control"
     private static let account = "local-socket-password"
 
     static func resolve(explicit: String?, socketPath: String) -> String? {
@@ -3018,7 +3018,7 @@ enum SocketPasswordResolver {
         }
 
         let candidate = URL(fileURLWithPath: socketPath).lastPathComponent
-        let prefixes = ["cmux-debug-", "cmux-"]
+        let prefixes = ["cmux-w3dev-debug-", "cmux-"]
         for prefix in prefixes {
             guard candidate.hasPrefix(prefix), candidate.hasSuffix(".sock") else { continue }
             let start = candidate.index(candidate.startIndex, offsetBy: prefix.count)
@@ -3092,13 +3092,13 @@ final class SocketClient {
     }
 
     private static let coderouterArmServerSigningRequirement =
-        #"anchor apple generic and identifier "com.cmuxterm.app" and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists and certificate leaf[subject.OU] = "7WLXT3NR37""#
+        #"anchor apple generic and identifier "app.w3dev.cmux" and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists and certificate leaf[subject.OU] = "\#(CodeSigningTeamIdentity().currentTeamIdentifier() ?? "FORK_SIGNING_TEAM_REQUIRED")""#
     // Local tagged Release bundles are signed with the shared Apple
     // Development identity when the Developer ID private key is unavailable.
     // This fallback is gated by the enclosing bundle ID below; the stable
     // production bundle remains Developer ID only.
     private static let coderouterTaggedDevelopmentSigningRequirement =
-        #"anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.12] exists and certificate leaf[subject.OU] = "7WLXT3NR37""#
+        #"anchor apple generic and certificate leaf[field.1.2.840.113635.100.6.1.12] exists and certificate leaf[subject.OU] = "\#(CodeSigningTeamIdentity().currentTeamIdentifier() ?? "FORK_SIGNING_TEAM_REQUIRED")""#
     private static let codeSigningValidFlag: UInt32 = 0x0000_0001
     private static let codeSigningHardFlag: UInt32 = 0x0000_0100
     private static let codeSigningKillFlag: UInt32 = 0x0000_0200
@@ -3638,8 +3638,8 @@ final class SocketClient {
         guard let expectedBundleIdentifier = CLIExecutableLocator
             .enclosingAppBundle()?
             .bundleIdentifier,
-            expectedBundleIdentifier.hasPrefix("com.cmuxterm.app.debug."),
-            expectedBundleIdentifier.count > "com.cmuxterm.app.debug.".count,
+            expectedBundleIdentifier.hasPrefix("app.w3dev.cmux.debug."),
+            expectedBundleIdentifier.count > "app.w3dev.cmux.debug.".count,
             SecCodeCheckValidity(
                 dynamicCode,
                 SecCSFlags(rawValue: UInt32(kSecCSStrictValidate)),
@@ -3681,7 +3681,7 @@ final class SocketClient {
         information[kSecCodeInfoIdentifier as String] as? String
             == expectedBundleIdentifier,
         information[kSecCodeInfoTeamIdentifier as String] as? String
-            == "7WLXT3NR37" else {
+            == (CodeSigningTeamIdentity().currentTeamIdentifier() ?? "FORK_SIGNING_TEAM_REQUIRED") else {
             return false
         }
 
@@ -4785,13 +4785,13 @@ struct CMUXCLI {
         // Tagged Debug builds use the shared Apple Development identity. Keep
         // the identifier and team pinned while accepting only that Debug
         // certificate family; Release retains the Developer ID requirement.
-        return #"anchor apple generic and identifier "com.cmuxterm.coderouter" and certificate leaf[field.1.2.840.113635.100.6.1.12] exists and certificate leaf[subject.OU] = "7WLXT3NR37""#
+        return #"anchor apple generic and identifier "app.w3dev.cmux.coderouter" and certificate leaf[field.1.2.840.113635.100.6.1.12] exists and certificate leaf[subject.OU] = "\#(CodeSigningTeamIdentity().currentTeamIdentifier() ?? "FORK_SIGNING_TEAM_REQUIRED")""#
 #else
-        return #"anchor apple generic and identifier "com.cmuxterm.coderouter" and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists and certificate leaf[subject.OU] = "7WLXT3NR37""#
+        return #"anchor apple generic and identifier "app.w3dev.cmux.coderouter" and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists and certificate leaf[subject.OU] = "\#(CodeSigningTeamIdentity().currentTeamIdentifier() ?? "FORK_SIGNING_TEAM_REQUIRED")""#
 #endif
     }()
     private static let coderouterTaggedDevelopmentSigningRequirement =
-        #"anchor apple generic and identifier "com.cmuxterm.coderouter" and certificate leaf[field.1.2.840.113635.100.6.1.12] exists and certificate leaf[subject.OU] = "7WLXT3NR37""#
+        #"anchor apple generic and identifier "app.w3dev.cmux.coderouter" and certificate leaf[field.1.2.840.113635.100.6.1.12] exists and certificate leaf[subject.OU] = "\#(CodeSigningTeamIdentity().currentTeamIdentifier() ?? "FORK_SIGNING_TEAM_REQUIRED")""#
     /// `kSecCodeSignatureRuntime` is not imported by Swift from CSCommon.h.
     private static let coderouterHardenedRuntimeFlag: UInt32 = 0x0001_0000
 
@@ -4878,8 +4878,8 @@ struct CMUXCLI {
         guard let bundleIdentifier = CLIExecutableLocator
             .enclosingAppBundle()?
             .bundleIdentifier,
-            bundleIdentifier.hasPrefix("com.cmuxterm.app.debug."),
-            bundleIdentifier.count > "com.cmuxterm.app.debug.".count else {
+            bundleIdentifier.hasPrefix("app.w3dev.cmux.debug."),
+            bundleIdentifier.count > "app.w3dev.cmux.debug.".count else {
             return false
         }
         var requirement: SecRequirement?
@@ -5414,7 +5414,7 @@ struct CMUXCLI {
     }
 
     private static let browserDisabledDefaultsKey = "browserDisabledOverride"
-    private static let defaultBrowserSettingsDomain = "com.cmuxterm.app"
+    private static let defaultBrowserSettingsDomain = "app.w3dev.cmux"
     /// The shared MDM resolver, bound to the target `domain`'s suite with the
     /// channel → release-domain fallback keyed off that domain.
     private static func managedDevicePolicy(
@@ -6280,7 +6280,7 @@ struct CMUXCLI {
         // The resolver has stable debug/release fallbacks at runtime, but its
         // API remains optional for callers that do not need a bundle ID.
         let cliBundleIdentifier = CLISocketPathResolver.currentAppBundleIdentifier()
-            ?? "com.cmuxterm.app"
+            ?? "app.w3dev.cmux"
         var explicitSocketPath: String? = nil
         var jsonOutput = false
         var idFormatArg: String? = nil
@@ -6994,7 +6994,7 @@ struct CMUXCLI {
             }
             let response = try client.sendV2(method: "vm.billing_checkout", params: ["plan": plan])
             guard let url = response["url"] as? String else {
-                throw CLIError(message: "Checkout URL is missing. Open https://cmux.com/pricing.")
+                throw CLIError(message: "Checkout URL is missing. Open https://cmux.w3dev.app/pricing.")
             }
             if !rest.contains("--no-open") && !jsonOutput {
                 let process = Process()
@@ -7210,7 +7210,7 @@ struct CMUXCLI {
                         let expiresAt = Date(timeIntervalSince1970: TimeInterval(expiresAtMs) / 1000)
                         let remaining = expiresAt.timeIntervalSinceNow
                         // Attribution only: the pricing page forwards it to checkout.
-                        let upgradeURL = "https://cmux.com/pricing?cmux_source=cli_free_access_expiry&cmux_client=cli"
+                        let upgradeURL = "https://cmux.w3dev.app/pricing?cmux_source=cli_free_access_expiry&cmux_client=cli"
                         // "6d 23h" / "5h 12m" / "1m": whole units, truncated, never overstated.
                         func countdown(_ remaining: TimeInterval) -> String {
                             let total = max(Int(remaining), 60)
@@ -10640,7 +10640,7 @@ struct CMUXCLI {
         if lowered.hasPrefix("debug:") || lowered.hasPrefix("dev:") {
             return true
         }
-        return value == "com.cmuxterm.app" || value.hasPrefix("com.cmuxterm.app.")
+        return value == "app.w3dev.cmux" || value.hasPrefix("app.w3dev.cmux.")
     }
 
     /// Sends a session transfer request (`session.import` / `session.export`)
@@ -18205,7 +18205,7 @@ struct CMUXCLI {
             if let trimmedExplicit, !trimmedExplicit.isEmpty {
                 return trimmedExplicit
             }
-            return OwnedMarkerFileReader().trimmedContents(atPath: "/tmp/cmux-last-debug-log-path")
+            return OwnedMarkerFileReader().trimmedContents(atPath: "/tmp/cmux-w3dev-last-debug-log-path")
         }()
         guard let path else { return }
         let timestamp = ISO8601DateFormatter().string(from: Date())
@@ -26827,7 +26827,7 @@ struct CMUXCLI {
             explicitPassword: explicitPassword
         )
         let shimDirectory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("cmux-debug-tmux-shim-\(UUID().uuidString)", isDirectory: true)
+            .appendingPathComponent("cmux-w3dev-debug-tmux-shim-\(UUID().uuidString)", isDirectory: true)
         try? FileManager.default.createDirectory(at: shimDirectory, withIntermediateDirectories: true)
         // This is the one-shot debug dump (it never spawns a long-lived agent that would need the
         // shims on PATH), so remove the shim dir on exit instead of leaking a /tmp dir per invocation.
@@ -45491,7 +45491,7 @@ export default {
         print()
         print(shortcutLines.joined(separator: "\n"))
         print()
-        print("  \(bold)Docs\(reset)\(subdued)                https://cmux.com/docs\(reset)")
+        print("  \(bold)Docs\(reset)\(subdued)                https://cmux.w3dev.app/docs\(reset)")
         print("  \(bold)Discord\(reset)\(subdued)             https://discord.gg/xsgFEVrWCZ\(reset)")
         print("  \(bold)GitHub\(reset)\(subdued)              https://github.com/manaflow-ai/cmux (please leave a star ⭐)\(reset)")
         print("  \(bold)Email\(reset)\(subdued)               founders@cmux.com\(reset)")

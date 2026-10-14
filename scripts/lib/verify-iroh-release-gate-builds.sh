@@ -59,7 +59,19 @@ IOS_INFO_PLIST="$IOS_APP/Info.plist"
 read_plist() {
   local plist="$1"
   local key_path="$2"
-  /usr/libexec/PlistBuddy -c "Print :$key_path" "$plist" 2>/dev/null || true
+  if [[ -x /usr/libexec/PlistBuddy ]]; then
+    /usr/libexec/PlistBuddy -c "Print :$key_path" "$plist" 2>/dev/null || true
+  else
+    /usr/bin/python3 - "$plist" "$key_path" <<'PYPLIST' 2>/dev/null || true
+import plistlib
+import sys
+with open(sys.argv[1], "rb") as stream:
+    value = plistlib.load(stream)
+for component in sys.argv[2].split(":"):
+    value = value[component]
+print(value)
+PYPLIST
+  fi
 }
 
 require_value() {

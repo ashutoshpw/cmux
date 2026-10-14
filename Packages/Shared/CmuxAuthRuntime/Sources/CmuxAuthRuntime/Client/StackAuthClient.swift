@@ -38,7 +38,7 @@ public struct StackAuthClient: AuthClient {
         config: AuthConfig,
         tokenStore: TokenStoreInit,
         oauthBrowserSessionPrivacy: OAuthBrowserSessionPrivacy = .shared,
-        baseURL: String = "https://api.stack-auth.com",
+        baseURL: String = ForkDeployment.productionOrigin + "/api/auth",
         noAutomaticPrefetch: Bool = false
     ) {
         self.init(
@@ -140,7 +140,6 @@ public struct StackAuthClient: AuthClient {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         request.httpBody = try JSONEncoder().encode(CreateTeamRequest(displayName: displayName))
         let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse,

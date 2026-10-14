@@ -48,7 +48,7 @@ function DocsFeedback({ pathname }: { pathname: string }) {
     setAnswered(pathname);
   }
 
-  const issueUrl = `https://github.com/manaflow-ai/cmux/issues/new?title=${encodeURIComponent(
+  const issueUrl = `https://github.com/ashutoshpw/cmux/issues/new?title=${encodeURIComponent(
     `Docs: ${pathname}`,
   )}&labels=documentation`;
   const buttonClass =

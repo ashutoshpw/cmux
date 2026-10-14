@@ -3,6 +3,7 @@
 
 import hashlib
 import json
+import plistlib
 from pathlib import Path
 import re
 import shutil
@@ -14,6 +15,53 @@ import unittest
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+class ReleaseChannelMetadataTests(unittest.TestCase):
+    def artifact(self, root, channel, *, upstream=False):
+        suffix = {"stable": "", "nightly": " NIGHTLY", "rc": " RC"}[channel]
+        bundle_suffix = "" if channel == "stable" else "." + channel
+        name = ("cmux" if upstream else "cmux W3Dev") + suffix
+        identifier = ("com.cmuxterm.app" if upstream else "app.w3dev.cmux") + bundle_suffix
+        icon = {"stable": "AppIcon", "nightly": "AppIcon-Nightly", "rc": "AppIcon-RC"}[channel]
+        app = root / (name + ".app")
+        resources = app / "Contents/Resources"
+        resources.mkdir(parents=True)
+        (resources / (icon + ".icns")).write_bytes(b"artifact icon")
+        (app / "Contents/Info.plist").write_bytes(plistlib.dumps({
+            "CFBundleName": name, "CFBundleDisplayName": name,
+            "CFBundleIdentifier": identifier, "CFBundleIconFile": icon,
+            "CFBundleIconName": icon,
+        }))
+        return app
+
+    def verify(self, app, channel):
+        return subprocess.run(["bash", str(ROOT / "scripts/verify-app-bundle-channel-metadata.sh"),
+                               str(app), channel], capture_output=True, text=True)
+
+    def test_fork_channel_artifacts_pass_the_shipping_metadata_gate(self):
+        for channel in ("stable", "nightly", "rc"):
+            with self.subTest(channel=channel), tempfile.TemporaryDirectory() as directory:
+                app = self.artifact(Path(directory), channel)
+                result = self.verify(app, channel)
+                self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_upstream_and_wrong_channel_artifacts_are_rejected(self):
+        for channel in ("stable", "nightly", "rc"):
+            with self.subTest(channel=channel), tempfile.TemporaryDirectory() as directory:
+                upstream = self.artifact(Path(directory), channel, upstream=True)
+                self.assertNotEqual(self.verify(upstream, channel).returncode, 0)
+                fork = self.artifact(Path(directory), channel)
+                wrong_channel = "nightly" if channel == "stable" else "stable"
+                self.assertNotEqual(self.verify(fork, wrong_channel).returncode, 0)
+
+    def test_legacy_local_release_entrypoint_is_retired(self):
+        with tempfile.TemporaryDirectory() as directory:
+            result = subprocess.run(["bash", str(ROOT / "scripts/build-sign-upload.sh"), "--help"],
+                                    cwd=directory, capture_output=True, text=True)
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("retired", result.stderr)
+            self.assertIn("release.yml", result.stderr)
 
 
 def manifest_program():
@@ -36,7 +84,7 @@ class RecoveryManifestTests(unittest.TestCase):
             "dmg_prefix": "cmux-nightly-macos", "build": "123",
             "dmg_path": "cmux-nightly-macos-arm64.dmg",
             "immutable_path": "cmux-nightly-macos-arm64-123.dmg",
-            "app_path": "cmux-nightly-notarization-recovery-app/cmux NIGHTLY.app",
+            "app_path": "cmux-nightly-notarization-recovery-app/cmux W3Dev NIGHTLY.app",
             "app_archive_path": "cmux-nightly-notarization-recovery-app.tar.gz",
             "state_path": "cmux-nightly-macos-arm64.dmg.notarization.state",
             "log_path": "cmux-nightly-macos-arm64.dmg.notarization.log",
@@ -125,7 +173,7 @@ class RecoveryManifestTests(unittest.TestCase):
                 "dmg_prefix": "cmux-nightly-macos", "build": "123",
                 "dmg_path": "cmux-nightly-macos-arm64.dmg",
                 "immutable_path": "cmux-nightly-macos-arm64-123.dmg",
-                "app_path": "cmux-nightly-notarization-recovery-app/cmux NIGHTLY.app",
+                "app_path": "cmux-nightly-notarization-recovery-app/cmux W3Dev NIGHTLY.app",
                 "app_archive_path": "cmux-nightly-notarization-recovery-app.tar.gz",
                 "helper_state_path": state.name,
                 "helper_log_path": "cmux-computer-use-notarization.state.log",
@@ -155,7 +203,7 @@ class RecoveryManifestTests(unittest.TestCase):
                 state = source / (dmg.name + ".notarization.state")
                 evidence = source / (dmg.name + ".notarization.log")
                 evidence.write_text("submission is still processing\n")
-                app = source / "build" / "cmux NIGHTLY.app"
+                app = source / "build" / "cmux W3Dev NIGHTLY.app"
                 (app / "Contents").mkdir(parents=True)
                 app_archive = source / "cmux-nightly-notarization-recovery-app.tar.gz"
                 with tarfile.open(app_archive, "w:gz") as archive:

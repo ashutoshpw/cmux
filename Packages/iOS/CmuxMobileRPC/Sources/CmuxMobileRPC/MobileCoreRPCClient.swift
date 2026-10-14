@@ -622,7 +622,7 @@ public final class MobileCoreRPCClient: MobileSyncing, Sendable {
             }
             do {
                 let token = try await stackAccessToken(deadline: deadline)
-                auth["stack_access_token"] = token
+                auth["access_token"] = token
                 requestStackAccessToken = token
             } catch let error as MobileShellConnectionError {
                 // The provider already classified the failure: a transient
@@ -655,7 +655,7 @@ public final class MobileCoreRPCClient: MobileSyncing, Sendable {
                 stackAccessToken = try await stackAccessTokenForStatus(deadline: deadline)
             }
             if let stackAccessToken {
-                auth["stack_access_token"] = stackAccessToken
+                auth["access_token"] = stackAccessToken
             }
         }
         if !auth.isEmpty {

@@ -241,7 +241,7 @@ describe("parseHeartbeat routes", () => {
         id: "iroh",
         kind: "iroh",
         priority: 1,
-        endpoint: { type: "peer", id: IROH_ENDPOINT_ID, relay_url: APPROVED_IROH_RELAY },
+        endpoint: { type: "peer", id: IROH_ENDPOINT_ID },
       },
       {
         id: "iroh-unmanaged",

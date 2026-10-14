@@ -1,3 +1,4 @@
+import { forkDeployment } from "../../deployment/config";
 import { dirname } from "node:path";
 import { DEVBOX_WORK_HOME, DEVBOX_WORK_USER } from "../images/workUser";
 import {
@@ -135,12 +136,12 @@ export const CMUX_TUI_HOOK_LINUX_TARGET = "cmux-tui-hook-x86_64-unknown-linux-mu
 export const CMUX_TUI_HOOK_MARKER = "cmux-tui-journal-hook";
 /** Coding agents whose hooks every machine ships with; `cmux-tui agent hook install` names them. */
 export const CMUX_TUI_HOOK_PROVIDERS = ["claude", "codex"] as const;
-export const CMUX_TUI_DEFAULT_MANIFEST_URL = "https://files.cmux.com/cmux-tui/latest/manifest.json";
+export const CMUX_TUI_DEFAULT_MANIFEST_URL = `${forkDeployment.artifactsOrigin}/cmux-tui/latest/manifest.json`;
 const CMUX_TUI_MANIFEST_CACHE_MS = 5 * 60 * 1000;
 
 /**
  * CMUX_VM_CMUX_TUI_MANIFEST_URL pins a deployment to one commit's manifest
- * (`https://files.cmux.com/cmux-tui/<commit>/manifest.json`) instead of the rolling
+ * (`https://files.cmux.w3dev.app/cmux-tui/<commit>/manifest.json`) instead of the rolling
  * `latest`. Nothing else is configured by hand: the build and its sha256 come from
  * the manifest the artifacts workflow publishes.
  */

@@ -5,7 +5,7 @@ import Foundation
 import OSLog
 import SwiftUI
 
-nonisolated private let workspaceActionFailureLog = Logger(subsystem: "dev.cmux.ios", category: "workspace-action")
+nonisolated private let workspaceActionFailureLog = Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "workspace-action")
 
 enum WorkspaceActionToastAction: Equatable {
     case createWorkspace

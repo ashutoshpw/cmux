@@ -11,7 +11,7 @@ use zeroize::Zeroize;
 use crate::cli::Error;
 use crate::config::{self, Config};
 
-const DEFAULT_API_URL: &str = "https://coderouter.dev";
+const DEFAULT_API_URL: &str = "https://cmux.w3dev.app";
 #[cfg(debug_assertions)]
 const HANDOFF_TEST_ORIGIN_ENV: &str = "CODEROUTER_HANDOFF_TEST_ORIGIN";
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
@@ -283,7 +283,7 @@ fn load_public_config(client: &Client, api_url: &str) -> Result<PublicConfig, Er
     )?;
     if public.version < 3 {
         return Err(Error::Backend(
-            "coderouter.dev does not support the direct Vercel data plane yet".into(),
+            "cmux.w3dev.app does not support the direct Vercel data plane yet".into(),
         ));
     }
     Ok(public)
@@ -932,68 +932,30 @@ fn authenticated(
             AUTHORIZATION,
             format!("Bearer {}", current.stack_access_token),
         )
-        .header("x-stack-refresh-token", &current.stack_refresh_token)
         .header("x-cmux-team-id", &current.team_id)
 }
 
 fn refresh_stack_tokens(
-    client: &Client,
-    auth: &AuthConfig,
-    refresh_token: &str,
+    _client: &Client,
+    _auth: &AuthConfig,
+    _refresh_token: &str,
 ) -> Result<StackTokens, Error> {
-    response_json(
-        client
-            .post(format!(
-                "{}/auth/oauth/token",
-                auth.api_url.trim_end_matches('/')
-            ))
-            .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
-            .form(&[
-                ("grant_type", "refresh_token"),
-                ("refresh_token", refresh_token),
-                ("client_id", auth.project_id.as_str()),
-                ("client_secret", auth.publishable_client_key.as_str()),
-            ])
-            .send()
-            .map_err(network_error("refresh coderouter session"))?,
-        "refresh coderouter session",
-    )
+    Err(Error::Usage(
+        "Stack login is retired; authenticate through the fork's native CodeRouter handoff".into(),
+    ))
 }
 
 fn stack_json<T: serde::de::DeserializeOwned>(
-    client: &Client,
-    auth: &AuthConfig,
-    method: &str,
-    path: &str,
-    access_token: Option<&str>,
-    body: Option<Value>,
+    _client: &Client,
+    _auth: &AuthConfig,
+    _method: &str,
+    _path: &str,
+    _access_token: Option<&str>,
+    _body: Option<Value>,
 ) -> Result<T, Error> {
-    let url = format!("{}{}", auth.api_url.trim_end_matches('/'), path);
-    let mut request = match method {
-        "GET" => client.get(url),
-        "POST" => client.post(url),
-        _ => return Err(Error::Backend("unsupported authentication method".into())),
-    }
-    .header("x-stack-project-id", &auth.project_id)
-    .header("x-stack-access-type", "client")
-    .header(
-        "x-stack-publishable-client-key",
-        &auth.publishable_client_key,
-    );
-    if let Some(token) = access_token {
-        request = request.header("x-stack-access-token", token);
-    }
-    if let Some(value) = body {
-        request = request.json(&value);
-    }
-    let response = if method == "GET" {
-        send_safe_read(request, "request coderouter session")?
-    } else {
-        request
-            .send()
-            .map_err(network_error("request coderouter session"))?
-    };
-    response_json(response, "request coderouter session")
+    Err(Error::Usage(
+        "Stack login is retired; authenticate through the fork's native CodeRouter handoff".into(),
+    ))
 }
 
 fn select_team(teams: Vec<StackTeam>, access_token: &str) -> Result<StackTeam, Error> {
@@ -1045,6 +1007,24 @@ fn api_url_for(server: Option<&str>) -> Result<String, Error> {
         .to_owned();
     let url = reqwest::Url::parse(&value)
         .map_err(|error| Error::Usage(format!("invalid CODEROUTER_API_URL: {error}")))?;
+    if let Some(host) = url.host_str() {
+        let retired = [
+            "cmux.com",
+            "cmux.dev",
+            "cmux.sh",
+            "cmux.run",
+            "coderouter.dev",
+        ]
+        .iter()
+        .any(|origin| host == *origin || host.ends_with(&format!(".{origin}")))
+            || host.ends_with(".debussy.workers.dev")
+            || host == "cmux-staging.vercel.app";
+        if retired {
+            return Err(Error::Usage(
+                "upstream service origins are retired in the W3Dev fork".into(),
+            ));
+        }
+    }
     let loopback = url.host_str() == Some("localhost")
         || url
             .host_str()
@@ -1136,7 +1116,7 @@ fn response_error(status: reqwest::StatusCode, parsed: Option<&Value>, action: &
         .and_then(Value::as_str);
     if status.as_u16() == 402 && code == Some("pro_required") {
         return Error::Usage(
-            "hosted coderouter requires cmux Pro or Team; upgrade at https://cmux.com/pricing or connect a self-hosted server with `coderouter login --server <URL>`".into(),
+            "hosted coderouter requires cmux Pro or Team; upgrade at https://cmux.w3dev.app/pricing or connect a self-hosted server with `coderouter login --server <URL>`".into(),
         );
     }
     let server_message = parsed
@@ -1265,7 +1245,7 @@ mod fault_matrix_tests {
     fn snapshots_hosted_pro_self_hosting_guidance() {
         assert_eq!(
             message(402, Some(json!({ "error": "pro_required" }))),
-            "hosted coderouter requires cmux Pro or Team; upgrade at https://cmux.com/pricing or connect a self-hosted server with `coderouter login --server <URL>`"
+            "hosted coderouter requires cmux Pro or Team; upgrade at https://cmux.w3dev.app/pricing or connect a self-hosted server with `coderouter login --server <URL>`"
         );
     }
 
@@ -1317,13 +1297,13 @@ mod fault_matrix_tests {
 
     #[test]
     fn hosted_origin_constant_is_fixed() {
-        assert_eq!(DEFAULT_API_URL, "https://coderouter.dev");
+        assert_eq!(DEFAULT_API_URL, "https://cmux.w3dev.app");
     }
 
     #[cfg(not(debug_assertions))]
     #[test]
     fn release_handoff_origin_is_fixed() {
-        assert_eq!(handoff_api_url().unwrap(), "https://coderouter.dev");
+        assert_eq!(handoff_api_url().unwrap(), "https://cmux.w3dev.app");
     }
 
     #[cfg(debug_assertions)]
@@ -1342,8 +1322,8 @@ mod fault_matrix_tests {
             "http://[::1]:43123"
         );
         for origin in [
-            "https://coderouter.dev",
-            "https://coderouter.dev:8443",
+            "https://cmux.w3dev.app",
+            "https://cmux.w3dev.app:8443",
             "https://localhost:43123",
             "https://evil.example",
             "http://127.0.0.2:43123",
@@ -1372,7 +1352,7 @@ mod fault_matrix_tests {
             "teamId": "team-handoff",
             "token": format!("crt_{}", "A".repeat(43)),
             "expiresAt": "2099-12-31T23:59:59Z",
-            "openaiBaseUrl": "https://coderouter.dev/v1",
+            "openaiBaseUrl": "https://cmux.w3dev.app/v1",
             "extra": "must-reject",
         });
         assert!(serde_json::from_value::<HandoffRouteSession>(body).is_err());
@@ -1388,19 +1368,19 @@ mod fault_matrix_tests {
         };
         assert!(
             validate_handoff_route(
-                "https://coderouter.dev",
-                &route("https://coderouter.dev/v1")
+                "https://cmux.w3dev.app",
+                &route("https://cmux.w3dev.app/v1")
             )
             .is_ok()
         );
         for invalid in [
-            "https://coderouter.dev/v1/",
-            "https://coderouter.dev/v1//",
+            "https://cmux.w3dev.app/v1/",
+            "https://cmux.w3dev.app/v1//",
             "https://CODEROUTER.dev/v1",
-            "https://coderouter.dev:443/v1",
+            "https://cmux.w3dev.app:443/v1",
         ] {
             assert!(
-                validate_handoff_route("https://coderouter.dev", &route(invalid)).is_err(),
+                validate_handoff_route("https://cmux.w3dev.app", &route(invalid)).is_err(),
                 "accepted {invalid}"
             );
         }
@@ -1412,30 +1392,30 @@ mod fault_matrix_tests {
             team_id: "team-handoff".into(),
             token: format!("crt_{}", "A".repeat(43)),
             expires_at: expires_at.into(),
-            openai_base_url: "https://coderouter.dev/v1".into(),
+            openai_base_url: "https://cmux.w3dev.app/v1".into(),
         };
 
         assert!(
-            validate_handoff_route("https://coderouter.dev", &route("9999-12-31T23:59:59Z"))
+            validate_handoff_route("https://cmux.w3dev.app", &route("9999-12-31T23:59:59Z"))
                 .is_ok()
         );
         assert!(
             validate_handoff_route(
-                "https://coderouter.dev",
+                "https://cmux.w3dev.app",
                 &route("2099-12-31T23:59:59.123456Z")
             )
             .is_ok()
         );
         assert!(
             validate_handoff_route(
-                "https://coderouter.dev",
+                "https://cmux.w3dev.app",
                 &route("2099-12-31T23:59:59+01:30")
             )
             .is_ok()
         );
         assert!(
             validate_handoff_route(
-                "https://coderouter.dev",
+                "https://cmux.w3dev.app",
                 &route("2096-02-29T23:59:59.123456789Z")
             )
             .is_ok()
@@ -1443,7 +1423,7 @@ mod fault_matrix_tests {
         let mut invalid_team = route("9999-12-31T23:59:59Z");
         invalid_team.team_id = "team with space".into();
         assert!(
-            validate_handoff_route("https://coderouter.dev", &invalid_team)
+            validate_handoff_route("https://cmux.w3dev.app", &invalid_team)
                 .unwrap_err()
                 .to_string()
                 .contains("team ID")
@@ -1458,12 +1438,12 @@ mod fault_matrix_tests {
         ] {
             let mut invalid_team = route("9999-12-31T23:59:59Z");
             invalid_team.team_id = team_id.into();
-            assert!(validate_handoff_route("https://coderouter.dev", &invalid_team).is_err());
+            assert!(validate_handoff_route("https://cmux.w3dev.app", &invalid_team).is_err());
         }
         for team_id in ["team\u{e0101}id", "team\u{e0201}id"] {
             let mut valid_team = route("9999-12-31T23:59:59Z");
             valid_team.team_id = team_id.into();
-            assert!(validate_handoff_route("https://coderouter.dev", &valid_team).is_ok());
+            assert!(validate_handoff_route("https://cmux.w3dev.app", &valid_team).is_ok());
         }
         for expires_at in [
             "1970-01-01T00:00:00Z",
@@ -1487,7 +1467,7 @@ mod fault_matrix_tests {
             "2099-08-13T12:00:00+01:60",
         ] {
             let error =
-                validate_handoff_route("https://coderouter.dev", &route(expires_at)).unwrap_err();
+                validate_handoff_route("https://cmux.w3dev.app", &route(expires_at)).unwrap_err();
             assert!(error.to_string().contains("invalid expiry"));
         }
     }

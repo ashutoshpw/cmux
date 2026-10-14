@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser, type CurrentUser } from "@hexclave/next";
+import { useUser, type CurrentUser } from "@/app/lib/stack-client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";

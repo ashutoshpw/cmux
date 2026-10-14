@@ -2,9 +2,12 @@
 
 import posthog from "posthog-js";
 
-if (typeof window !== "undefined") {
-  posthog.init("phc_opOVu7oFzR9wD3I6ZahFGOV2h3mqGpl5EHyQvmHciDP", {
-    api_host: "https://r.cmux.com",
+const projectKey = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_KEY?.trim();
+const captureHost = process.env.NEXT_PUBLIC_POSTHOG_HOST?.trim();
+
+if (typeof window !== "undefined" && projectKey && captureHost) {
+  posthog.init(projectKey, {
+    api_host: captureHost,
     ui_host: "https://us.posthog.com",
     person_profiles: "identified_only",
     capture_pageview: false,

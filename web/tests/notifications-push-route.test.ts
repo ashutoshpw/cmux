@@ -1,3 +1,4 @@
+import { ownedPrincipal } from "./helpers/owned-principal";
 import { afterAll, beforeAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import postgres, { type Sql } from "postgres";
 import { DEVICE_DELIVERY_LEASE_MS } from "../services/apns/deviceDeliveryLease";
@@ -26,7 +27,7 @@ const realCreateAwsRdsIamPool = dbClientModule.createAwsRdsIamPool;
 const runDbTests = process.env.CMUX_DB_TEST === "1";
 const dbTest = runDbTests ? test : test.skip;
 
-const TARGET_NAMESPACE = "com.cmux.app";
+const TARGET_NAMESPACE = "app.w3dev.cmux.ios";
 const MAC_DEVICE_ID = "mac-device-test";
 const MAC_INSTANCE_TAG = "test-instance";
 const MAC_BUILD_ID = "mac-build-test";
@@ -144,6 +145,10 @@ const sendApnsNotificationReliably = mock(
   },
 );
 
+mock.module("../services/auth/betterAuthPrincipal", () => ({
+  resolveBetterAuthPrincipal: async (headers: Headers) => ownedPrincipal(await getUser(), headers),
+}));
+
 mock.module("../app/lib/stack", () => ({
   getStackServerApp: () => ({ getUser }),
   isStackConfigured: () => true,
@@ -237,7 +242,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: "{",
       }),
@@ -257,7 +262,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "dev.cmux.ios.invalid_target",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios.debug.invalid_target",
         },
         body: JSON.stringify(pushBody()),
       }),
@@ -300,7 +305,7 @@ describe("notifications push route", () => {
           "x-stack-refresh-token": "refresh-token",
           "x-cmux-ios-target-namespace": TARGET_NAMESPACE,
         },
-        body: JSON.stringify(pushBody({ tuple: { iosBuildID: "dev.cmux.app.beta" } })),
+        body: JSON.stringify(pushBody({ tuple: { iosBuildID: "app.w3dev.cmux.ios.beta" } })),
       }),
       sendApnsNotificationReliably as Parameters<
         typeof pushRoute.sendPushWithTransport
@@ -422,8 +427,8 @@ describe("notifications push route", () => {
       insert into device_tokens (
         user_id, device_token, platform, bundle_id, environment
       ) values
-        ('user-1', ${sharedToken}, 'ios', 'dev.cmux.app.beta', 'production'),
-        ('user-1', ${sharedToken}, 'ios', 'dev.cmux.app.internal', 'production')
+        ('user-1', ${sharedToken}, 'ios', 'app.w3dev.cmux.ios.beta', 'production'),
+        ('user-1', ${sharedToken}, 'ios', 'app.w3dev.cmux.ios.internal', 'production')
     `;
 
     const response = await pushRoute.sendPushWithTransport(
@@ -432,11 +437,11 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "dev.cmux.app.beta",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios.beta",
         },
         body: JSON.stringify(pushBody({
           correlationId: "ca04d429-a0a8-42ed-a5ef-74589bf5db28",
-          targetNamespace: "dev.cmux.app.beta",
+          targetNamespace: "app.w3dev.cmux.ios.beta",
         })),
       }),
       sendApnsNotificationReliably as Parameters<
@@ -458,7 +463,7 @@ describe("notifications push route", () => {
     expect(targets).toHaveLength(1);
     expect(targets[0]).toMatchObject({
       deviceToken: sharedToken,
-      bundleId: "dev.cmux.app.beta",
+      bundleId: "app.w3dev.cmux.ios.beta",
       environment: "production",
     });
     expect(typeof targets[0]?.targetId).toBe("string");
@@ -478,11 +483,11 @@ describe("notifications push route", () => {
         installation_id, push_key_id, push_public_key
       ) values
         (
-          'user-1', ${releaseToken}, 'ios', 'com.cmux.app', 'production',
+          'user-1', ${releaseToken}, 'ios', 'app.w3dev.cmux.ios', 'production',
           'release-installation', 'ios-push-key-1', ${'R'.repeat(43) + '='}
         ),
         (
-          'user-1', ${internalToken}, 'ios', 'dev.cmux.app.internal', 'production',
+          'user-1', ${internalToken}, 'ios', 'app.w3dev.cmux.ios.internal', 'production',
           'internal-installation', 'ios-push-key-2', ${'I'.repeat(43) + '='}
         )
     `;
@@ -498,7 +503,7 @@ describe("notifications push route", () => {
           correlationId: "f8f18b05-cf10-46be-8bba-c5ea468efabc",
           installationIDs: ["release-installation", "internal-installation"],
           keyIDs: ["ios-push-key-1", "ios-push-key-2"],
-          targetNamespaces: ["com.cmux.app", "dev.cmux.app.internal"],
+          targetNamespaces: ["app.w3dev.cmux.ios", "app.w3dev.cmux.ios.internal"],
         })),
       }),
       sendApnsNotificationReliably as Parameters<
@@ -517,8 +522,8 @@ describe("notifications push route", () => {
     );
     expect(targets).toHaveLength(2);
     expect(targets.map((target) => target.bundleId).sort()).toEqual([
-      "com.cmux.app",
-      "dev.cmux.app.internal",
+      "app.w3dev.cmux.ios",
+      "app.w3dev.cmux.ios.internal",
     ]);
   });
 
@@ -530,7 +535,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId, ciphertextVariant: "private terminal output" })),
       }),
@@ -562,9 +567,9 @@ describe("notifications push route", () => {
         user_id, device_token, platform, bundle_id, environment,
         installation_id, push_key_id
       ) values
-        ('user-1', ${"a".repeat(64)}, 'ios', 'com.cmux.app', 'production',
+        ('user-1', ${"a".repeat(64)}, 'ios', 'app.w3dev.cmux.ios', 'production',
           'legacy', 'legacy'),
-        ('user-1', ${"b".repeat(64)}, 'ios', 'com.cmux.app', 'production',
+        ('user-1', ${"b".repeat(64)}, 'ios', 'app.w3dev.cmux.ios', 'production',
           'ios-installation-2', 'ios-push-key-2')
     `;
 
@@ -600,7 +605,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({
           correlationId,
@@ -713,7 +718,7 @@ describe("notifications push route", () => {
         'user-1',
         ${"a".repeat(64)},
         'ios',
-        'com.cmux.app',
+        'app.w3dev.cmux.ios',
         'production'
       )
     `;
@@ -725,7 +730,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId })),
       },
@@ -768,7 +773,7 @@ describe("notifications push route", () => {
         'user-1',
         ${"a".repeat(64)},
         'ios',
-        'com.cmux.app',
+        'app.w3dev.cmux.ios',
         'production'
       )
     `;
@@ -788,7 +793,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId, expirationEpochSeconds })),
       },
@@ -851,7 +856,7 @@ describe("notifications push route", () => {
         'user-1',
         ${"a".repeat(64)},
         'ios',
-        'com.cmux.app',
+        'app.w3dev.cmux.ios',
         'production'
       )
     `;
@@ -871,7 +876,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId, expirationEpochSeconds })),
       },
@@ -955,7 +960,7 @@ describe("notifications push route", () => {
         'user-1',
         ${"a".repeat(64)},
         'ios',
-        'com.cmux.app',
+        'app.w3dev.cmux.ios',
         'production'
       )
     `;
@@ -975,7 +980,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId, expirationEpochSeconds })),
       },
@@ -1023,7 +1028,7 @@ describe("notifications push route", () => {
         'user-1',
         ${"b".repeat(64)},
         'ios',
-        'com.cmux.app',
+        'app.w3dev.cmux.ios',
         'production'
       )
     `;
@@ -1040,7 +1045,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId })),
         signal: controller.signal,
@@ -1075,9 +1080,9 @@ describe("notifications push route", () => {
         user_id, device_token, platform, bundle_id, environment,
         installation_id, push_key_id
       ) values
-        ('user-1', ${"a".repeat(64)}, 'ios', 'com.cmux.app', 'production',
+        ('user-1', ${"a".repeat(64)}, 'ios', 'app.w3dev.cmux.ios', 'production',
           'legacy', 'legacy'),
-        ('user-1', ${"b".repeat(64)}, 'ios', 'com.cmux.app', 'production',
+        ('user-1', ${"b".repeat(64)}, 'ios', 'app.w3dev.cmux.ios', 'production',
           'ios-installation-2', 'ios-push-key-2')
     `;
     scriptedSendOutcomes = [
@@ -1111,7 +1116,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({
           correlationId,
@@ -1168,7 +1173,7 @@ describe("notifications push route", () => {
         'user-1',
         ${"a".repeat(64)},
         'ios',
-        'com.cmux.app',
+        'app.w3dev.cmux.ios',
         'production'
       )
     `;
@@ -1193,7 +1198,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId })),
       },
@@ -1249,7 +1254,7 @@ describe("notifications push route", () => {
         'user-1',
         ${"a".repeat(64)},
         'ios',
-        'com.cmux.app',
+        'app.w3dev.cmux.ios',
         'production'
       )
     `;
@@ -1261,7 +1266,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId })),
       },
@@ -1333,7 +1338,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId, expirationEpochSeconds })),
       },
@@ -1360,7 +1365,7 @@ describe("notifications push route", () => {
         'user-1',
         ${"c".repeat(64)},
         'ios',
-        'com.cmux.app',
+        'app.w3dev.cmux.ios',
         'production'
       )
     `;
@@ -1392,7 +1397,7 @@ describe("notifications push route", () => {
         'user-1',
         ${"a".repeat(64)},
         'ios',
-        'com.cmux.app',
+        'app.w3dev.cmux.ios',
         'production'
       )
     `;
@@ -1411,7 +1416,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId, expirationEpochSeconds })),
       },
@@ -1425,7 +1430,7 @@ describe("notifications push route", () => {
     );
     await sql`
       update device_tokens
-      set bundle_id = 'dev.cmux.ios.push1', environment = 'sandbox'
+      set bundle_id = 'app.w3dev.cmux.ios.debug.push1', environment = 'sandbox'
       where user_id = 'user-1' and device_token = ${"a".repeat(64)}
     `;
     await sql`
@@ -1460,8 +1465,8 @@ describe("notifications push route", () => {
       insert into device_tokens (
         user_id, device_token, platform, bundle_id, environment
       ) values
-        ('user-1', ${"a".repeat(64)}, 'ios', 'com.cmux.app', 'production'),
-        ('user-1', ${"b".repeat(64)}, 'ios', 'com.cmux.app', 'production')
+        ('user-1', ${"a".repeat(64)}, 'ios', 'app.w3dev.cmux.ios', 'production'),
+        ('user-1', ${"b".repeat(64)}, 'ios', 'app.w3dev.cmux.ios', 'production')
     `;
     scriptedSendOutcomes = [[
       { deviceToken: "a".repeat(64), status: 200, prune: false },
@@ -1481,7 +1486,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId, expirationEpochSeconds })),
       },
@@ -1498,7 +1503,7 @@ describe("notifications push route", () => {
       insert into device_tokens (
         user_id, device_token, platform, bundle_id, environment
       ) values
-        ('user-1', ${"c".repeat(64)}, 'ios', 'com.cmux.app', 'production')
+        ('user-1', ${"c".repeat(64)}, 'ios', 'app.w3dev.cmux.ios', 'production')
     `;
     await sql`
       update notification_send_events
@@ -1558,7 +1563,7 @@ describe("notifications push route", () => {
       insert into device_tokens (
         user_id, device_token, platform, bundle_id, environment
       ) values
-        ('user-1', ${"a".repeat(64)}, 'ios', 'com.cmux.app', 'production')
+        ('user-1', ${"a".repeat(64)}, 'ios', 'app.w3dev.cmux.ios', 'production')
     `;
     const correlationId = "f57948e6-4456-4057-8820-b56af13faee9";
     const expirationEpochSeconds = Math.floor(Date.now() / 1000) + 120;
@@ -1569,7 +1574,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({
           correlationId,
@@ -1648,9 +1653,9 @@ describe("notifications push route", () => {
         user_id, device_token, platform, bundle_id, environment,
         installation_id, push_key_id
       ) values
-        ('user-1', ${"a".repeat(64)}, 'ios', 'com.cmux.app', 'production',
+        ('user-1', ${"a".repeat(64)}, 'ios', 'app.w3dev.cmux.ios', 'production',
           'legacy', 'legacy'),
-        ('user-1', ${"b".repeat(64)}, 'ios', 'com.cmux.app', 'corrupt',
+        ('user-1', ${"b".repeat(64)}, 'ios', 'app.w3dev.cmux.ios', 'corrupt',
           'ios-installation-2', 'ios-push-key-2')
     `;
     scriptedSendOutcomes = [[
@@ -1669,7 +1674,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({
           correlationId: "e9228cf1-bf4e-4f1a-9a89-2962d1882c4d",
@@ -1707,7 +1712,7 @@ describe("notifications push route", () => {
         'user-1',
         ${"a".repeat(64)},
         'ios',
-        'com.cmux.app',
+        'app.w3dev.cmux.ios',
         'production'
       )
     `;
@@ -1721,7 +1726,7 @@ describe("notifications push route", () => {
     beforeNextSend = async () => {
       await testSql`
         update device_tokens
-        set bundle_id = 'dev.cmux.ios.push1', environment = 'sandbox'
+        set bundle_id = 'app.w3dev.cmux.ios.debug.push1', environment = 'sandbox'
         where user_id = 'user-1' and device_token = ${"a".repeat(64)}
       `;
     };
@@ -1732,7 +1737,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId: "faef4983-0ce5-4543-822b-0af2f4495386" })),
       }),
@@ -1751,7 +1756,7 @@ describe("notifications push route", () => {
       where user_id = 'user-1' and device_token = ${"a".repeat(64)}
     `;
     expect(registered).toEqual({
-      bundleId: "dev.cmux.ios.push1",
+      bundleId: "app.w3dev.cmux.ios.debug.push1",
       environment: "sandbox",
     });
   });
@@ -1770,7 +1775,7 @@ describe("notifications push route", () => {
         'user-1',
         ${"a".repeat(64)},
         'ios',
-        'com.cmux.app',
+        'app.w3dev.cmux.ios',
         'production'
       )
     `;
@@ -1791,7 +1796,7 @@ describe("notifications push route", () => {
         headers: {
           authorization: "Bearer access-token",
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-ios-target-namespace": "com.cmux.app",
+          "x-cmux-ios-target-namespace": "app.w3dev.cmux.ios",
         },
         body: JSON.stringify(pushBody({ correlationId: "a6e884c3-fc14-49c0-8ccb-b12a42b104ea" })),
       }),

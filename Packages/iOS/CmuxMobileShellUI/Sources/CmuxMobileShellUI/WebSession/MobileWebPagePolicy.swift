@@ -18,7 +18,7 @@ struct MobileWebPageHosts: Sendable {
     init() {}
 
     /// cmux-owned production web hosts.
-    let cmuxOwned: Set<String> = ["cmux.com", "www.cmux.com"]
+    let cmuxOwned: Set<String> = ["cmux.w3dev.app"]
 
     /// The full allowlist for a build configured with `apiBaseURL`.
     func allowedHosts(apiBaseURL: String?) -> Set<String> {

@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, test } from "bun:test";
+import { RelayConfigurationError } from "../services/relay/errors";
 import { generateKeyPairSync, verify as edVerify } from "node:crypto";
 
 import {
@@ -144,15 +145,11 @@ describe("isValidEndpointId", () => {
 });
 
 describe("relayUrls", () => {
-  test("returns the canonical 7-region fleet", () => {
-    const urls = relayUrls();
-    expect(urls).toContain("https://usw1.relay.cmux.dev/");
-    expect(urls).toContain("https://use4.relay.cmux.dev/");
-    expect(urls.length).toBe(7);
+  test("fails closed while this fork has no configured managed fleet", () => {
+    expect(() => relayUrls()).toThrow(RelayConfigurationError);
   });
   test("does not allow a legacy environment override to substitute the fleet", () => {
     process.env.CMUX_RELAY_URLS = "https://a.example.com, https://b.example.com";
-    expect(relayUrls()).not.toContain("https://a.example.com");
-    expect(relayUrls().length).toBe(7);
+    expect(() => relayUrls()).toThrow(RelayConfigurationError);
   });
 });

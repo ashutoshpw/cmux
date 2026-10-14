@@ -1,7 +1,6 @@
 "use client";
 
-import type { CurrentUser } from "@hexclave/next";
-import { KnownErrors } from "@hexclave/shared";
+import type { CurrentUser } from "@/app/lib/stack-client";
 import { useTranslations } from "next-intl";
 import { useId, useState } from "react";
 import {
@@ -111,7 +110,7 @@ function PasswordForm({
     // Hexclave mapped every returned error to "Incorrect password"; keep that
     // for the old password and report requirement failures on the new one.
     setServerError(
-      KnownErrors.PasswordRequirementsNotMet.isInstance(result) ? "requirements" : "incorrect",
+      result instanceof Error && result.message.includes("password") ? "requirements" : "incorrect",
     );
   };
 

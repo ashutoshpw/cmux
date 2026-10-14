@@ -171,19 +171,19 @@ describe("resolveProPlanStatus", () => {
     expect(isDevelopmentProAccessEnabled({
       NODE_ENV: "development",
       CMUX_LOCAL_DEV_PRO: "1",
-      NEXT_PUBLIC_STACK_PROJECT_ID: "454ecd03-1db2-4050-845e-4ce5b0cd9895",
+      BETTER_AUTH_URL: "http://localhost:3777",
     })).toBe(true);
     expect(isDevelopmentProAccessEnabled({
       NODE_ENV: "development",
-      NEXT_PUBLIC_STACK_PROJECT_ID: "454ecd03-1db2-4050-845e-4ce5b0cd9895",
+      BETTER_AUTH_URL: "http://localhost:3777",
     })).toBe(false);
     expect(isDevelopmentProAccessEnabled({
       NODE_ENV: "production",
-      NEXT_PUBLIC_STACK_PROJECT_ID: "454ecd03-1db2-4050-845e-4ce5b0cd9895",
+      BETTER_AUTH_URL: "http://localhost:3777",
     })).toBe(false);
     expect(isDevelopmentProAccessEnabled({
       NODE_ENV: "development",
-      NEXT_PUBLIC_STACK_PROJECT_ID: "9790718f-14cd-4f7e-824d-eaf527a82b82",
+      BETTER_AUTH_URL: "https://cmux.w3dev.app",
     })).toBe(false);
 
     const user = metadataUser({}, "user-local-dev");
@@ -191,7 +191,7 @@ describe("resolveProPlanStatus", () => {
       environment: {
         NODE_ENV: "development",
         CMUX_LOCAL_DEV_PRO: "1",
-        NEXT_PUBLIC_STACK_PROJECT_ID: "454ecd03-1db2-4050-845e-4ce5b0cd9895",
+        BETTER_AUTH_URL: "http://localhost:3777",
       },
     })).resolves.toEqual({
       planId: PRO_PLAN_ID,
@@ -208,7 +208,7 @@ describe("resolveProPlanStatus", () => {
       environment: {
         NODE_ENV: "development",
         CMUX_LOCAL_DEV_PRO: "1",
-        NEXT_PUBLIC_STACK_PROJECT_ID: "454ecd03-1db2-4050-845e-4ce5b0cd9895",
+        BETTER_AUTH_URL: "http://localhost:3777",
       },
       hasActiveStripeSubscription: async () => false,
     })).resolves.toMatchObject({

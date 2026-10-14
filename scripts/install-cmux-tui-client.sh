@@ -17,7 +17,7 @@
 # Every remote install authenticates the downloaded manifest before any value in it is
 # trusted: `gh attestation verify` must find a Sigstore build-provenance attestation for
 # the manifest bytes, signed by the publishing workflow in its repository (default
-# manaflow-ai/cmux/.github/workflows/cmux-tui-artifacts.yml; override with
+# ashutoshpw/cmux/.github/workflows/cmux-tui-artifacts.yml; override with
 # --attest-signer-workflow) and, with --expected-commit, built from that source commit.
 # The manifest's sha256 pins then cover the binaries, so an artifact host cannot
 # substitute a build. Only --allow-unattested skips this, for local development on a
@@ -31,15 +31,17 @@
 # --arch selects downloaded slices only; the local override is copied unchanged
 # and still checked with remote-probe and any required capabilities.
 set -euo pipefail
+ROOT_FORK_CONFIG="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/scripts/lib/fork-deployment.env"
+source "$ROOT_FORK_CONFIG"
 
 usage() { sed -n '2,22p' "$0"; }
 
 APP_PATH=""
-MANIFEST_URL="${CMUX_TUI_CLIENT_MANIFEST_URL:-https://files.cmux.com/cmux-tui/latest/manifest.json}"
+MANIFEST_URL="${CMUX_TUI_CLIENT_MANIFEST_URL:-${CMUX_FORK_ARTIFACTS_ORIGIN}/cmux-tui/latest/manifest.json}"
 CACHE_DIR="${CMUX_TUI_CLIENT_CACHE:-$HOME/Library/Caches/cmux/cmux-tui-client}"
 EXPECTED_COMMIT=""
 ARCH="universal"
-ATTEST_SIGNER_WORKFLOW="manaflow-ai/cmux/.github/workflows/cmux-tui-artifacts.yml"
+ATTEST_SIGNER_WORKFLOW="${CMUX_FORK_REPOSITORY}/.github/workflows/cmux-tui-artifacts.yml"
 ALLOW_UNATTESTED=0
 REQUIRED_CAPABILITIES=()
 while (( $# )); do

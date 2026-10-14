@@ -58,7 +58,7 @@ run_reload --tag "$TAG" --build-only --derived-data "$TMP_DIR/dd" --release
 [[ -f "$ARGS" ]] || fail "--release never reached xcodebuild: $OUTPUT"
 [[ "$(arg_after -configuration)" == Release ]] \
   || fail "--release built configuration '$(arg_after -configuration)', not Release"
-grep -qx "PRODUCT_BUNDLE_IDENTIFIER=com.cmuxterm.app.debug.${TAG//-/.}" "$ARGS" \
+grep -qx "PRODUCT_BUNDLE_IDENTIFIER=app.w3dev.cmux.debug.${TAG//-/.}" "$ARGS" \
   || fail "--release did not keep the tagged debug bundle id: $(grep PRODUCT_BUNDLE_IDENTIFIER "$ARGS")"
 grep -qx 'CODE_SIGN_ENTITLEMENTS=' "$ARGS" \
   || fail "--release kept the Release entitlements on an ad hoc signed tagged app"

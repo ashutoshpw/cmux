@@ -11,7 +11,7 @@ describe("coderouter Sentry privacy", () => {
   test("drops raw request errors that are not coderouter's", () => {
     expect(
       shouldSendSentryEvent({
-        request: { url: "https://coderouter.dev/v1/responses" },
+        request: { url: "https://cmux.w3dev.app/v1/responses" },
       }),
     ).toBe(true);
     expect(
@@ -24,9 +24,10 @@ describe("coderouter Sentry privacy", () => {
         contexts: { cmux: { service: "coderouter" } },
       }),
     ).toBe(true);
+    expect(shouldSendSentryEvent({ request: { url: "https://coderouter.dev/v1/responses" } })).toBe(false);
     expect(
       shouldSendSentryEvent({
-        request: { url: "https://cmux.com/api/devices" },
+        request: { url: "https://cmux.w3dev.app/api/devices" },
       }),
     ).toBe(false);
   });

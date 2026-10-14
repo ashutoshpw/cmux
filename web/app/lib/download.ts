@@ -1,3 +1,4 @@
+import { forkDeployment } from "../../services/deployment/config";
 /**
  * Single source of truth for cmux download links.
  *
@@ -21,7 +22,7 @@
  * reflects the original page load.
  */
 export const DOWNLOAD_URL =
-  "https://github.com/manaflow-ai/cmux/releases/latest/download/cmux-macos.dmg";
+  `https://github.com/${forkDeployment.repository}/releases/latest/download/cmux-macos.dmg`;
 
 export const DOWNLOAD_CONFIRMATION_PATH = "/download/confirmation";
 
@@ -32,7 +33,7 @@ export const DOWNLOAD_CONFIRMATION_HREF = `${DOWNLOAD_CONFIRMATION_PATH}?${DOWNL
 
 /** Public repository that owns cmux Browser binaries and corresponding source. */
 export const BROWSER_RELEASE_REPOSITORY_URL =
-  "https://github.com/manaflow-ai/cmux-v2";
+  `https://github.com/${forkDeployment.repository}`;
 
 /** Stable page for the moving nightly release channel. */
 export const BROWSER_NIGHTLY_RELEASE_URL =

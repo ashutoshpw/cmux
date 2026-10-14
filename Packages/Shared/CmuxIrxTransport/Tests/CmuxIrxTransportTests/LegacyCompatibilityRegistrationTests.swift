@@ -95,7 +95,7 @@ struct LegacyCompatibilityRegistrationTests {
 private final class CompatibilityRegistrationFixture: @unchecked Sendable {
     let physicalID = "11111111-1111-4111-8111-111111111111"
     let otherID = "33333333-3333-4333-8333-333333333333"
-    let namespace = "mac:com.cmuxterm.app.nightly"
+    let namespace = "mac:app.w3dev.cmux.nightly"
     let v2 = IrxIdentity(privateKeyData: Data(repeating: 2, count: 32),
         deviceID: "22222222-2222-4222-8222-222222222222", appInstanceID: "v2-tuple")
     let old = IrxIdentity(privateKeyData: Data(repeating: 3, count: 32), deviceID: "old", appInstanceID: "old")

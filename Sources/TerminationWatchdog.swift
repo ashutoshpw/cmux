@@ -50,7 +50,7 @@ final class TerminationWatchdog: Sendable {
             Thread.sleep(forTimeInterval: deadline)
             fire()
         }
-        thread.name = "com.cmuxterm.termination-watchdog"
+        thread.name = "app.w3dev.cmux.termination-watchdog"
         thread.stackSize = 128 * 1024
         thread.start()
     }

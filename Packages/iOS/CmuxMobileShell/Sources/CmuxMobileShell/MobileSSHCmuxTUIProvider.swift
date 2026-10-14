@@ -19,7 +19,7 @@ final class MobileSSHCmuxTUIProvider: MobileSSHWorkspaceProvider, MobileSSHBrows
     MobileSSHTopologyReporting {
     /// Session name owned by the phone, so a desktop `cmux` session on the
     /// same machine is never taken over when the phone creates workspaces.
-    nonisolated static let sessionName = "cmux-ios"
+    nonisolated static let sessionName = "cmux-w3dev-ios"
 
     /// How the provider reaches its session's owner.
     enum Route: Equatable {

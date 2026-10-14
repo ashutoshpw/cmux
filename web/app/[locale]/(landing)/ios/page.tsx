@@ -97,7 +97,7 @@ export default function IosLanding() {
           style={{ marginTop: 21, marginBottom: 16 }}
         >
           <a
-            href="https://github.com/manaflow-ai/cmux#founders-edition"
+            href="https://github.com/ashutoshpw/cmux#founders-edition"
             className={`${ctaButtonBase} ${ctaButtonDefaultSize}`}
             style={ctaButtonStyle}
           >
@@ -202,7 +202,7 @@ export default function IosLanding() {
           data-dev="ios-cta-bottom"
         >
           <a
-            href="https://github.com/manaflow-ai/cmux#founders-edition"
+            href="https://github.com/ashutoshpw/cmux#founders-edition"
             className={`${ctaButtonBase} ${ctaButtonDefaultSize}`}
             style={ctaButtonStyle}
           >

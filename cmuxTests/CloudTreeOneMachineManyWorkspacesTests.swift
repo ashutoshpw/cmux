@@ -242,7 +242,7 @@ struct CloudTreeOneMachineManyWorkspacesTests {
         )
         let docs = SurfaceResource(
             id: SurfaceResourceID(machine: machine, kind: .browser, key: "docs"), title: "Docs", detail: nil,
-            lifecycle: .running, agent: nil, remoteWorkspace: nil, port: nil, url: "https://cmux.com/docs"
+            lifecycle: .running, agent: nil, remoteWorkspace: nil, port: nil, url: "https://cmux.w3dev.app/docs"
         )
         let snapshot = SurfaceCatalogSnapshot(
             machines: [info(workspaces: [main, side], hasDesktop: true)],

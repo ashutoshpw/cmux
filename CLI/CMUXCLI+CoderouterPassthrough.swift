@@ -7,12 +7,12 @@ import Foundation
 // bootstrapping it on a machine that has none, and replacing this process
 // with it. Routed agent commands use the signed native handoff in cmux.swift.
 extension CMUXCLI {
-    /// The installer documented at https://cmux.com/coderouter. Every message
+    /// The installer documented at https://cmux.w3dev.app/coderouter. Every message
     /// quotes this exact command, and the interactive bootstrap runs it: cmux
     /// fetches the script and hands it to `sh` as two separate steps, so a
     /// failed or truncated download never reaches the shell. The script itself
     /// verifies the binary's checksum against the release manifest.
-    static let coderouterInstallerURL = "https://cmux.com/coderouter/install.sh"
+    static let coderouterInstallerURL = "https://cmux.w3dev.app/coderouter/install.sh"
     static let coderouterInstallCommand = "curl -fsSL \(coderouterInstallerURL) | sh"
 
     private static let coderouterExecutableNames = ["coderouter", "cr"]
@@ -50,7 +50,7 @@ extension CMUXCLI {
             explicitSocketPath: nil,
             explicitPassword: nil,
             environment: ProcessInfo.processInfo.environment,
-            bundleIdentifier: CLISocketPathResolver.currentAppBundleIdentifier() ?? "com.cmuxterm.app"
+            bundleIdentifier: CLISocketPathResolver.currentAppBundleIdentifier() ?? "app.w3dev.cmux"
         )
     }
 

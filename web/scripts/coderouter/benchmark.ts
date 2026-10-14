@@ -1,4 +1,6 @@
 #!/usr/bin/env bun
+import { forkDeployment } from "../../services/deployment/config";
+import { isUpstreamServiceHost } from "../../services/deployment/origin";
 
 import { pathToFileURL } from "node:url";
 
@@ -33,7 +35,7 @@ if (
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
-  const origin = normalizeOrigin(args.origin ?? "https://coderouter.dev");
+  const origin = normalizeOrigin(args.origin ?? forkDeployment.productionOrigin);
   const samples = positiveInteger(args.samples ?? "30", "samples");
   const timeoutMs = positiveInteger(args.timeout ?? "15000", "timeout");
   const routeToken = args.token ??
@@ -260,11 +262,12 @@ export function normalizeOrigin(value: string): string {
       "Benchmark origin cannot contain credentials, a path, query, or fragment.",
     );
   }
+  if (isUpstreamServiceHost(parsed.hostname)) throw new Error("Upstream service origins are not available in this fork");
   return parsed.origin;
 }
 
 function isApprovedTokenOrigin(origin: string): boolean {
-  return origin === "https://coderouter.dev";
+  return origin === forkDeployment.productionOrigin;
 }
 
 function positiveInteger(value: string, name: string): number {

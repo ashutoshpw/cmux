@@ -64,7 +64,7 @@ export CI=true  # as in a job: build phases read it (a missing cargo fails the N
 export RUNNER_OS=macOS RUNNER_ARCH=ARM64
 export CMUX_SEED_GIT_DIR="$workspace/.git"
 export CMUX_SEED_LOCAL_CACHE="$store/seeds"
-export CI_CACHE_R2_PUBLIC_URL="${CI_CACHE_R2_PUBLIC_URL:-https://ci-cache.cmux.com}"
+export CI_CACHE_R2_PUBLIC_URL="${CI_CACHE_R2_PUBLIC_URL:-}"
 unset GITHUB_ENV GITHUB_OUTPUT GITHUB_REPOSITORY GH_TOKEN GITHUB_TOKEN
 export PATH="$HOME/.cargo/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 dd="$CMUX_COMPILE_ADMISSION_DERIVED_DATA"

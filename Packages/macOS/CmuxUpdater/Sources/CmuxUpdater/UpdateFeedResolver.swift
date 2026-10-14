@@ -51,8 +51,8 @@ public struct UpdateFeedResolver: Sendable {
         }
 
         static let officialStableFeedPrefixes = [
-            "https://github.com/manaflow-ai/cmux/releases/",
-            "https://files.cmux.com/stable/",
+            "https://github.com/ashutoshpw/cmux/releases/",
+            "https://files.cmux.w3dev.app/stable/",
         ]
     }
 
@@ -90,7 +90,7 @@ public struct UpdateFeedResolver: Sendable {
     ///   - hostArchitecture: The architecture to select feeds for. Defaults to the machine's
     ///     native architecture.
     public init(
-        fallbackFeedURL: String = "https://github.com/manaflow-ai/cmux/releases/latest/download/appcast.xml",
+        fallbackFeedURL: String = "https://github.com/ashutoshpw/cmux/releases/latest/download/appcast.xml",
         hostArchitecture: UpdateHostArchitecture = .current
     ) {
         self.fallbackFeedURL = fallbackFeedURL

@@ -45,13 +45,13 @@ beforeEach(() => {
 });
 
 describe("dashboard Next shell", () => {
-  test("the layout only adds the Stack theme around the SPA", () => {
+  test("the layout renders the SPA with the owned auth provider", () => {
     const html = renderToStaticMarkup(
       <DashboardLayout>
         <p>SPA</p>
       </DashboardLayout>,
     );
-    expect(html).toBe('<div data-testid="stack-theme"><p>SPA</p></div>');
+    expect(html).toBe('<p>SPA</p>');
     expect(redirectedTo).toBeNull();
   });
 

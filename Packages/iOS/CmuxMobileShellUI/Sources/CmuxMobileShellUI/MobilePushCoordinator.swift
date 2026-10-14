@@ -12,7 +12,7 @@ import UIKit
 import UserNotifications
 
 private let mobilePushLog = Logger(
-    subsystem: Bundle.main.bundleIdentifier ?? "dev.cmux.ios",
+    subsystem: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux.ios.debug",
     category: "push"
 )
 
@@ -212,7 +212,7 @@ public final class MobilePushCoordinator {
         registration: any PushRegistering,
         analytics: any AnalyticsEmitting = NoopAnalytics(),
         diagnosticLog: DiagnosticLog? = nil,
-        phoneAPIOrigin: String = "https://cmux.com",
+        phoneAPIOrigin: String = "https://cmux.w3dev.app",
         defaults: UserDefaults = .standard,
         deliveredNotificationClearer: any DeliveredNotificationClearing = SystemDeliveredNotificationClearer(),
         pendingDismissQueue: PendingNotificationDismissQueue = PendingNotificationDismissQueue(),

@@ -437,7 +437,7 @@ import Testing
         let cliPath = try bundledCLIPath()
         let workspaceID = UUID().uuidString.lowercased()
         let surfaceID = UUID().uuidString.lowercased()
-        let socketPath = "/tmp/cmux-ios-routing-\(UUID().uuidString.prefix(8)).sock"
+        let socketPath = "/tmp/cmux-w3dev-ios-routing-\(UUID().uuidString.prefix(8)).sock"
         let responder = try UnixSocketResponder(
             path: socketPath,
             response: #"{"ok":true,"result":{"simulator_id":"PAD","device_name":"iPad","runtime_id":"runtime","device_type_id":"type","family":"ipad","state":"booted"}}"#
@@ -2425,7 +2425,7 @@ import Testing
     @Test func testBundledCLIInTaggedDebugAppPrefersItsOwnSocketWithoutEnvironmentOverride() throws {
         let cliPath = try bundledCLIPath()
         let tagSlug = "cli-socket-\(UUID().uuidString.lowercased())"
-        let taggedSocketPath = "/tmp/cmux-debug-\(tagSlug).sock"
+        let taggedSocketPath = "/tmp/cmux-w3dev-debug-\(tagSlug).sock"
         let home = try makeTemporaryHome()
         defer { try? FileManager.default.removeItem(at: home) }
         let stableSocketURL = try stableSocketURL(home: home)
@@ -2472,7 +2472,7 @@ import Testing
     @Test func testAmbientTaggedCLIFallsBackToLiveStableSocketAfterDeadTagSocket() throws {
         let cliPath = try bundledCLIPath()
         let tagSlug = "cli-ambient-fallback-\(UUID().uuidString.lowercased())"
-        let taggedSocketPath = "/tmp/cmux-debug-\(tagSlug).sock"
+        let taggedSocketPath = "/tmp/cmux-w3dev-debug-\(tagSlug).sock"
         let home = try makeTemporaryHome()
         defer { try? FileManager.default.removeItem(at: home) }
         defer { try? FileManager.default.removeItem(atPath: taggedSocketPath) }
@@ -2565,7 +2565,7 @@ import Testing
     @Test func testAmbientTaggedCLIListsEveryDeadSocketCandidateOnFailure() throws {
         let cliPath = try bundledCLIPath()
         let tagSlug = "cli-ambient-all-dead-\(UUID().uuidString.lowercased())"
-        let taggedSocketPath = "/tmp/cmux-debug-\(tagSlug).sock"
+        let taggedSocketPath = "/tmp/cmux-w3dev-debug-\(tagSlug).sock"
         let markerSocketPath = "/tmp/cmux-marker-\(UUID().uuidString.lowercased()).sock"
         let home = try makeTemporaryHome()
         defer { try? FileManager.default.removeItem(at: home) }
@@ -2724,7 +2724,7 @@ import Testing
     @Test func testHermeticTaggedCLIIgnoresMachineWideTmpMarkerToLiveSocket() throws {
         let cliPath = try bundledCLIPath()
         let tagSlug = "cli-tmp-marker-leak-\(UUID().uuidString.lowercased())"
-        let taggedSocketPath = "/tmp/cmux-debug-\(tagSlug).sock"
+        let taggedSocketPath = "/tmp/cmux-w3dev-debug-\(tagSlug).sock"
         let leakedSocketPath = "/tmp/cmux-leak-\(UUID().uuidString.prefix(8).lowercased()).sock"
         let home = try makeTemporaryHome()
         defer { try? FileManager.default.removeItem(at: home) }
@@ -2734,7 +2734,7 @@ import Testing
             sourceCLIPath: cliPath,
             tagSlug: tagSlug
         )
-        let bundleIdentifier = "com.cmuxterm.app.debug.\(tagSlug.replacingOccurrences(of: "-", with: "."))"
+        let bundleIdentifier = "app.w3dev.cmux.debug.\(tagSlug.replacingOccurrences(of: "-", with: "."))"
         let tmpMarkerPath = SocketPathMarkerFiles.variant(
             bundleIdentifier: bundleIdentifier,
             environment: ["CMUX_TAG": tagSlug]
@@ -2774,7 +2774,7 @@ import Testing
         let stateDirectory = CmuxStateDirectory.url(homeDirectory: home)
         try FileManager.default.createDirectory(at: stateDirectory, withIntermediateDirectories: true)
         let tagSlug = "resolver-isolated-\(UUID().uuidString.prefix(8).lowercased())"
-        let bundleIdentifier = "com.cmuxterm.app.debug.\(tagSlug.replacingOccurrences(of: "-", with: "."))"
+        let bundleIdentifier = "app.w3dev.cmux.debug.\(tagSlug.replacingOccurrences(of: "-", with: "."))"
         let tagEnvironment = ["CMUX_TAG": tagSlug]
         let variant = SocketPathMarkerFiles.variant(
             bundleIdentifier: bundleIdentifier,
@@ -2807,7 +2807,7 @@ import Testing
                 stateDirectory: stateDirectory
             )
             return resolver.resolve(
-                requestedPath: "/tmp/cmux-debug-\(tagSlug).sock",
+                requestedPath: "/tmp/cmux-w3dev-debug-\(tagSlug).sock",
                 source: .implicitDefault
             )
         }
@@ -2823,7 +2823,7 @@ import Testing
         #expect(!isolated.candidatePaths.contains(tmpMarkerTarget))
         #expect(!isolated.candidatePaths.contains(CLISocketPathResolver.legacyDefaultSocketPath))
         #expect(!isolated.candidatePaths.contains("/tmp/cmux-\(getuid()).sock"))
-        #expect(isolated.candidatePaths.contains("/tmp/cmux-debug-\(tagSlug).sock"))
+        #expect(isolated.candidatePaths.contains("/tmp/cmux-w3dev-debug-\(tagSlug).sock"))
         #expect(isolated.candidatePaths.contains(homeMarkerTarget))
         #expect(isolated.candidatePaths.contains(
             stateDirectory.appendingPathComponent("cmux.sock", isDirectory: false).path
@@ -2833,7 +2833,7 @@ import Testing
     @Test func testImplicitDiscoveryDoesNotConsiderUnmarkedTaggedSockets() throws {
         let home = try makeTemporaryHome()
         defer { try? FileManager.default.removeItem(at: home) }
-        let unrelatedSocketPath = "/tmp/cmux-debug-unrelated-\(UUID().uuidString.lowercased()).sock"
+        let unrelatedSocketPath = "/tmp/cmux-w3dev-debug-unrelated-\(UUID().uuidString.lowercased()).sock"
         let responder = try UnixSocketResponder(path: unrelatedSocketPath, response: "PONG UNRELATED")
         defer { responder.stop() }
 
@@ -2845,7 +2845,7 @@ import Testing
             stateDirectory: CmuxStateDirectory.url(homeDirectory: home)
         )
         let resolution = resolver.resolve(
-            requestedPath: "/tmp/cmux-debug.sock",
+            requestedPath: "/tmp/cmux-w3dev-debug.sock",
             source: .implicitDefault
         )
 
@@ -2857,7 +2857,7 @@ import Testing
     @Test func testExplicitStableSocketEnvironmentIsNeverReroutedByTaggedCLI() throws {
         let cliPath = try bundledCLIPath()
         let tagSlug = "cli-explicit-stable-\(UUID().uuidString.lowercased())"
-        let taggedSocketPath = "/tmp/cmux-debug-\(tagSlug).sock"
+        let taggedSocketPath = "/tmp/cmux-w3dev-debug-\(tagSlug).sock"
         let home = try makeTemporaryHome()
         defer { try? FileManager.default.removeItem(at: home) }
 
@@ -2896,7 +2896,7 @@ import Testing
     @Test func testBundledCLIInTaggedDebugAppPreservesExplicitStableEnvSocket() throws {
         let cliPath = try bundledCLIPath()
         let tagSlug = "cli-case-\(UUID().uuidString.lowercased())"
-        let taggedSocketPath = "/tmp/cmux-debug-\(tagSlug).sock"
+        let taggedSocketPath = "/tmp/cmux-w3dev-debug-\(tagSlug).sock"
         let home = try makeTemporaryHome()
         defer { try? FileManager.default.removeItem(at: home) }
         let stableSocketURL = try stableSocketURL(home: home)
@@ -2945,7 +2945,7 @@ import Testing
             withIntermediateDirectories: true
         )
         let tagSlug = "cli-missing-\(UUID().uuidString.lowercased())"
-        let taggedSocketPath = "/tmp/cmux-debug-\(tagSlug).sock"
+        let taggedSocketPath = "/tmp/cmux-w3dev-debug-\(tagSlug).sock"
         try? FileManager.default.removeItem(atPath: taggedSocketPath)
         defer { try? FileManager.default.removeItem(atPath: taggedSocketPath) }
 
@@ -2992,7 +2992,7 @@ import Testing
         for alias in aliases {
             try autoreleasepool {
                 let tagSlug = "cli-user-\(UUID().uuidString.lowercased())"
-                let taggedSocketPath = "/tmp/cmux-debug-\(tagSlug).sock"
+                let taggedSocketPath = "/tmp/cmux-w3dev-debug-\(tagSlug).sock"
                 let stableResponder = try UnixSocketResponder(path: stableSocketPath, response: "OK STABLE")
                 defer { stableResponder.stop() }
                 let taggedResponder = try UnixSocketResponder(path: taggedSocketPath, response: "PONG")
@@ -3048,7 +3048,7 @@ import Testing
         let fakeStableCLIPath = try fakeTaggedBundledCLIPath(
             sourceCLIPath: cliPath,
             tagSlug: "stable-\(UUID().uuidString.lowercased())",
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "app.w3dev.cmux",
             bundleName: "cmux"
         )
         let defaultResponder = try UnixSocketResponder(path: defaultStableSocketPath, response: "OK DEFAULT")
@@ -3108,7 +3108,7 @@ import Testing
         let fakeStableCLIPath = try fakeTaggedBundledCLIPath(
             sourceCLIPath: cliPath,
             tagSlug: "stable-\(UUID().uuidString.lowercased())",
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "app.w3dev.cmux",
             bundleName: "cmux"
         )
         let defaultResponder = try UnixSocketResponder(path: defaultStableSocketPath, response: "OK DEFAULT")
@@ -3157,7 +3157,7 @@ import Testing
         let fakeStableCLIPath = try fakeTaggedBundledCLIPath(
             sourceCLIPath: cliPath,
             tagSlug: "stable-\(UUID().uuidString.lowercased())",
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "app.w3dev.cmux",
             bundleName: "cmux"
         )
         let defaultResponder = try UnixSocketResponder(path: defaultStableSocketPath, response: "OK DEFAULT")
@@ -3191,7 +3191,7 @@ import Testing
     @Test func testBundledCLIInTaggedDebugAppPreservesExplicitCustomEnvSocket() throws {
         let cliPath = try bundledCLIPath()
         let tagSlug = "cli-legacy-\(UUID().uuidString.lowercased())"
-        let taggedSocketPath = "/tmp/cmux-debug-\(tagSlug).sock"
+        let taggedSocketPath = "/tmp/cmux-w3dev-debug-\(tagSlug).sock"
         let home = try makeTemporaryHome()
         defer { try? FileManager.default.removeItem(at: home) }
         let explicitSocketPath = "/tmp/cmux-explicit-legacy-\(UUID().uuidString.lowercased()).sock"
@@ -3228,7 +3228,7 @@ import Testing
     @Test func testBundledCLISkipsIdentifierlessNestedAppWhenResolvingTaggedSocket() throws {
         let cliPath = try bundledCLIPath()
         let tagSlug = "cli-nested-\(UUID().uuidString.lowercased())"
-        let taggedSocketPath = "/tmp/cmux-debug-\(tagSlug).sock"
+        let taggedSocketPath = "/tmp/cmux-w3dev-debug-\(tagSlug).sock"
         let home = try makeTemporaryHome()
         defer { try? FileManager.default.removeItem(at: home) }
         let stableSocketURL = try stableSocketURL(home: home)
@@ -3328,7 +3328,7 @@ import Testing
         // run's expectation and appends to its list, so the identifier carries a per-run
         // suffix. The CLI takes the identifier from CMUX_BUNDLE_ID here because this
         // socket file name has no channel prefix to derive one from.
-        let bundleIdentifier = "com.cmuxterm.app.debug.issue-4355-test."
+        let bundleIdentifier = "app.w3dev.cmux.debug.issue-4355-test."
             + UUID().uuidString.lowercased().replacingOccurrences(of: "-", with: "")
         let notificationQueue = OperationQueue()
         notificationQueue.maxConcurrentOperationCount = 1
@@ -3352,7 +3352,7 @@ import Testing
             expectedCount: 3
         ) { reloadConfirmed in
             let observer = DistributedNotificationCenter.default().addObserver(
-                forName: Notification.Name("com.cmuxterm.themes.reload-config"),
+                forName: Notification.Name("app.w3dev.cmux.themes.reload-config"),
                 object: nil,
                 queue: notificationQueue
             ) { notification in
@@ -3404,21 +3404,21 @@ import Testing
         try writeTheme(named: "Theme A", background: "#101010", to: themesURL)
 
         // The reload target is derived from the socket file name, not from CMUX_BUNDLE_ID:
-        // `cmux-debug-<slug>.sock` becomes `com.cmuxterm.app.debug.<slug>`, where every run of
+        // `cmux-w3dev-debug-<slug>.sock` becomes `app.w3dev.cmux.debug.<slug>`, where every run of
         // non-alphanumerics in the slug collapses to a dot. A raw UUID here would put its dashes
         // into the identifier as dots, so keep the unique part hex-only and the expected
         // identifier stays a plain template rather than a call into the CLI's own helper.
         let uniqueSuffix = UUID().uuidString.lowercased().replacingOccurrences(of: "-", with: "")
-        let socketPath = "/tmp/cmux-debug-active-theme-\(uniqueSuffix).sock"
-        let staleBundleIdentifier = "com.cmuxterm.app.debug.stale.theme"
-        let targetBundleIdentifier = "com.cmuxterm.app.debug.active.theme.\(uniqueSuffix)"
+        let socketPath = "/tmp/cmux-w3dev-debug-active-theme-\(uniqueSuffix).sock"
+        let staleBundleIdentifier = "app.w3dev.cmux.debug.stale.theme"
+        let targetBundleIdentifier = "app.w3dev.cmux.debug.active.theme.\(uniqueSuffix)"
         let reloadExpectation = expectation(description: "cmux themes set targets the resolved socket bundle")
         let notificationQueue = OperationQueue()
         notificationQueue.maxConcurrentOperationCount = 1
         let notificationLock = NSLock()
         var observedReloads: [(bundleIdentifier: String?, phase: String?, socketPath: String?)] = []
         let observer = DistributedNotificationCenter.default().addObserver(
-            forName: Notification.Name("com.cmuxterm.themes.reload-config"),
+            forName: Notification.Name("app.w3dev.cmux.themes.reload-config"),
             object: nil,
             queue: notificationQueue
         ) { notification in
@@ -3514,14 +3514,14 @@ import Testing
         let socketPath = "/tmp/cmux-theme-picker-\(UUID().uuidString.prefix(8)).sock"
         let responder = try UnixSocketResponder(path: socketPath, response: "OK")
         defer { responder.stop() }
-        let bundleIdentifier = "com.cmuxterm.app.debug.theme-picker.\(UUID().uuidString.lowercased())"
+        let bundleIdentifier = "app.w3dev.cmux.debug.theme-picker.\(UUID().uuidString.lowercased())"
         let reloadExpectation = expectation(description: "bare cmux themes posts final reload notification")
         let notificationQueue = OperationQueue()
         notificationQueue.maxConcurrentOperationCount = 1
         let notificationLock = NSLock()
         var observedReloads: [(bundleIdentifier: String?, phase: String?)] = []
         let observer = DistributedNotificationCenter.default().addObserver(
-            forName: Notification.Name("com.cmuxterm.themes.reload-config"),
+            forName: Notification.Name("app.w3dev.cmux.themes.reload-config"),
             object: nil,
             queue: notificationQueue
         ) { notification in
@@ -4317,7 +4317,7 @@ import Testing
         try FileManager.default.createDirectory(at: binURL, withIntermediateDirectories: true)
 
         let info: [String: Any] = [
-            "CFBundleIdentifier": bundleIdentifier ?? "com.cmuxterm.app.debug.\(tagSlug.replacingOccurrences(of: "-", with: "."))",
+            "CFBundleIdentifier": bundleIdentifier ?? "app.w3dev.cmux.debug.\(tagSlug.replacingOccurrences(of: "-", with: "."))",
             "CFBundleName": bundleName ?? "cmux DEV \(tagSlug)",
             "CFBundlePackageType": "APPL"
         ]

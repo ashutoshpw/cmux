@@ -1,7 +1,7 @@
 name: iOS App Store screenshots
 run-name: iOS App Store screenshots (${{ inputs.request_id || github.run_id }})
 
-# Captures fastlane screenshots for the public App Store listing (com.cmux.app)
+# Captures fastlane screenshots for the public App Store listing (app.w3dev.cmux.ios)
 # on the required device classes — 6.9" iPhone + 13" iPad — in every language
 # the app is localized in. The capture runs against a DEBUG build with
 # the CMUX_UITEST_MOCK_DATA hook, so no Apple signing is needed to shoot; only
@@ -30,7 +30,7 @@ on:
         type: string
         default: "en-US,de-DE,fr-FR,ar-SA,es-ES,zh-Hant,zh-Hans,ko,ja"
       upload:
-        description: "Upload captured screenshots to the com.cmux.app App Store listing"
+        description: "Upload captured screenshots to the app.w3dev.cmux.ios App Store listing"
         required: false
         type: boolean
         default: false
@@ -49,7 +49,7 @@ on:
         required: false
         default: "en-US,de-DE,fr-FR,ar-SA,es-ES,zh-Hant,zh-Hans,ko,ja"
       upload:
-        description: "Upload captured screenshots to the com.cmux.app App Store listing"
+        description: "Upload captured screenshots to the app.w3dev.cmux.ios App Store listing"
         required: false
         default: false
         type: boolean

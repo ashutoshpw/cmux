@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@hexclave/next";
+import { useUser } from "@/app/lib/stack-client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
 import { IsolatedErrorBoundary } from "@/app/components/error-boundary";

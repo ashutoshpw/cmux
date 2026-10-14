@@ -5,7 +5,7 @@ import Testing
 private let compactIrohQRCoder = CmxAttachTicketCompactCoder()
 private let compactIrohQREndpointID = String(repeating: "c", count: 64)
 private let compactIrohQRTarget = CmxPairingURLScheme(
-    iOSBundleIdentifier: "dev.cmux.app.beta"
+    iOSBundleIdentifier: "app.w3dev.cmux.ios.beta"
 )!
 
 private func compactIrohQRExpiry() -> Date {

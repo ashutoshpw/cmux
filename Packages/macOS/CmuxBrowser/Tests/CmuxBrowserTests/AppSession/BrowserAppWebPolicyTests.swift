@@ -8,38 +8,38 @@ struct BrowserAppWebPolicyTests {
     @Test("external intent requires the trusted origin and an enabled marker")
     func externalIntentRequiresTrustedOriginAndEnabledMarker() throws {
         let policy = BrowserExternalNavigationPolicy(
-            trustedOrigin: try #require(URL(string: "https://cmux.com"))
+            trustedOrigin: try #require(URL(string: "https://cmux.w3dev.app"))
         )
         let trustedSource = try #require(
-            URL(string: "https://cmux.com/app-pricing")
+            URL(string: "https://cmux.w3dev.app/app-pricing")
         )
         let publicPricingSource = try #require(
-            URL(string: "https://cmux.com/pricing")
+            URL(string: "https://cmux.w3dev.app/pricing")
         )
         let dashboardBillingSource = try #require(
-            URL(string: "https://cmux.com/en/dashboard/billing")
+            URL(string: "https://cmux.w3dev.app/en/dashboard/billing")
         )
         let untrustedSource = try #require(
             URL(string: "https://attacker.example/app-pricing")
         )
         let wrongPortSource = try #require(
-            URL(string: "https://cmux.com:8443/app-pricing")
+            URL(string: "https://cmux.w3dev.app:8443/app-pricing")
         )
 
         #expect(policy.shouldOpenInSystemBrowser(
-            try #require(URL(string: "https://cmux.com/api/billing/checkout?cmux_external_browser=1")),
+            try #require(URL(string: "https://cmux.w3dev.app/api/billing/checkout?cmux_external_browser=1")),
             sourceURL: trustedSource
         ))
         #expect(policy.shouldOpenInSystemBrowser(
-            try #require(URL(string: "https://cmux.com/enterprise?cmux_external_browser=1")),
+            try #require(URL(string: "https://cmux.w3dev.app/enterprise?cmux_external_browser=1")),
             sourceURL: trustedSource
         ))
         #expect(policy.shouldOpenInSystemBrowser(
-            try #require(URL(string: "https://cmux.com/api/billing/checkout?cmux_external_browser=1")),
+            try #require(URL(string: "https://cmux.w3dev.app/api/billing/checkout?cmux_external_browser=1")),
             sourceURL: publicPricingSource
         ))
         #expect(policy.shouldOpenInSystemBrowser(
-            try #require(URL(string: "https://cmux.com/api/billing/checkout?cmux_external_browser=1")),
+            try #require(URL(string: "https://cmux.w3dev.app/api/billing/checkout?cmux_external_browser=1")),
             sourceURL: dashboardBillingSource
         ))
         #expect(!policy.shouldOpenInSystemBrowser(
@@ -59,15 +59,15 @@ struct BrowserAppWebPolicyTests {
             sourceURL: trustedSource
         ))
         #expect(!policy.shouldOpenInSystemBrowser(
-            try #require(URL(string: "https://cmux.com/enterprise?cmux_external_browser")),
+            try #require(URL(string: "https://cmux.w3dev.app/enterprise?cmux_external_browser")),
             sourceURL: trustedSource
         ))
         #expect(!policy.shouldOpenInSystemBrowser(
-            try #require(URL(string: "https://cmux.com/enterprise?cmux_external_browser=yes")),
+            try #require(URL(string: "https://cmux.w3dev.app/enterprise?cmux_external_browser=yes")),
             sourceURL: trustedSource
         ))
         #expect(!policy.shouldOpenInSystemBrowser(
-            try #require(URL(string: "https://cmux.com/enterprise?cmux_external_browser=0")),
+            try #require(URL(string: "https://cmux.w3dev.app/enterprise?cmux_external_browser=0")),
             sourceURL: trustedSource
         ))
         #expect(!policy.shouldOpenInSystemBrowser(
@@ -128,17 +128,17 @@ struct BrowserAppWebPolicyTests {
         ))
 
         let securePolicy = BrowserExternalNavigationPolicy(
-            trustedOrigin: try #require(URL(string: "https://cmux.com"))
+            trustedOrigin: try #require(URL(string: "https://cmux.w3dev.app"))
         )
         #expect(!securePolicy.shouldOpenInSystemBrowser(
-            try #require(URL(string: "https://cmux.com/enterprise?cmux_external_browser=1")),
+            try #require(URL(string: "https://cmux.w3dev.app/enterprise?cmux_external_browser=1")),
             sourceURL: URL(string: "https://user@cmux.com/app-pricing")
         ))
     }
 
     @Test("theme serializes shared variables and supports only app-web routes")
     func themeSerializesSharedVariablesAndSupportsOnlyAppWebRoutes() throws {
-        let trustedOrigin = try #require(URL(string: "https://cmux.com"))
+        let trustedOrigin = try #require(URL(string: "https://cmux.w3dev.app"))
         let theme = BrowserAppTheme(
             appearance: "dark",
             background: "#112233",
@@ -158,23 +158,23 @@ struct BrowserAppWebPolicyTests {
         #expect(script.contains("[data-cmux-app-theme]"))
         #expect(script.contains("--cmux-product-blue-on-background"))
         #expect(BrowserAppTheme.supportsAppSurface(
-            url: URL(string: "https://cmux.com/app-pricing"),
+            url: URL(string: "https://cmux.w3dev.app/app-pricing"),
             trustedOrigin: trustedOrigin
         ))
         #expect(BrowserAppTheme.supportsAppSurface(
-            url: URL(string: "https://cmux.com/app-pro-welcome"),
+            url: URL(string: "https://cmux.w3dev.app/app-pro-welcome"),
             trustedOrigin: trustedOrigin
         ))
         #expect(BrowserAppTheme.supportsAppSurface(
-            url: URL(string: "https://cmux.com/app-pricing/"),
+            url: URL(string: "https://cmux.w3dev.app/app-pricing/"),
             trustedOrigin: trustedOrigin
         ))
         #expect(BrowserAppTheme.supportsAppSurface(
-            url: URL(string: "https://cmux.com/app-pro-welcome/"),
+            url: URL(string: "https://cmux.w3dev.app/app-pro-welcome/"),
             trustedOrigin: trustedOrigin
         ))
         #expect(!BrowserAppTheme.supportsAppSurface(
-            url: URL(string: "https://cmux.com/pricing"),
+            url: URL(string: "https://cmux.w3dev.app/pricing"),
             trustedOrigin: trustedOrigin
         ))
         #expect(!BrowserAppTheme.supportsAppSurface(

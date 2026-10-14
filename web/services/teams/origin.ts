@@ -1,8 +1,10 @@
+import { applicationOrigin, trustedApplicationOrigin } from "../deployment/origin";
+import { deployment } from "../deployment/config";
 import { directDevBackendOrigin } from "../../app/lib/direct-dev-backend-origin";
 import { locales, type Locale } from "../../i18n/routing";
 import { vmRequestLocale } from "../vms/vmErrorMessages";
 
-export const DEFAULT_TEAM_INVITE_ORIGIN = "https://cmux.com";
+export const DEFAULT_TEAM_INVITE_ORIGIN = deployment.productionOrigin;
 
 type Environment = Record<string, string | undefined>;
 
@@ -14,9 +16,9 @@ type Environment = Record<string, string | undefined>;
  */
 export function trustedTeamInviteOrigin(request: Request, environment: Environment = process.env): string {
   const configured = environment.CMUX_TEAM_INVITE_ORIGIN?.trim() || environment.CMUX_APP_ORIGIN?.trim();
-  if (configured) return httpOrigin(configured) ?? DEFAULT_TEAM_INVITE_ORIGIN;
+  if (configured) return trustedApplicationOrigin(configured, environment);
   if (environment.VERCEL_ENV === "production" || environment.NODE_ENV === "production") {
-    return DEFAULT_TEAM_INVITE_ORIGIN;
+    return applicationOrigin(environment);
   }
   const direct = directDevBackendOrigin(environment)?.origin;
   return direct ?? httpOrigin(request.url) ?? DEFAULT_TEAM_INVITE_ORIGIN;

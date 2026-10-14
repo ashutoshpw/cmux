@@ -3,7 +3,7 @@ import os
 
 /// Redacted auth diagnostics, shared by the token stores and sign-in flows.
 ///
-/// Logs to the unified log (`com.cmuxterm.app` / `auth`) in all builds. macOS
+/// Logs to the unified log (`app.w3dev.cmux` / `auth`) in all builds. macOS
 /// DEBUG builds additionally append to `/tmp/cmux-auth-debug.log` (0600) so a
 /// sign-in repro can be tailed without Console.app; a symlink, hard link or
 /// file owned by someone else at that path is skipped. Token material, JWTs, and
@@ -26,7 +26,7 @@ public struct AuthDebugLog: Sendable {
         #endif
     }
 
-    private static let logger = Logger(subsystem: "com.cmuxterm.app", category: "auth")
+    private static let logger = Logger(subsystem: "app.w3dev.cmux", category: "auth")
 
     #if DEBUG && os(macOS)
     private static let debugLogPath = "/tmp/cmux-auth-debug.log"

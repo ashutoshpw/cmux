@@ -2,7 +2,7 @@ import Foundation
 import OSLog
 
 nonisolated private let claudeHookSessionStoreLogger = Logger(
-    subsystem: "com.cmuxterm.cli",
+    subsystem: "app.w3dev.cmux.cli",
     category: "AgentHookStore"
 )
 

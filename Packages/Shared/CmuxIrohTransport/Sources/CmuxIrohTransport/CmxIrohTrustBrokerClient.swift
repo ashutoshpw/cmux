@@ -891,7 +891,6 @@ public actor CmxIrohTrustBrokerClient: CmxIrohRelayPolicyServing {
         request.httpMethod = method
         request.timeoutInterval = requestTimeout
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         request.setValue(clientNamespace, forHTTPHeaderField: "X-Cmux-App-Namespace")
         if let bindingAuthorization,
            path != "api/devices/iroh/challenge",

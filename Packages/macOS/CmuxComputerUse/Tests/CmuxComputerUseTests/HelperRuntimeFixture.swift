@@ -20,7 +20,7 @@ struct HelperRuntimeFixture {
         try FileManager.default.createDirectory(at: nestedHelper.deletingLastPathComponent(), withIntermediateDirectories: true)
         try FileManager.default.copyItem(at: files.bundle, to: nestedHelper)
         let info = try PropertyListSerialization.data(fromPropertyList: [
-            "CFBundleIdentifier": "com.cmuxterm.tests.\(UUID().uuidString)",
+            "CFBundleIdentifier": "app.w3dev.cmux.tests.\(UUID().uuidString)",
             "CFBundleName": "Helper host fixture",
             "CFBundlePackageType": "APPL"
         ], format: .xml, options: 0)

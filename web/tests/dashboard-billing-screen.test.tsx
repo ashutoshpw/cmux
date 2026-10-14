@@ -61,6 +61,7 @@ function teamWithMembers(id: string, displayName: string, members: number, metad
 // the full client surface the app imports so this mock never shadows an export
 // a later file needs (bun's mock.module is process-global without --isolate).
 mock.module("next-intl", () => ({
+  createTranslator,
   NextIntlClientProvider: ({ children }: { children: React.ReactNode }) => children,
   useLocale: () => "en",
   useTranslations: (namespace?: string) =>

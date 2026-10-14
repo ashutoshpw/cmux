@@ -1,4 +1,4 @@
-import { getPasswordError } from "@hexclave/shared/dist/helpers/password";
+
 
 export type PasswordFieldErrors = {
   oldPassword?: "required";
@@ -13,8 +13,8 @@ export type PasswordFormValues = {
 };
 
 /** Hexclave's password length limits (see `getPasswordError`). */
-export const PASSWORD_MIN_LENGTH = 8;
-export const PASSWORD_MAX_LENGTH = 70;
+export const PASSWORD_MIN_LENGTH = 12;
+export const PASSWORD_MAX_LENGTH = 128;
 
 /**
  * Client-side validation for the password form, matching Hexclave's yup
@@ -29,7 +29,7 @@ export function validatePasswordForm(
   if (hasPassword && values.oldPassword.length === 0) errors.oldPassword = "required";
   if (values.newPassword.length === 0) {
     errors.newPassword = "required";
-  } else if (getPasswordError(values.newPassword)) {
+  } else if (values.newPassword.length < PASSWORD_MIN_LENGTH || values.newPassword.length > PASSWORD_MAX_LENGTH) {
     errors.newPassword = values.newPassword.length < PASSWORD_MIN_LENGTH ? "tooShort" : "tooLong";
   }
   if (values.newPasswordRepeat.length === 0) {

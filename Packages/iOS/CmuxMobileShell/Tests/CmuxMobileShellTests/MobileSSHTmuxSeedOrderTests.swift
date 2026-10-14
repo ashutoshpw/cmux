@@ -38,7 +38,7 @@ import Testing
 
     @Test func seedSizesFirstThenDeliversGridSnapshotAndLaterOutputInOrder() async throws {
         let pipe = Pipe()
-        let client = MobileSSHTmuxControlClient(sessionName: "work", groupedSessionName: "work-cmux-ios-test", channel: pipe)
+        let client = MobileSSHTmuxControlClient(sessionName: "work", groupedSessionName: "work-cmux-w3dev-ios-test", channel: pipe)
         client.startPump()
         let (events, sink) = AsyncStream.makeStream(of: Seen.self)
 

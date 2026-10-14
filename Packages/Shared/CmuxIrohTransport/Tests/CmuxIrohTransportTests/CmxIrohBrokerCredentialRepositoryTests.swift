@@ -463,7 +463,7 @@ struct CmxIrohBrokerCredentialRepositoryTests {
             bindingID: bindingID,
             deviceID: "123e4567-e89b-42d3-a456-426614174011",
             appInstanceID: "123e4567-e89b-42d3-a456-426614174012",
-            tag: "cmux-ios-v0",
+            tag: "cmux-w3dev-ios-v0",
             platform: .mac,
             endpointID: CmxIrohPeerIdentity(
                 endpointID: String(repeating: endpointByte, count: 32)

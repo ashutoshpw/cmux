@@ -3,7 +3,7 @@ import OSLog
 import CmuxNotifications
 
 nonisolated private let focusSurfaceBroadcasterLogger = Logger(
-    subsystem: "com.cmuxterm.app",
+    subsystem: "app.w3dev.cmux",
     category: "FocusSurfaceBroadcaster"
 )
 

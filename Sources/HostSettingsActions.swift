@@ -11,7 +11,7 @@ import CmuxFoundation
 import Foundation
 import OSLog
 import SwiftUI
-nonisolated private let hostSettingsLogger = Logger(subsystem: "com.cmuxterm.app", category: "Settings")
+nonisolated private let hostSettingsLogger = Logger(subsystem: "app.w3dev.cmux", category: "Settings")
 /// Routes Settings actions to app-owned services, keeping the package independent.
 @MainActor
 final class HostSettingsActions: SettingsHostActions {

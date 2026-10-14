@@ -27,7 +27,7 @@ const VM_ID = "vm-d05087e5773e4a978036fc806b0cd759";
 const CLOUD_VM_ID = "11111111-2222-4333-8444-555555555555";
 const TUNNEL_CLIENT_KEY = Buffer.alloc(32, 1).toString("base64");
 const EDGE_RULE: VmEdgeRule = {
-  domain: "coderouter.dev",
+  domain: "cmux.w3dev.app",
   headers: { "x-cmux-authorization": "Bearer eyJ.signed.token" },
 };
 
@@ -439,7 +439,7 @@ describe("Freestyle platform contract", () => {
     expect(freestyleEdgeRules([EDGE_RULE])).toEqual([
       {
         action: "allow",
-        domain: "coderouter.dev",
+        domain: "cmux.w3dev.app",
         source: {},
         destination: { public: true },
         transform: [
@@ -453,7 +453,7 @@ describe("Freestyle platform contract", () => {
     ]);
     expect(freestyleEdgeRules(undefined)).toBeUndefined();
     expect(freestyleEdgeRules([])).toBeUndefined();
-    expect(() => freestyleEdgeRules([{ ...EDGE_RULE, domain: "coderouter.dev:8443" }])).toThrow(ProviderError);
+    expect(() => freestyleEdgeRules([{ ...EDGE_RULE, domain: "cmux.w3dev.app:8443" }])).toThrow(ProviderError);
     expect(() => freestyleEdgeRules([{ ...EDGE_RULE, domain: "x; rm -rf /" }])).toThrow(ProviderError);
   });
 

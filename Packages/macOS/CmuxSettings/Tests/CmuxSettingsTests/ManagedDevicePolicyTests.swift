@@ -179,7 +179,7 @@ struct ManagedDevicePolicyTests {
             bundleIdentifier: ManagedDevicePolicy.releasePayloadDomain
         ) == nil)
         #expect(ManagedDevicePolicy.defaultReleaseDomainDefaults(
-            bundleIdentifier: "com.cmuxterm.app.debug"
+            bundleIdentifier: "app.w3dev.cmux.debug"
         ) != nil)
     }
 
@@ -207,7 +207,7 @@ struct ManagedDevicePolicyTests {
         #expect(ManagedDevicePolicyKey.browserAllowLocalFiles.rawValue == "BrowserAllowLocalFiles")
         #expect(ManagedDevicePolicyKey.socketControlMode.rawValue == "SocketControlMode")
         #expect(ManagedDevicePolicyKey.allowStyleKeys == [.browserAllowLocalhost, .browserAllowLocalFiles])
-        #expect(ManagedDevicePolicy.releasePayloadDomain == "com.cmuxterm.app")
+        #expect(ManagedDevicePolicy.releasePayloadDomain == "app.w3dev.cmux")
     }
 
     @Test func independentDevicePoliciesAreForcedOverUserValues() throws {

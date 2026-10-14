@@ -8,6 +8,9 @@ on:
 
 permissions: {}
 
+env:
+  CMUX_APPLE_TEAM_ID: ${{ vars.CMUX_APPLE_TEAM_ID }}
+
 concurrency:
   group: coderouter-release-${{ github.ref }}
   cancel-in-progress: true
@@ -254,6 +257,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
+          [[ "$CMUX_APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]]
           [[ -n "$APPLE_CERTIFICATE_BASE64" ]]
           [[ -n "$APPLE_CERTIFICATE_PASSWORD" ]]
           keychain="$RUNNER_TEMP/coderouter-signing.keychain-db"
@@ -275,7 +279,7 @@ jobs:
             "$keychain"
           security list-keychains -d user -s "$keychain"
           identity="$(security find-identity -v -p codesigning "$keychain" \
-            | awk -F'"' '/Developer ID Application/ && /7WLXT3NR37/ { print $2; exit }')"
+            | awk -F'"' -v team="$CMUX_APPLE_TEAM_ID" '/Developer ID Application/ && index($2, "(" team ")") { print $2; exit }')"
           [[ -n "$identity" ]]
           echo "CODEROUTER_SIGNING_IDENTITY=$identity" >> "$GITHUB_ENV"
           echo "CODEROUTER_SIGNING_KEYCHAIN=$keychain" >> "$GITHUB_ENV"
@@ -290,7 +294,7 @@ jobs:
             --force \
             --options runtime \
             --timestamp \
-            --identifier com.cmuxterm.coderouter \
+            --identifier app.w3dev.cmux.coderouter \
             --keychain "$CODEROUTER_SIGNING_KEYCHAIN" \
             --sign "$CODEROUTER_SIGNING_IDENTITY" \
             "$binary"
@@ -346,7 +350,7 @@ jobs:
               --force \
               --options runtime \
               --timestamp \
-              --identifier com.cmuxterm.coderouter \
+              --identifier app.w3dev.cmux.coderouter \
               --keychain "$CODEROUTER_SIGNING_KEYCHAIN" \
               --sign "$CODEROUTER_SIGNING_IDENTITY" \
               "$binary"

@@ -266,9 +266,9 @@ final class ComputerUseCursorOverlayController {
     private var panel: NSPanel?
     private var pointerView: AgentCursorPointerView?
     private var directoryWatchSource: DispatchSourceFileSystemObject?
-    private let directoryWatchQueue = DispatchQueue(label: "com.cmuxterm.app.computerUseCursorWatch")
+    private let directoryWatchQueue = DispatchQueue(label: "app.w3dev.cmux.computerUseCursorWatch")
     /// The untrusted feed directory is scanned here, never on the main thread.
-    private let scanQueue = DispatchQueue(label: "com.cmuxterm.app.computerUseCursorScan", qos: .utility)
+    private let scanQueue = DispatchQueue(label: "app.w3dev.cmux.computerUseCursorScan", qos: .utility)
     /// At most one background scan is outstanding; further ticks are dropped until
     /// it lands, which collapses a burst of watcher/timer events into one scan.
     private var scanInFlight = false

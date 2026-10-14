@@ -11,8 +11,8 @@ import Testing
           "reason": null,
           "currentPlan": { "planId": "free", "source": "none" },
           "products": [
-            { "productId": "com.cmux.app.pro.monthly", "planId": "pro" },
-            { "productId": "com.cmux.app.max.monthly", "planId": "MAX" }
+            { "productId": "app.w3dev.cmux.ios.pro.monthly", "planId": "pro" },
+            { "productId": "app.w3dev.cmux.ios.max.monthly", "planId": "MAX" }
           ]
         }
         """.utf8)
@@ -30,7 +30,7 @@ import Testing
           "appAccountToken": "6f9619ff-8b86-d011-b42d-00c04fc964ff",
           "eligible": false,
           "reason": "team_billing",
-          "currentPlan": { "planId": "pro", "source": "stripe", "manageUrl": "https://cmux.com/billing" }
+          "currentPlan": { "planId": "pro", "source": "stripe", "manageUrl": "https://cmux.w3dev.app/billing" }
         }
         """.utf8)
         let account = try JSONDecoder().decode(BillingAccount.self, from: json)
@@ -57,7 +57,7 @@ import Testing
     @Test func requestCarriesStoreKitEnvironmentWhenKnown() async throws {
         let sandbox = HTTPBillingAPI(
             baseURL: "https://cmux.example",
-            bundleID: "dev.cmux.app.beta",
+            bundleID: "app.w3dev.cmux.ios.beta",
             credentials: { BillingAPICredentials(accessToken: "access", refreshToken: "refresh") },
             storeKitEnvironment: { "Sandbox" },
             session: URLSession(configuration: .ephemeral)
@@ -67,7 +67,7 @@ import Testing
 
         let unknown = HTTPBillingAPI(
             baseURL: "https://cmux.example",
-            bundleID: "dev.cmux.app.beta",
+            bundleID: "app.w3dev.cmux.ios.beta",
             credentials: { BillingAPICredentials(accessToken: "access", refreshToken: "refresh") },
             session: URLSession(configuration: .ephemeral)
         )
@@ -78,7 +78,7 @@ import Testing
     @Test func requestCarriesStackAuthAndBundleHeaders() async throws {
         let api = HTTPBillingAPI(
             baseURL: "https://cmux.example/",
-            bundleID: "com.cmux.app",
+            bundleID: "app.w3dev.cmux.ios",
             credentials: { BillingAPICredentials(accessToken: "access", refreshToken: "refresh") },
             session: URLSession(configuration: .ephemeral)
         )
@@ -86,14 +86,14 @@ import Testing
         #expect(request.url?.absoluteString == "https://cmux.example/api/billing/apple/transactions")
         #expect(request.httpMethod == "POST")
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer access")
-        #expect(request.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == "refresh")
-        #expect(request.value(forHTTPHeaderField: "x-cmux-bundle-id") == "com.cmux.app")
+        #expect(request.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == nil)
+        #expect(request.value(forHTTPHeaderField: "x-cmux-bundle-id") == "app.w3dev.cmux.ios")
     }
 
     @Test func signedOutRequestIsNotBuilt() async throws {
         let api = HTTPBillingAPI(
             baseURL: "https://cmux.example",
-            bundleID: "com.cmux.app",
+            bundleID: "app.w3dev.cmux.ios",
             credentials: { nil },
             session: URLSession(configuration: .ephemeral)
         )
@@ -147,7 +147,7 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
         configuration.protocolClasses = [StubURLProtocol.self]
         return HTTPBillingAPI(
             baseURL: "https://\(host)",
-            bundleID: "com.cmux.app",
+            bundleID: "app.w3dev.cmux.ios",
             credentials: { BillingAPICredentials(accessToken: "access", refreshToken: "refresh") },
             session: URLSession(configuration: configuration)
         )

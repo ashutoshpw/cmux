@@ -80,7 +80,7 @@ struct AmpVaultRegistrationTests {
         )
         let trustedRepository = SessionSnapshotRepository<AmpRegistrationSnapshot>(
             schemaVersion: 1,
-            bundleIdentifier: "com.cmuxterm.amp-snapshot-test",
+            bundleIdentifier: "app.w3dev.cmux.amp-snapshot-test",
             appSupportDirectory: directory,
             decoderUserInfo: [.cmuxTrustedPersistedSessionSnapshot: true]
         )
@@ -90,7 +90,7 @@ struct AmpVaultRegistrationTests {
 
         let untrustedRepository = SessionSnapshotRepository<AmpRegistrationSnapshot>(
             schemaVersion: 1,
-            bundleIdentifier: "com.cmuxterm.amp-snapshot-test",
+            bundleIdentifier: "app.w3dev.cmux.amp-snapshot-test",
             appSupportDirectory: directory
         )
         #expect(untrustedRepository.load() == nil)

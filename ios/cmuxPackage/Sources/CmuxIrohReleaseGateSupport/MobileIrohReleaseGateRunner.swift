@@ -9,7 +9,7 @@ import Observation
 import OSLog
 
 private let mobileIrohReleaseGateLog = Logger(
-    subsystem: "dev.cmux.ios",
+    subsystem: "app.w3dev.cmux.ios.debug",
     category: "iroh-release-gate"
 )
 
@@ -30,7 +30,7 @@ final class MobileIrohReleaseGateRunner {
         static let modeEnvironmentKey = "CMUX_IROH_RELEASE_GATE_MODE"
         static let scenarioEnvironmentKey = "CMUX_IROH_RELEASE_GATE_SCENARIO"
         static let reportFilename = "cmux-iroh-release-gate.json"
-        static let reportReadyNotification = "dev.cmux.ios.iroh-release-gate.report-ready"
+        static let reportReadyNotification = "app.w3dev.cmux.ios.debug.iroh-release-gate.report-ready"
 
         let mode: CmxIrohTransportVerificationMode
         let scenario: MobileIrohReleaseGateScenario

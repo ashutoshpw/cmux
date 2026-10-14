@@ -1,6 +1,6 @@
 "use client";
 
-import { UserAvatar, useUser } from "@hexclave/next";
+import { UserAvatar, useUser } from "@/app/lib/stack-client";
 import { useTranslations } from "next-intl";
 import {
   EditableText,

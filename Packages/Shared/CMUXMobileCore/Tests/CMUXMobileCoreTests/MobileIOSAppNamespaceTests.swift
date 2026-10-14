@@ -5,12 +5,12 @@ import Testing
 @Suite struct MobileIOSAppNamespaceTests {
     @Test(
         arguments: [
-            "com.cmux.app",
-            "dev.cmux.app.beta",
-            "dev.cmux.app.internal",
-            "dev.cmux.app.demo",
-            "dev.cmux.ios.feature-a",
-            "dev.cmux.ios.feature-b",
+            "app.w3dev.cmux.ios",
+            "app.w3dev.cmux.ios.beta",
+            "app.w3dev.cmux.ios.internal",
+            "app.w3dev.cmux.ios.demo",
+            "app.w3dev.cmux.ios.debug.feature-a",
+            "app.w3dev.cmux.ios.debug.feature-b",
         ]
     )
     func fullBundleIdentifierOwnsEveryNamespace(bundleIdentifier: String) throws {
@@ -20,8 +20,8 @@ import Testing
 
         #expect(namespace.bundleIdentifier == bundleIdentifier)
         #expect(
-            namespace.keychainService(base: "com.cmuxterm.iroh.identity")
-                == "com.cmuxterm.iroh.identity.\(bundleIdentifier)"
+            namespace.keychainService(base: "app.w3dev.cmux.iroh.identity")
+                == "app.w3dev.cmux.iroh.identity.\(bundleIdentifier)"
         )
         #expect(
             namespace.keychainAccessGroup(teamIdentifier: "7WLXT3NR37")
@@ -29,18 +29,18 @@ import Testing
         )
         #expect(
             namespace.pairingURLScheme
-                == "cmux-ios-\(bundleIdentifier)"
+                == "cmux-w3dev-ios-\(bundleIdentifier)"
         )
     }
 
     @Test func appTypesAndDevTagsNeverSharePersistentOrPairingScopes() throws {
         let bundleIdentifiers = [
-            "com.cmux.app",
-            "dev.cmux.app.beta",
-            "dev.cmux.app.internal",
-            "dev.cmux.app.demo",
-            "dev.cmux.ios.feature-a",
-            "dev.cmux.ios.feature-b",
+            "app.w3dev.cmux.ios",
+            "app.w3dev.cmux.ios.beta",
+            "app.w3dev.cmux.ios.internal",
+            "app.w3dev.cmux.ios.demo",
+            "app.w3dev.cmux.ios.debug.feature-a",
+            "app.w3dev.cmux.ios.debug.feature-b",
         ]
         let namespaces = try bundleIdentifiers.map {
             try #require(MobileIOSAppNamespace(bundleIdentifier: $0))
@@ -51,7 +51,7 @@ import Testing
         #expect(
             Set(
                 namespaces.map {
-                    $0.keychainService(base: "com.cmuxterm.iroh.identity")
+                    $0.keychainService(base: "app.w3dev.cmux.iroh.identity")
                 }
             ).count == namespaces.count
         )
@@ -61,18 +61,18 @@ import Testing
         #expect(MobileIOSAppNamespace(bundleIdentifier: nil) == nil)
         #expect(MobileIOSAppNamespace(bundleIdentifier: "") == nil)
         #expect(MobileIOSAppNamespace(bundleIdentifier: "Dev.cmux.ios.feature-a") == nil)
-        #expect(MobileIOSAppNamespace(bundleIdentifier: "dev.cmux.ios.*") == nil)
+        #expect(MobileIOSAppNamespace(bundleIdentifier: "app.w3dev.cmux.ios.debug.*") == nil)
         #expect(MobileIOSAppNamespace(bundleIdentifier: "dev cmux ios") == nil)
     }
 
     @Test func macInstanceTagResolvesOneExactIOSBundle() {
         #expect(
             MobileIOSAppNamespace(pairedMacInstanceTag: "feature-a")?.bundleIdentifier
-                == "dev.cmux.ios.feature-a"
+                == "app.w3dev.cmux.ios.debug.feature-a"
         )
         #expect(
             MobileIOSAppNamespace(pairedMacInstanceTag: "default")?.bundleIdentifier
-                == "com.cmux.app"
+                == "app.w3dev.cmux.ios"
         )
         #expect(MobileIOSAppNamespace(pairedMacInstanceTag: "invalid tag") == nil)
         #expect(MobileIOSAppNamespace(pairedMacInstanceTag: " feature-a ") == nil)
@@ -80,10 +80,10 @@ import Testing
 
     @Test func legacyBackupAdoptionIsLimitedToUnambiguousOwners() throws {
         let appStore = try #require(
-            MobileIOSAppNamespace(bundleIdentifier: "com.cmux.app")
+            MobileIOSAppNamespace(bundleIdentifier: "app.w3dev.cmux.ios")
         )
         let tagged = try #require(
-            MobileIOSAppNamespace(bundleIdentifier: "dev.cmux.ios.feature-a")
+            MobileIOSAppNamespace(bundleIdentifier: "app.w3dev.cmux.ios.debug.feature-a")
         )
         #expect(appStore.legacyBackupScope == .unscoped)
         #expect(
@@ -91,9 +91,9 @@ import Testing
                 == .scoped("ios:v2:ZmVhdHVyZS1h")
         )
         for bundleIdentifier in [
-            "dev.cmux.app.beta",
-            "dev.cmux.app.internal",
-            "dev.cmux.app.demo",
+            "app.w3dev.cmux.ios.beta",
+            "app.w3dev.cmux.ios.internal",
+            "app.w3dev.cmux.ios.demo",
         ] {
             #expect(
                 MobileIOSAppNamespace(

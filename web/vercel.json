@@ -15,10 +15,6 @@
       "schedule": "* * * * *"
     },
     {
-      "path": "/api/cron/hexclave-inbox",
-      "schedule": "* * * * *"
-    },
-    {
       "path": "/api/cron/vm-reconcile",
       "schedule": "7,17,27,37,47,57 * * * *"
     },

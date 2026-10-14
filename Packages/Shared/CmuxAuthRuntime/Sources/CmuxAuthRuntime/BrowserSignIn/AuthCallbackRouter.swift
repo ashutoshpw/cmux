@@ -8,7 +8,7 @@ public import Foundation
 /// reads the process environment itself. A pure value; construct it once at the
 /// composition root and inject it.
 public struct AuthCallbackRouter: Sendable {
-    private static let builtInSchemes: Set<String> = ["cmux", "cmux-nightly", "cmux-rc", "cmux-dev"]
+    private static let builtInSchemes: Set<String> = ["cmux-w3dev", "cmux-w3dev-nightly", "cmux-w3dev-rc", "cmux-w3dev-dev", "cmux-w3dev-ios"]
     private let extraAllowedScheme: String?
 
     /// Creates a router.

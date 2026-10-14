@@ -1,4 +1,4 @@
-import { StackTheme } from "@hexclave/next";
+import { StackTheme } from "@/app/lib/stack-client";
 import { redirect } from "next/navigation";
 import { isStackConfigured } from "@/app/lib/stack";
 

@@ -22,7 +22,7 @@ public actor CmxIrohHostPolicyCache {
     ///   - verifier: The broker Ed25519 grant and attestation verifier.
     public init(
         secureStore: any CmxIrohSecureCredentialStoring = CmxIrohKeychainCredentialStore(
-            service: "com.cmuxterm.iroh.host-policy.v1"
+            service: "app.w3dev.cmux.iroh.host-policy.v1"
         ),
         verifier: CmxIrohGrantVerifier = CmxIrohGrantVerifier()
     ) {

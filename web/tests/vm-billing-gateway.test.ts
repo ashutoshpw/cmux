@@ -1,234 +1,39 @@
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 import * as Effect from "effect/Effect";
-import {
-  DEFAULT_FREE_INITIAL_CREATE_CREDITS,
-  DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-  FREE_INITIAL_CREATE_CREDITS_REASON,
-  makeStackVmBillingGateway,
-  type VmBillingGatewayShape,
-} from "../services/vms/billingGateway";
 import { VmCreateCreditsInsufficientError } from "../services/vms/errors";
-
-type ReserveCreateInput = Parameters<VmBillingGatewayShape["reserveCreate"]>[0];
-
-let stackConfigured = true;
-const tryDecreaseQuantity = mock(async () => true);
-const increaseQuantity = mock(async () => undefined);
-const getItem = mock(async () => ({
-  tryDecreaseQuantity,
-  increaseQuantity,
-}));
-
-mock.module("../app/lib/stack", () => ({
-  getStackServerApp: () => ({ getItem }),
-  isStackConfigured: () => stackConfigured,
-  stackServerApp: { getItem, getUser: async () => null },
-}));
-
-beforeEach(() => {
-  stackConfigured = true;
-  tryDecreaseQuantity.mockClear();
-  tryDecreaseQuantity.mockResolvedValue(true);
-  increaseQuantity.mockClear();
-  getItem.mockClear();
-});
-
-describe("Stack VM billing gateway", () => {
-  test("does not resolve free-plan create credits by default", () => {
-    const gateway = makeStackVmBillingGateway({});
-
-    expect(gateway.resolveInitialCreateCreditGrant(createInput())).toEqual({ kind: "none" });
+const operations: unknown[] = [];
+let sufficient = true;
+mock.module("../services/vms/creditLedger", () => ({ applyCreditLedgerOperation: async (input: unknown) => { operations.push(input); return sufficient; } }));
+const { makeOwnedVmBillingGateway, DEFAULT_FREE_CREATE_CREDIT_ITEM_ID } = await import("../services/vms/billingGateway");
+const input = { userId: "user-1", billingCustomerType: "team" as const, billingTeamId: "org-1", billingPlanId: "free", provider: "freestyle" as const, image: "test", vmId: "83b2a08c-a00a-4d89-886d-b812cd59ca61" };
+beforeEach(() => { operations.length = 0; sufficient = true; });
+describe("owned VM create credits", () => {
+  test("free accounts receive twenty create credits without provider configuration", () => {
+    expect(makeOwnedVmBillingGateway({}).resolveInitialCreateCreditGrant(input)).toEqual({ kind: "owned_credit", itemId: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID, customerType: "team", customerId: "org-1", amount: 20, reason: "free-plan-initial-create-credits" });
+    expect(makeOwnedVmBillingGateway({}).resolveInitialCreateCreditGrant({ ...input, billingPlanId: "pro" })).toEqual({ kind: "none" });
   });
-
-  test("resolves configured free-plan initial create-credit grants", () => {
-    const gateway = makeStackVmBillingGateway({
-      CMUX_VM_PLAN_FREE_CREATE_CREDIT_ITEM_ID: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-    });
-
-    expect(gateway.resolveInitialCreateCreditGrant(createInput())).toEqual({
-      kind: "stack_item",
-      itemId: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-      customerType: "team",
-      customerId: "team-billing",
-      amount: DEFAULT_FREE_INITIAL_CREATE_CREDITS,
-      reason: FREE_INITIAL_CREATE_CREDITS_REASON,
-    });
+  test("grant and reserve use stable operation identities, and refund names the reservation", async () => {
+    const gateway = makeOwnedVmBillingGateway({});
+    await Effect.runPromise(gateway.applyCreateCreditGrant(gateway.resolveInitialCreateCreditGrant(input)));
+    const reservation = await Effect.runPromise(gateway.reserveCreate(input));
+    expect(reservation).toMatchObject({ kind: "owned_credit", customerId: "org-1", amount: 1, vmId: input.vmId });
+    await Effect.runPromise(gateway.refundCreate(reservation));
+    expect(operations).toMatchObject([{ kind: "grant", amount: 20, operationKey: "grant:team:org-1:cmux-vm-create-credit:free-plan-initial-create-credits" }, { kind: "reserve", vmId: input.vmId, operationKey: `reserve:team:org-1:cmux-vm-create-credit:${input.vmId}` }, { kind: "refund", originalOperationKey: `reserve:team:org-1:cmux-vm-create-credit:${input.vmId}` }]);
   });
-
-  test("applies a Stack Auth create-credit grant", async () => {
-    const gateway = makeStackVmBillingGateway({});
-
-    await Effect.runPromise(gateway.applyCreateCreditGrant({
-      kind: "stack_item",
-      itemId: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-      customerType: "team",
-      customerId: "team-billing",
-      amount: 20,
-      reason: FREE_INITIAL_CREATE_CREDITS_REASON,
-    }));
-
-    expect(getItem).toHaveBeenCalledWith({
-      teamId: "team-billing",
-      itemId: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-    });
-    expect(increaseQuantity).toHaveBeenCalledWith(20);
+  test("insufficient owned balance preserves the payment refusal", async () => {
+    sufficient = false;
+    const result = await Effect.runPromise(Effect.either(makeOwnedVmBillingGateway({}).reserveCreate(input)));
+    expect(result._tag).toBe("Left");
+    if (result._tag === "Left") expect(result.left).toBeInstanceOf(VmCreateCreditsInsufficientError);
   });
-
-  test("does not consume a free-plan Stack Auth create-credit item by default", async () => {
-    stackConfigured = false;
-    const gateway = makeStackVmBillingGateway({});
-
-    const reservation = await Effect.runPromise(gateway.reserveCreate(createInput()));
-
-    expect(reservation).toEqual({ kind: "none" });
-    expect(getItem).not.toHaveBeenCalled();
+  test("explicit credit disabling applies only to the configured plan", async () => {
+    const gateway = makeOwnedVmBillingGateway({ CMUX_VM_PLAN_FREE_CREATE_CREDIT_ITEM_ID: "disabled" });
+    expect(await Effect.runPromise(gateway.reserveCreate(input))).toEqual({ kind: "none" });
+    expect(operations).toHaveLength(0);
   });
-
-  test("consumes a configured free-plan Stack Auth create-credit item", async () => {
-    const gateway = makeStackVmBillingGateway({
-      CMUX_VM_PLAN_FREE_CREATE_CREDIT_ITEM_ID: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-    });
-
-    const reservation = await Effect.runPromise(gateway.reserveCreate(createInput()));
-
-    expect(getItem).toHaveBeenCalledWith({
-      teamId: "team-billing",
-      itemId: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-    });
-    expect(tryDecreaseQuantity).toHaveBeenCalledWith(1);
-    expect(reservation).toEqual({
-      kind: "stack_item",
-      itemId: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-      customerType: "team",
-      customerId: "team-billing",
-      amount: 1,
-    });
-  });
-
-  test("does not require create credits for paid plans by default", async () => {
-    stackConfigured = false;
-    const gateway = makeStackVmBillingGateway({});
-
-    const reservation = await Effect.runPromise(gateway.reserveCreate(createInput({
-      billingPlanId: "pro",
-    })));
-
-    expect(reservation).toEqual({ kind: "none" });
-    expect(getItem).not.toHaveBeenCalled();
-  });
-
-  test("allows the default free-plan create-credit item to be disabled", async () => {
-    stackConfigured = false;
-    const gateway = makeStackVmBillingGateway({
-      CMUX_VM_PLAN_FREE_CREATE_CREDIT_ITEM_ID: "none",
-    });
-
-    const reservation = await Effect.runPromise(gateway.reserveCreate(createInput()));
-
-    expect(reservation).toEqual({ kind: "none" });
-    expect(getItem).not.toHaveBeenCalled();
-  });
-
-  test("allows the global create-credit item to disable the free-plan default", async () => {
-    stackConfigured = false;
-    const gateway = makeStackVmBillingGateway({
-      CMUX_VM_CREATE_CREDIT_ITEM_ID: "disabled",
-    });
-
-    const reservation = await Effect.runPromise(gateway.reserveCreate(createInput()));
-
-    expect(reservation).toEqual({ kind: "none" });
-    expect(getItem).not.toHaveBeenCalled();
-  });
-
-  test("preserves global Stack Auth create-credit items for paid plans", async () => {
-    const gateway = makeStackVmBillingGateway({
-      CMUX_VM_CREATE_CREDIT_ITEM_ID: "global-vm-create-credit",
-    });
-
-    const reservation = await Effect.runPromise(gateway.reserveCreate(createInput({
-      billingPlanId: "pro",
-    })));
-
-    expect(getItem).toHaveBeenCalledWith({
-      teamId: "team-billing",
-      itemId: "global-vm-create-credit",
-    });
-    expect(reservation).toEqual(expect.objectContaining({
-      itemId: "global-vm-create-credit",
-      amount: 1,
-    }));
-  });
-
-  test("allows plan-specific Stack Auth item and cost overrides", async () => {
-    const gateway = makeStackVmBillingGateway({
-      CMUX_VM_PLAN_FREE_CREATE_CREDIT_ITEM_ID: "free-vm-create-credit",
-      CMUX_VM_PLAN_FREE_CREATE_CREDIT_COST_FREESTYLE: "2",
-    });
-
-    const reservation = await Effect.runPromise(gateway.reserveCreate(createInput({
-      provider: "freestyle",
-    })));
-
-    expect(getItem).toHaveBeenCalledWith({
-      teamId: "team-billing",
-      itemId: "free-vm-create-credit",
-    });
-    expect(tryDecreaseQuantity).toHaveBeenCalledWith(2);
-    expect(reservation).toEqual(expect.objectContaining({
-      itemId: "free-vm-create-credit",
-      amount: 2,
-    }));
-  });
-
-  test("fails before provider create when Stack Auth create credits are exhausted", async () => {
-    tryDecreaseQuantity.mockResolvedValue(false);
-    const gateway = makeStackVmBillingGateway({
-      CMUX_VM_PLAN_FREE_CREATE_CREDIT_ITEM_ID: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-    });
-
-    const error = await Effect.runPromise(
-      gateway.reserveCreate(createInput()).pipe(Effect.flip),
-    );
-
-    expect(error).toBeInstanceOf(VmCreateCreditsInsufficientError);
-    expect(error).toMatchObject({
-      itemId: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-      billingCustomerId: "team-billing",
-      amount: 1,
-    });
-  });
-
-  test("refunds a reserved Stack Auth create credit", async () => {
-    const gateway = makeStackVmBillingGateway({});
-
-    await Effect.runPromise(gateway.refundCreate({
-      kind: "stack_item",
-      itemId: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-      customerType: "team",
-      customerId: "team-billing",
-      amount: 1,
-    }));
-
-    expect(getItem).toHaveBeenCalledWith({
-      teamId: "team-billing",
-      itemId: DEFAULT_FREE_CREATE_CREDIT_ITEM_ID,
-    });
-    expect(increaseQuantity).toHaveBeenCalledWith(1);
+  test("user billing and provider-specific cost stay scoped to their configured account", async () => {
+    const gateway = makeOwnedVmBillingGateway({ CMUX_VM_PLAN_FREE_CREATE_CREDIT_COST_FREESTYLE: "3" });
+    await Effect.runPromise(gateway.reserveCreate({ ...input, billingCustomerType: "user" }));
+    expect(operations[0]).toMatchObject({ customerType: "user", customerId: "user-1", amount: 3 });
   });
 });
-
-function createInput(overrides: Partial<ReserveCreateInput> = {}): ReserveCreateInput {
-  return {
-    userId: "user-billing",
-    billingCustomerType: "team" as const,
-    billingTeamId: "team-billing",
-    billingPlanId: "free",
-    provider: "freestyle" as const,
-    image: "cmuxd-ws:test",
-    imageVersion: "test-version",
-    vmId: "vm-billing",
-    idempotencyKey: "idem-billing",
-    ...overrides,
-  };
-}

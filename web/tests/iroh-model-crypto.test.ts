@@ -32,7 +32,6 @@ import {
   IROH_ENDPOINT_ATTESTATION_VERSION,
   IROH_PAIR_GRANT_TYP,
   IROH_PAIR_SCOPE,
-  MANAGED_RELAY_URLS,
   parseRegistrationPayload,
 } from "../services/iroh/model";
 import {
@@ -221,13 +220,14 @@ describe("Iroh route wire contract", () => {
   });
 
   test("accepts bounded canonical relay candidates before account authorization", () => {
-    const relayHint = directHint({ kind: "relay_url", value: MANAGED_RELAY_URLS[0] });
-    expect(parseRegistrationPayload(registrationPayload(relayHint), NOW).pathHints[0]?.value).toBe(MANAGED_RELAY_URLS[0]);
+    const candidates = ["https://relay-a.example.net/", "https://relay-b.example.net/", "https://relay-c.example.net/"];
+    const relayHint = directHint({ kind: "relay_url", value: candidates[0] });
+    expect(parseRegistrationPayload(registrationPayload(relayHint), NOW).pathHints[0]?.value).toBe(candidates[0]);
     const customHint = directHint({ kind: "relay_url", value: "https://relay.example.net/" });
     expect(parseRegistrationPayload(registrationPayload(customHint), NOW).pathHints[0]?.value)
       .toBe("https://relay.example.net/");
     const payload = registrationPayload(relayHint);
-    payload.pathHints = MANAGED_RELAY_URLS.slice(0, 3).map((value) => directHint({ kind: "relay_url", value }));
+    payload.pathHints = candidates.map((value) => directHint({ kind: "relay_url", value }));
     expect(() => parseRegistrationPayload(payload, NOW)).toThrow();
   });
 

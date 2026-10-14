@@ -12,7 +12,7 @@ import Testing
 @Suite struct MacPairedMacBackupPublisherScopeTests {
     @Test func taggedPublisherTargetsTheMatchingIOSBackupScope() throws {
         let targetNamespace = try #require(MobileIOSAppNamespace(
-            bundleIdentifier: "dev.cmux.ios.feature-a"
+            bundleIdentifier: "app.w3dev.cmux.ios.debug.feature-a"
         ))
         let request = MacPairedMacBackupPublisher.makeRequest(
             url: try #require(URL(string: "https://presence.example/v1/sync/paired-macs")),
@@ -31,10 +31,10 @@ import Testing
 
     @Test func releasePublishersTargetEachExactIOSBackupScope() throws {
         let bundleIdentifiers = [
-            "com.cmux.app",
-            "dev.cmux.app.beta",
-            "dev.cmux.app.internal",
-            "dev.cmux.app.demo",
+            "app.w3dev.cmux.ios",
+            "app.w3dev.cmux.ios.beta",
+            "app.w3dev.cmux.ios.internal",
+            "app.w3dev.cmux.ios.demo",
         ]
         for bundleIdentifier in bundleIdentifiers {
             let targetNamespace = try #require(MobileIOSAppNamespace(

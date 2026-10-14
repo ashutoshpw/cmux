@@ -37,7 +37,7 @@ function ArtCard({ work, title, sourceLabel }: { work: ArtWork; title: string; s
   return (
     <li className="min-w-0">
       <a href={work.image} className="block overflow-hidden rounded-md border border-border bg-code-bg">
-        {/* eslint-disable-next-line @next/next/no-img-element -- files.cmux.com thumbnails are already 480x300 AVIF */}
+        {/* eslint-disable-next-line @next/next/no-img-element -- files.cmux.w3dev.app thumbnails are already 480x300 AVIF */}
         <img
           src={work.thumbnail}
           alt={`${title} — ${work.artist}`}

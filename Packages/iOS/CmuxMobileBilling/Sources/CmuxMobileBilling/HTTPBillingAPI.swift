@@ -10,7 +10,7 @@ import Foundation
 ///
 /// ```swift
 /// let api = HTTPBillingAPI(
-///     baseURL: "https://cmux.com",
+///     baseURL: "https://cmux.w3dev.app",
 ///     bundleID: "com.cmux.app",
 ///     credentials: { try await tokens() }
 /// )
@@ -85,7 +85,6 @@ public struct HTTPBillingAPI: BillingAPI {
         request.httpMethod = "POST"
         request.timeoutInterval = timeout
         request.setValue("Bearer \(pair.accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(pair.refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         request.setValue(bundleID, forHTTPHeaderField: "x-cmux-bundle-id")
         if let environment = await storeKitEnvironment() {
             request.setValue(environment, forHTTPHeaderField: "x-cmux-storekit-environment")

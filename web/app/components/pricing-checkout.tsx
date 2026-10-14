@@ -138,7 +138,7 @@ function pricingDestination(
   const checkoutHref = withCheckoutAttribution(href, {
     [CHECKOUT_PLACEMENT_PARAM]: location,
   });
-  const checkoutURL = new URL(checkoutHref, "https://cmux.com");
+  const checkoutURL = new URL(checkoutHref, "https://cmux.w3dev.app");
   checkoutURL.searchParams.set("cmux_after_sign_in", "1");
   const signInHref = vaultSignInHref(
     `${checkoutURL.pathname}${checkoutURL.search}`,

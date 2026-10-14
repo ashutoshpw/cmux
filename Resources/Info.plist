@@ -95,6 +95,8 @@
 	<string>APPL</string>
 	<key>CMUX_IROH_V2_ENVIRONMENT</key>
 	<string>$(CMUX_IROH_V2_ENVIRONMENT)</string>
+	<key>CMUX_OAUTH_CLIENT_ID</key>
+	<string>$(CMUX_OAUTH_CLIENT_ID)</string>
 	<key>CMUX_IROH_V2_BASE_URL</key>
 	<string>$(CMUX_IROH_V2_BASE_URL)</string>
 	<key>CMUX_IROH_V2_FORCE_RELAY</key>
@@ -300,7 +302,7 @@
 	<key>SUEnableAutomaticChecks</key>
 	<true/>
 	<key>SUFeedURL</key>
-	<string>https://github.com/manaflow-ai/cmux/releases/latest/download/appcast.xml</string>
+	<string>https://github.com/ashutoshpw/cmux/releases/latest/download/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>$(SPARKLE_PUBLIC_KEY)</string>
 	<key>SUScheduledCheckInterval</key>

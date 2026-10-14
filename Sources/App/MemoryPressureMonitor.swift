@@ -9,11 +9,11 @@ final class MemoryPressureMonitor {
     static let shared = MemoryPressureMonitor()
 
     private static let logger = Logger(
-        subsystem: "com.cmuxterm.app",
+        subsystem: "app.w3dev.cmux",
         category: "MemoryPressure"
     )
     private static let signposter = OSSignposter(
-        subsystem: "com.cmuxterm.app",
+        subsystem: "app.w3dev.cmux",
         category: "MemoryPressure"
     )
 

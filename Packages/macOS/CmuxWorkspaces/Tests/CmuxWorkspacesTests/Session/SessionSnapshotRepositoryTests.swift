@@ -84,7 +84,7 @@ struct SessionSnapshotRepositoryTests {
 
     private func makeRepository(
         appSupport: URL,
-        bundleIdentifier: String? = "com.cmuxterm.tests"
+        bundleIdentifier: String? = "app.w3dev.cmux.tests"
     ) -> SessionSnapshotRepository<SnapshotFixture> {
         SessionSnapshotRepository(
             schemaVersion: schemaVersion,
@@ -120,14 +120,14 @@ struct SessionSnapshotRepositoryTests {
         #expect(backup.path == dir.appendingPathComponent("cmux/session-com.cmux_odd_id-previous.json").path)
     }
 
-    @Test("nil and blank bundle identifiers fall back to com.cmuxterm.app")
+    @Test("nil and blank bundle identifiers fall back to app.w3dev.cmux")
     func bundleIdentifierFallback() throws {
         let dir = try makeTempDirectory()
         defer { try? FileManager.default.removeItem(at: dir) }
         for identifier in [nil, "  "] as [String?] {
             let repository = makeRepository(appSupport: dir, bundleIdentifier: identifier)
             let primary = try #require(repository.defaultSnapshotFileURL())
-            #expect(primary.lastPathComponent == "session-com.cmuxterm.app.json")
+            #expect(primary.lastPathComponent == "session-app.w3dev.cmux.json")
         }
     }
 
@@ -306,7 +306,7 @@ struct SessionSnapshotRepositoryTests {
         defer { try? FileManager.default.removeItem(at: dir) }
         let repository = SessionSnapshotRepository<DeepLayoutSnapshotFixture>(
             schemaVersion: schemaVersion,
-            bundleIdentifier: "com.cmuxterm.tests",
+            bundleIdentifier: "app.w3dev.cmux.tests",
             appSupportDirectory: dir
         )
         // 200 splits is 400 JSON levels: inside Foundation's nesting limit,

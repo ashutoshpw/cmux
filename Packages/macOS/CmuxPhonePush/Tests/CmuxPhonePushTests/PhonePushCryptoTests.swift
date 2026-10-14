@@ -8,7 +8,7 @@ struct PhonePushCryptoTests {
     private let tuple = PhonePushDeviceTuple(
         accountID: "account-1",
         teamID: "team-1",
-        iosBuildID: "dev.cmux.ios",
+        iosBuildID: "app.w3dev.cmux.ios.debug",
         iosInstallationID: "ios-install-1",
         macDeviceID: "mac-1",
         macInstanceTag: "agent",

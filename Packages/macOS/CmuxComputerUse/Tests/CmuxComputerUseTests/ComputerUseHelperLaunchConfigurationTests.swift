@@ -60,7 +60,7 @@ struct ComputerUseHelperLaunchConfigurationTests {
                 homeDirectoryURL: fixture.root,
                 socketRootDirectoryURL: fixture.root,
                 environment: [:],
-                bundleIdentifier: "com.cmuxterm.tests.helper-launch",
+                bundleIdentifier: "app.w3dev.cmux.tests.helper-launch",
                 authenticationToken: "test-token",
                 hostAuthenticationToken: "test-host-token"
             ),

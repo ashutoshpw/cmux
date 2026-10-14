@@ -134,7 +134,7 @@ public func defaultCloudVMAction(status: Int, errorCode: String, response: [Stri
     case "vm_requires_pro":
         return String(
             localized: "cloudVM.error.requiresPro.action",
-            defaultValue: "Upgrade to cmux Pro at https://cmux.com/pricing?cmux_source=mac_vm_requires_pro_error&cmux_client=mac to create Cloud VMs."
+            defaultValue: "Upgrade to cmux Pro at https://cmux.w3dev.app/pricing?cmux_source=mac_vm_requires_pro_error&cmux_client=mac to create Cloud VMs."
         )
     case "vm_memory_requires_plan":
         let details = response["details"] as? [String: Any]
@@ -1673,7 +1673,7 @@ public actor VMClient {
               let url = URL(string: rawURL),
               url.scheme == "https",
               url.host?.isEmpty == false else {
-            throw VMClientError.malformedResponse("Checkout URL is missing. Open https://cmux.com/pricing.")
+            throw VMClientError.malformedResponse("Checkout URL is missing. Open https://cmux.w3dev.app/pricing.")
         }
         return result
     }
@@ -2448,7 +2448,6 @@ public actor VMClient {
         request.httpMethod = "POST"
         request.timeoutInterval = 4
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         request.setValue("application/json", forHTTPHeaderField: "content-type")
         request.httpBody = Data("{}".utf8)
         do {
@@ -2481,7 +2480,6 @@ public actor VMClient {
             request.httpMethod = "DELETE"
             request.timeoutInterval = 8
             request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-            request.setValue(refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
             do {
                 _ = try await session.data(for: request)
             } catch {
@@ -2809,7 +2807,6 @@ public actor VMClient {
             req.timeoutInterval = timeoutSeconds
         }
         req.setValue("Bearer \(tokens.accessToken)", forHTTPHeaderField: "Authorization")
-        req.setValue(tokens.refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         if let teamID, !teamID.isEmpty {
             req.setValue(teamID, forHTTPHeaderField: "X-Cmux-Team-Id")
         }
@@ -3357,7 +3354,6 @@ public actor MachineUsageClient {
         req.httpMethod = method
         req.timeoutInterval = 15
         req.setValue("Bearer \(tokens.accessToken)", forHTTPHeaderField: "Authorization")
-        req.setValue(tokens.refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         let teamID = explicitTeamID?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let teamID = teamID?.isEmpty == false ? teamID : resolvedTeamID, !teamID.isEmpty {
             req.setValue(teamID, forHTTPHeaderField: "X-Cmux-Team-Id")

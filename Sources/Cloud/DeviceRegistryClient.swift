@@ -301,7 +301,6 @@ final class DeviceRegistryClient {
         req.httpMethod = registration.routes.isEmpty ? "PATCH" : "POST"
         req.timeoutInterval = 2
         req.setValue("Bearer \(tokens.accessToken)", forHTTPHeaderField: "Authorization")
-        req.setValue(tokens.refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         if let teamID = registration.teamID, !teamID.isEmpty {
             req.setValue(teamID, forHTTPHeaderField: "X-Cmux-Team-Id")
         }

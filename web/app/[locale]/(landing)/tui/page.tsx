@@ -131,7 +131,7 @@ export default async function TuiPage() {
             {t("fullDocs")} <span aria-hidden>→</span>
           </Link>
           <a
-            href="https://github.com/manaflow-ai/cmux/tree/main/cmux-tui"
+            href="https://github.com/ashutoshpw/cmux/tree/main/cmux-tui"
             className="text-muted underline decoration-link-underline underline-offset-4"
           >
             {t("browseSource")} <span aria-hidden>↗</span>

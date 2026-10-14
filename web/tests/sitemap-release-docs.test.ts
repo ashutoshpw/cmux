@@ -10,15 +10,15 @@ const { default: sitemap, sitemapEntries } = await import("../app/sitemap");
 // release tag. Docs added on main after that tag returned 404 there while the
 // main site's sitemap still listed them (182 URLs on 2026-10-02).
 const RELEASED_DOCS = [
-  "https://cmux.com/docs/getting-started",
-  "https://cmux.com/ja/docs/getting-started",
-  "https://cmux.com/docs/ssh",
-  "https://cmux.com/ja/docs/ssh",
+  "https://cmux.w3dev.app/docs/getting-started",
+  "https://cmux.w3dev.app/ja/docs/getting-started",
+  "https://cmux.w3dev.app/docs/ssh",
+  "https://cmux.w3dev.app/ja/docs/ssh",
 ];
 
 function releaseSitemapXml(urls: readonly string[]): string {
   const body = urls.map((url) => `<url><loc>${url}</loc></url>`).join("");
-  return `<?xml version="1.0" encoding="UTF-8"?><urlset>${body}<url><loc>https://cmux.com/pricing</loc></url></urlset>`;
+  return `<?xml version="1.0" encoding="UTF-8"?><urlset>${body}<url><loc>https://cmux.w3dev.app/pricing</loc></url></urlset>`;
 }
 
 const saved = {
@@ -55,30 +55,30 @@ describe("main site sitemap", () => {
     const urls = (await sitemap()).map((entry) => entry.url);
 
     expect(requested).toEqual(["https://release-docs.test/sitemap.xml"]);
-    expect(urls).toContain("https://cmux.com/docs/getting-started");
-    expect(urls).toContain("https://cmux.com/ja/docs/ssh");
-    expect(urls).not.toContain("https://cmux.com/docs/cloud");
-    expect(urls).not.toContain("https://cmux.com/ja/docs/coderouter");
-    expect(urls).not.toContain("https://cmux.com/docs/configuration");
+    expect(urls).toContain("https://cmux.w3dev.app/docs/getting-started");
+    expect(urls).toContain("https://cmux.w3dev.app/ja/docs/ssh");
+    expect(urls).not.toContain("https://cmux.w3dev.app/docs/cloud");
+    expect(urls).not.toContain("https://cmux.w3dev.app/ja/docs/coderouter");
+    expect(urls).not.toContain("https://cmux.w3dev.app/docs/configuration");
     // Pages this deployment serves itself are unaffected.
-    expect(urls).toContain("https://cmux.com/pricing");
-    expect(urls).toContain("https://cmux.com/ja/pricing");
+    expect(urls).toContain("https://cmux.w3dev.app/pricing");
+    expect(urls).toContain("https://cmux.w3dev.app/ja/pricing");
   });
 
   test("drops alternates that point at docs the release zone does not serve", async () => {
-    serveReleaseSitemap(() => new Response(releaseSitemapXml(["https://cmux.com/docs/ssh"])));
-    const ssh = (await sitemap()).find((entry) => entry.url === "https://cmux.com/docs/ssh");
+    serveReleaseSitemap(() => new Response(releaseSitemapXml(["https://cmux.w3dev.app/docs/ssh"])));
+    const ssh = (await sitemap()).find((entry) => entry.url === "https://cmux.w3dev.app/docs/ssh");
 
     expect(ssh?.alternates?.languages).toEqual({
-      en: "https://cmux.com/docs/ssh",
-      "x-default": "https://cmux.com/docs/ssh",
+      en: "https://cmux.w3dev.app/docs/ssh",
+      "x-default": "https://cmux.w3dev.app/docs/ssh",
     });
   });
 
   test("falls back to every authored entry when the release sitemap is unavailable", async () => {
     for (const response of [
       () => new Response("unavailable", { status: 503 }),
-      () => new Response("<urlset><url><loc>https://cmux.com/pricing</loc></url></urlset>"),
+      () => new Response("<urlset><url><loc>https://cmux.w3dev.app/pricing</loc></url></urlset>"),
     ]) {
       serveReleaseSitemap(response);
       expect((await sitemap()).map((entry) => entry.url)).toEqual(

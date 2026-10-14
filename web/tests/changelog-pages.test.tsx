@@ -165,7 +165,7 @@ Release intro.
     const entries = sitemap();
     const latest = releases[0];
     const indexEntry = entries.find(
-      (entry) => entry.url === `https://cmux.com${changelogPath}`,
+      (entry) => entry.url === `https://cmux.w3dev.app${changelogPath}`,
     );
 
     expect(indexEntry?.lastModified).toBe(latest.date);
@@ -173,16 +173,16 @@ Release intro.
     for (const release of releases) {
       const path = changelogVersionPath(release.version);
       const entry = entries.find(
-        (candidate) => candidate.url === `https://cmux.com${path}`,
+        (candidate) => candidate.url === `https://cmux.w3dev.app${path}`,
       );
       expect(entry?.lastModified).toBe(release.date);
       expect(entry?.changeFrequency).toBe("never");
       expect(entry?.alternates?.languages?.ja).toBe(
-        `https://cmux.com/ja${path}`,
+        `https://cmux.w3dev.app/ja${path}`,
       );
       expect(
         entries.some(
-          (candidate) => candidate.url === `https://cmux.com/ja${path}`,
+          (candidate) => candidate.url === `https://cmux.w3dev.app/ja${path}`,
         ),
       ).toBe(true);
     }
@@ -194,21 +194,21 @@ Release intro.
 
     try {
       const canonical = middleware(
-        new NextRequest("https://cmux.com/docs/changelog/0.64.22", {
+        new NextRequest("https://cmux.w3dev.app/docs/changelog/0.64.22", {
           headers: { "accept-language": "en" },
         }),
       );
       expect(canonical.status).toBe(200);
       expect(canonical.headers.get("x-middleware-rewrite")).toBe(
-        "https://cmux.com/en/docs/changelog/0.64.22",
+        "https://cmux.w3dev.app/en/docs/changelog/0.64.22",
       );
 
       const alias = middleware(
-        new NextRequest("https://cmux.com/changelog/0.64.22"),
+        new NextRequest("https://cmux.w3dev.app/changelog/0.64.22"),
       );
       expect(alias.status).toBe(307);
       expect(alias.headers.get("location")).toBe(
-        "https://cmux.com/docs/changelog/0.64.22",
+        "https://cmux.w3dev.app/docs/changelog/0.64.22",
       );
     } finally {
       if (previousDocsChannel === undefined) {

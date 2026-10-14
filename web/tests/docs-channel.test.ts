@@ -54,11 +54,11 @@ test("Base appears only in nightly documentation navigation", () => {
 test("release docs are the canonical default", () => {
   delete process.env.CMUX_DOCS_CHANNEL;
   expect(docsChannel()).toBe("release");
-  expect(docsCanonicalOrigin()).toBe("https://cmux.com");
+  expect(docsCanonicalOrigin()).toBe("https://cmux.w3dev.app");
 });
 
 test("nightly docs canonically point to the release channel", () => {
   process.env.CMUX_DOCS_CHANNEL = "nightly";
   expect(docsChannel()).toBe("nightly");
-  expect(docsCanonicalOrigin()).toBe("https://cmux.com");
+  expect(docsCanonicalOrigin()).toBe("https://cmux.w3dev.app");
 });

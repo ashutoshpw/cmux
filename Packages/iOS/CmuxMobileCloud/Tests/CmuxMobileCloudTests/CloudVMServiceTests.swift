@@ -55,7 +55,7 @@ struct CloudVMServiceTests {
 
         let request = try #require(TeamHeaderURLProtocol.capturedRequest())
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer captured-access")
-        #expect(request.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == "captured-refresh")
+        #expect(request.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == nil)
         #expect(request.value(forHTTPHeaderField: "X-Cmux-Team-Id") == "old-team")
     }
 
@@ -104,7 +104,7 @@ struct CloudVMServiceTests {
 
         let request = try #require(TeamHeaderURLProtocol.capturedRequest())
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer captured-access")
-        #expect(request.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == "captured-refresh")
+        #expect(request.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == nil)
         #expect(request.value(forHTTPHeaderField: "X-Cmux-Team-Id") == nil)
     }
 
@@ -184,7 +184,7 @@ struct CloudVMServiceTests {
 
         let request = try #require(TeamHeaderURLProtocol.capturedRequest())
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer coherent-access")
-        #expect(request.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == "coherent-refresh")
+        #expect(request.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == nil)
     }
 
     @Test func coherentProviderDoesNotFallBackToIndependentReads() async {

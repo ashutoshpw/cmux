@@ -12,7 +12,7 @@ license = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 
 [project.urls]
-Homepage = "https://cmux.com/coderouter"
+Homepage = "https://cmux.w3dev.app/coderouter"
 Repository = "https://github.com/manaflow-ai/cmux/tree/main/coderouter"
 
 [tool.maturin]

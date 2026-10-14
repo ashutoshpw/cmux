@@ -86,8 +86,8 @@ export const mobileMacCompatList: MobileMacCompatList = {
     // Keep in sync with DOWNLOAD_URL in web/app/lib/download.ts (data/ does
     // not import from app/lib, so the value is duplicated deliberately).
     stable:
-      "https://github.com/manaflow-ai/cmux/releases/latest/download/cmux-macos.dmg",
-    nightly: "https://github.com/manaflow-ai/cmux/releases/tag/nightly",
+      "https://github.com/ashutoshpw/cmux/releases/latest/download/cmux-macos.dmg",
+    nightly: "https://github.com/ashutoshpw/cmux/releases/tag/nightly",
   },
   entries: [
     {

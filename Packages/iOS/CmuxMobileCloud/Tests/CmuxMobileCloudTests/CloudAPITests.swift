@@ -21,7 +21,7 @@ import Testing
         #expect(request.url?.absoluteString == "https://cmux.example/api/vm")
         #expect(request.httpMethod == "GET")
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer acc")
-        #expect(request.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == "ref")
+        #expect(request.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == nil)
         #expect(request.httpBody == nil)
     }
 

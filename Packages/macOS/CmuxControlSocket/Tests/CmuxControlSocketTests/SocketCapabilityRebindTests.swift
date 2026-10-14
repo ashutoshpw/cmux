@@ -28,7 +28,7 @@ struct SocketCapabilityRebindTests {
 
         let authority = SocketClientCapabilityAuthority(
             secret: Data(repeating: 0x11, count: SocketClientCapabilityAuthority.secureByteCount),
-            audience: "com.cmuxterm.test"
+            audience: "app.w3dev.cmux.test"
         )
         let capability = authority.issueCapability(
             nonce: Data(repeating: 0x22, count: SocketClientCapabilityAuthority.secureByteCount)

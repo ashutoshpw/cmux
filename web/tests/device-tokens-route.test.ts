@@ -1,3 +1,4 @@
+import { ownedPrincipal } from "./helpers/owned-principal";
 import { afterAll, beforeAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import postgres, { type Sql } from "postgres";
 
@@ -17,7 +18,7 @@ const pushFieldsFor = (deviceToken: string, installationId?: string) => ({
   pushPublicKey: `${"A".repeat(43)}=`,
 });
 const testAccessHeader = `Bearer header.${Buffer.from(
-  JSON.stringify({ refresh_token_id: "test-session" }),
+  JSON.stringify({ sid: "11111111-1111-4111-8111-111111111111" }),
 ).toString("base64url")}.signature`;
 
 const getUser = mock(async () => ({
@@ -26,6 +27,10 @@ const getUser = mock(async () => ({
   primaryEmail: "push@example.com",
   selectedTeam: null,
   listTeams: async () => [],
+}));
+
+mock.module("../services/auth/betterAuthPrincipal", () => ({
+  resolveBetterAuthPrincipal: async (headers: Headers) => ownedPrincipal(await getUser(), headers),
 }));
 
 mock.module("../app/lib/stack", () => ({
@@ -66,11 +71,11 @@ describe("device token route", () => {
         headers: {
           authorization: testAccessHeader,
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-app-namespace": "dev.cmux.app.demo",
+          "x-cmux-app-namespace": "app.w3dev.cmux.ios.demo",
         },
         body: JSON.stringify({
           deviceToken: "b".repeat(64),
-          bundleId: "dev.cmux.app.internal",
+          bundleId: "app.w3dev.cmux.ios.internal",
           platform: "ios",
           ...pushFieldsFor("b".repeat(64)),
         }),
@@ -90,11 +95,11 @@ describe("device token route", () => {
         headers: {
           authorization: testAccessHeader,
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-app-namespace": "dev.cmux.app.internal",
+          "x-cmux-app-namespace": "app.w3dev.cmux.ios.internal",
         },
         body: JSON.stringify({
           deviceToken: "c".repeat(64),
-          bundleId: "dev.cmux.app.internal",
+          bundleId: "app.w3dev.cmux.ios.internal",
           platform: "ios",
         }),
       }),
@@ -119,7 +124,7 @@ describe("device token route", () => {
         },
         body: JSON.stringify({
           deviceToken: token,
-          bundleId: "com.cmux.app",
+          bundleId: "app.w3dev.cmux.ios",
           platform: "ios",
         }),
       }),
@@ -158,7 +163,7 @@ describe("device token route", () => {
       ) values (
         'push-user-1',
         ${token},
-        'dev.cmux.app.internal',
+        'app.w3dev.cmux.ios.internal',
         'production',
         'ios'
       )
@@ -201,14 +206,14 @@ describe("device token route", () => {
         (
           'push-user-1',
           ${token},
-          'dev.cmux.app.internal',
+          'app.w3dev.cmux.ios.internal',
           'production',
           'ios'
         ),
         (
           'push-user-1',
           ${token},
-          'dev.cmux.app.demo',
+          'app.w3dev.cmux.ios.demo',
           'production',
           'ios'
         )
@@ -254,7 +259,7 @@ describe("device token route", () => {
         },
         body: JSON.stringify({
           deviceToken: "b".repeat(64),
-          bundleId: "dev.cmux.ios.push1",
+          bundleId: "app.w3dev.cmux.ios.debug.push1",
           platform: "ios",
           ...pushFieldsFor("b".repeat(64)),
         }),
@@ -291,7 +296,7 @@ describe("device token route", () => {
         },
         body: JSON.stringify({
           deviceToken: "b".repeat(64),
-          bundleId: "dev.cmux.ios.push1",
+          bundleId: "app.w3dev.cmux.ios.debug.push1",
           platform: "ios",
           ...pushFieldsFor("b".repeat(64)),
         }),
@@ -320,7 +325,7 @@ describe("device token route", () => {
             },
             body: JSON.stringify({
               deviceToken: index.toString(16).padStart(64, "0"),
-              bundleId: "dev.cmux.ios.push1",
+              bundleId: "app.w3dev.cmux.ios.debug.push1",
               platform: "ios",
               ...pushFieldsFor(index.toString(16).padStart(64, "0")),
             }),
@@ -359,7 +364,7 @@ describe("device token route", () => {
           'push-user-1',
           ${token},
           'ios',
-          'dev.cmux.ios.push1',
+          'app.w3dev.cmux.ios.debug.push1',
           'sandbox',
           ${new Date(Date.UTC(2026, 0, 1, 0, 0, index))},
           ${new Date(Date.UTC(2026, 0, 1, 0, 0, index))}
@@ -377,7 +382,7 @@ describe("device token route", () => {
         headers,
         body: JSON.stringify({
           deviceToken,
-          bundleId: "dev.cmux.ios.push1",
+          bundleId: "app.w3dev.cmux.ios.debug.push1",
           platform: "ios",
           ...pushFieldsFor(deviceToken),
         }),
@@ -419,12 +424,12 @@ describe("device token route", () => {
             "x-cmux-app-namespace": bundleId,
           },
           body: JSON.stringify({
-            deviceToken: `${bundleId === "dev.cmux.app.demo" ? "d" : "e"}${index
+            deviceToken: `${bundleId === "app.w3dev.cmux.ios.demo" ? "d" : "e"}${index
               .toString(16)
               .padStart(63, "0")}`,
             bundleId,
             platform: "ios",
-            ...pushFieldsFor(`${bundleId === "dev.cmux.app.demo" ? "d" : "e"}${index
+            ...pushFieldsFor(`${bundleId === "app.w3dev.cmux.ios.demo" ? "d" : "e"}${index
               .toString(16)
               .padStart(63, "0")}`),
           }),
@@ -433,9 +438,9 @@ describe("device token route", () => {
 
     const responses = await Promise.all([
       ...Array.from({ length: 10 }, (_, index) =>
-        register(index, "dev.cmux.app.demo")),
+        register(index, "app.w3dev.cmux.ios.demo")),
       ...Array.from({ length: 10 }, (_, index) =>
-        register(index, "dev.cmux.app.internal")),
+        register(index, "app.w3dev.cmux.ios.internal")),
     ]);
     expect(responses.every((response) => response.status === 200)).toBe(true);
   });
@@ -454,7 +459,7 @@ describe("device token route", () => {
       select
         'push-user-1',
         lpad(to_hex(value), 64, '0'),
-        'dev.cmux.ios.cap' || (value / 10)::text,
+        'app.w3dev.cmux.ios.debug.cap' || (value / 10)::text,
         'sandbox',
         'ios'
       from generate_series(0, ${MAX_DEVICE_TOKENS_PER_ACCOUNT - 1}) as series(value)
@@ -466,11 +471,11 @@ describe("device token route", () => {
         headers: {
           authorization: testAccessHeader,
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-app-namespace": "dev.cmux.ios.overflow",
+          "x-cmux-app-namespace": "app.w3dev.cmux.ios.debug.overflow",
         },
         body: JSON.stringify({
           deviceToken: "f".repeat(64),
-          bundleId: "dev.cmux.ios.overflow",
+          bundleId: "app.w3dev.cmux.ios.debug.overflow",
           platform: "ios",
           ...pushFieldsFor("f".repeat(64)),
         }),
@@ -492,7 +497,7 @@ describe("device token route", () => {
     const headers = {
       authorization: testAccessHeader,
       "x-stack-refresh-token": "refresh-token",
-      "x-cmux-app-namespace": "dev.cmux.ios.push1",
+      "x-cmux-app-namespace": "app.w3dev.cmux.ios.debug.push1",
     };
     const register = (deviceToken: string) =>
       POST(
@@ -501,7 +506,7 @@ describe("device token route", () => {
           headers,
         body: JSON.stringify({
           deviceToken,
-          bundleId: "dev.cmux.ios.push1",
+          bundleId: "app.w3dev.cmux.ios.debug.push1",
           platform: "ios",
           ...pushFieldsFor(deviceToken),
           }),
@@ -522,7 +527,7 @@ describe("device token route", () => {
         headers,
         body: JSON.stringify({
           deviceToken: token.toUpperCase(),
-          bundleId: "dev.cmux.ios.push1",
+          bundleId: "app.w3dev.cmux.ios.debug.push1",
         }),
       }),
     );
@@ -556,8 +561,8 @@ describe("device token route", () => {
         }),
       });
 
-    expect((await POST(request("POST", "dev.cmux.app.internal"))).status).toBe(200);
-    expect((await POST(request("POST", "dev.cmux.app.beta"))).status).toBe(200);
+    expect((await POST(request("POST", "app.w3dev.cmux.ios.internal"))).status).toBe(200);
+    expect((await POST(request("POST", "app.w3dev.cmux.ios.beta"))).status).toBe(200);
 
     const rowsBeforeDelete = await sql<{
       bundle_id: string;
@@ -568,11 +573,11 @@ describe("device token route", () => {
       order by bundle_id
     `;
     expect(rowsBeforeDelete).toEqual([
-      { bundle_id: "dev.cmux.app.beta" },
-      { bundle_id: "dev.cmux.app.internal" },
+      { bundle_id: "app.w3dev.cmux.ios.beta" },
+      { bundle_id: "app.w3dev.cmux.ios.internal" },
     ]);
 
-    expect((await DELETE(request("DELETE", "dev.cmux.app.internal"))).status).toBe(200);
+    expect((await DELETE(request("DELETE", "app.w3dev.cmux.ios.internal"))).status).toBe(200);
 
     const rowsAfterDelete = await sql<{
       bundle_id: string;
@@ -582,7 +587,7 @@ describe("device token route", () => {
       where user_id = 'push-user-1' and device_token = ${deviceToken}
     `;
     expect(rowsAfterDelete).toEqual([
-      { bundle_id: "dev.cmux.app.beta" },
+      { bundle_id: "app.w3dev.cmux.ios.beta" },
     ]);
   });
 
@@ -596,7 +601,7 @@ describe("device token route", () => {
         user_id, device_token, platform, bundle_id, environment,
         delivery_lease_until, delivery_lease_token
       ) values (
-        'previous-user', ${token}, 'ios', 'com.cmux.app', 'production',
+        'previous-user', ${token}, 'ios', 'app.w3dev.cmux.ios', 'production',
         now() + interval '30 seconds',
         '00000000-0000-4000-8000-000000000001'
       )
@@ -606,7 +611,7 @@ describe("device token route", () => {
         user_id, device_token, platform, bundle_id, environment,
         delivery_lease_until, delivery_lease_token
       ) values (
-        'push-user-1', ${ownedToken}, 'ios', 'com.cmux.app', 'production',
+        'push-user-1', ${ownedToken}, 'ios', 'app.w3dev.cmux.ios', 'production',
         now() + interval '30 seconds',
         '00000000-0000-4000-8000-000000000002'
       )
@@ -622,7 +627,7 @@ describe("device token route", () => {
         headers,
         body: JSON.stringify({
           deviceToken: token,
-          bundleId: "com.cmux.app",
+          bundleId: "app.w3dev.cmux.ios",
           platform: "ios",
           ...pushFieldsFor(token),
         }),
@@ -661,10 +666,10 @@ describe("device token route", () => {
     const token = "f".repeat(64);
     const rotatedToken = "e".repeat(64);
     const installationId = "installation-revocation-1";
-    const bundleId = "dev.cmux.ios.revocation";
+    const bundleId = "app.w3dev.cmux.ios.debug.revocation";
     const accessTokenFor = (sessionID: string) =>
       `header.${Buffer.from(
-        JSON.stringify({ refresh_token_id: sessionID }),
+        JSON.stringify({ sid: sessionID }),
       ).toString("base64url")}.signature`;
     const requestHeaders = (accessToken: string, refreshToken: string) => ({
       authorization: `Bearer ${accessToken}`,
@@ -684,8 +689,8 @@ describe("device token route", () => {
       }),
     );
 
-    const oldAccessToken = accessTokenFor("old-session");
-    const newAccessToken = accessTokenFor("new-session");
+    const oldAccessToken = accessTokenFor("11111111-1111-4111-8111-111111111111");
+    const newAccessToken = accessTokenFor("22222222-2222-4222-8222-222222222222");
     expect((await register(oldAccessToken, "old-refresh")).status).toBe(200);
     const signOut = await DELETE(
       new Request("https://cmux.test/api/device-tokens", {
@@ -758,28 +763,28 @@ describe("device token route", () => {
         ) values
         (
           'push-user-1', ${token1}, 'installation-get-1', 'key-get-1',
-          ${"A".repeat(43) + "="}, 'ios', 'dev.cmux.ios.push1', 'sandbox'
+          ${"A".repeat(43) + "="}, 'ios', 'app.w3dev.cmux.ios.debug.push1', 'sandbox'
         ),
         (
           'push-user-1', ${token2}, 'installation-get-2', 'key-get-2',
-          ${"B".repeat(43) + "="}, 'ios', 'dev.cmux.ios.push2', 'sandbox'
+          ${"B".repeat(43) + "="}, 'ios', 'app.w3dev.cmux.ios.debug.push2', 'sandbox'
         ),
         (
           'push-user-1', ${token3}, 'legacy', 'legacy', null,
-          'ios', 'dev.cmux.ios.push1', 'sandbox'
+          'ios', 'app.w3dev.cmux.ios.debug.push1', 'sandbox'
         ),
         (
           'other-user', ${token4}, 'installation-get-4', 'key-get-4',
-          ${"C".repeat(43) + "="}, 'ios', 'dev.cmux.ios.push1', 'sandbox'
+          ${"C".repeat(43) + "="}, 'ios', 'app.w3dev.cmux.ios.debug.push1', 'sandbox'
         )
     `;
 
     const response = await GET(
-      new Request("https://cmux.test/api/device-tokens?bundleId=dev.cmux.ios.push1", {
+      new Request("https://cmux.test/api/device-tokens?bundleId=app.w3dev.cmux.ios.debug.push1", {
         headers: {
           authorization: testAccessHeader,
           "x-stack-refresh-token": "refresh-token",
-          "x-cmux-app-namespace": "dev.cmux.ios.push1",
+          "x-cmux-app-namespace": "app.w3dev.cmux.ios.debug.push1",
         },
       }),
     );
@@ -791,7 +796,7 @@ describe("device token route", () => {
         installationID: "installation-get-1",
         keyID: "key-get-1",
         publicKey: "A".repeat(43) + "=",
-        bundleID: "dev.cmux.ios.push1",
+        bundleID: "app.w3dev.cmux.ios.debug.push1",
       }],
     });
   });
@@ -808,15 +813,15 @@ describe("device token route", () => {
       ) values
         (
           'push-user-1', ${token1}, 'installation-all-1', 'key-all-1',
-          ${"D".repeat(43) + "="}, 'ios', 'com.cmux.app', 'production'
+          ${"D".repeat(43) + "="}, 'ios', 'app.w3dev.cmux.ios', 'production'
         ),
         (
           'push-user-1', ${token2}, 'installation-all-2', 'key-all-2',
-          ${"E".repeat(43) + "="}, 'ios', 'dev.cmux.app.internal', 'production'
+          ${"E".repeat(43) + "="}, 'ios', 'app.w3dev.cmux.ios.internal', 'production'
         ),
         (
           'push-user-1', ${token3}, 'legacy', 'legacy', null,
-          'ios', 'dev.cmux.app.beta', 'production'
+          'ios', 'app.w3dev.cmux.ios.beta', 'production'
         )
     `;
 
@@ -837,14 +842,14 @@ describe("device token route", () => {
           installationID: "installation-all-1",
           keyID: "key-all-1",
           publicKey: "D".repeat(43) + "=",
-          bundleID: "com.cmux.app",
+          bundleID: "app.w3dev.cmux.ios",
         },
         {
           accountID: "push-user-1",
           installationID: "installation-all-2",
           keyID: "key-all-2",
           publicKey: "E".repeat(43) + "=",
-          bundleID: "dev.cmux.app.internal",
+          bundleID: "app.w3dev.cmux.ios.internal",
         },
       ],
     });
@@ -852,7 +857,7 @@ describe("device token route", () => {
 
   dbTest("rotates a token in place for the same installation", async () => {
     if (!sql) throw new Error("test database not initialized");
-    const bundleId = "dev.cmux.ios.rotate";
+    const bundleId = "app.w3dev.cmux.ios.debug.rotate";
     const installationId = "installation-rotate-1";
     const firstToken = "5".repeat(64);
     const secondToken = "6".repeat(64);
@@ -902,7 +907,7 @@ describe("device token route", () => {
 
   dbTest("rejects an installation already owned by another account", async () => {
     if (!sql) throw new Error("test database not initialized");
-    const bundleId = "dev.cmux.ios.owner";
+    const bundleId = "app.w3dev.cmux.ios.debug.owner";
     const installationId = "installation-owner-1";
     const oldToken = "7".repeat(64);
     const newToken = "8".repeat(64);

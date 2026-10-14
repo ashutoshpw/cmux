@@ -2,18 +2,18 @@ import Testing
 @testable import CmuxFoundation
 
 @Suite struct SentryBuildIdentityPolicyTests {
-    private static let base = "com.cmuxterm.app"
+    private static let base = "app.w3dev.cmux"
 
     @Test(arguments: [
-        "com.cmuxterm.app",
-        "com.cmuxterm.app.nightly",
-        "com.cmuxterm.app.nightly.rc1",
-        "com.cmuxterm.app.rc",
-        "com.cmuxterm.app.rc.candidate1",
-        "com.cmuxterm.app.staging",
-        "com.cmuxterm.app.debug",
-        "com.cmuxterm.app.debug.snmsc",
-        " com.cmuxterm.app "
+        "app.w3dev.cmux",
+        "app.w3dev.cmux.nightly",
+        "app.w3dev.cmux.nightly.rc1",
+        "app.w3dev.cmux.rc",
+        "app.w3dev.cmux.rc.candidate1",
+        "app.w3dev.cmux.staging",
+        "app.w3dev.cmux.debug",
+        "app.w3dev.cmux.debug.snmsc",
+        " app.w3dev.cmux "
     ])
     func allowsCmuxBuildIdentities(_ bundleIdentifier: String) {
         #expect(SentryBuildIdentityPolicy(
@@ -25,8 +25,8 @@ import Testing
     @Test(arguments: [
         "mosaic.com.emergent.app",
         "com.emergent.mosaic",
-        "com.cmuxterm.application",
-        "com.cmuxterm",
+        "app.w3dev.cmuxlication",
+        "app.w3dev.cmux",
         "org.example.cmux",
         "",
         " "

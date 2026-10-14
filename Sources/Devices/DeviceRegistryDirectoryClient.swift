@@ -72,7 +72,6 @@ actor DeviceRegistryDirectoryClient {
         request.httpMethod = "GET"
         request.timeoutInterval = 10
         request.setValue("Bearer \(tokens.accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(tokens.refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         if let teamID, !teamID.isEmpty {
             request.setValue(teamID, forHTTPHeaderField: "X-Cmux-Team-Id")
         }

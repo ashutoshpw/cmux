@@ -4,7 +4,7 @@ import Darwin
 
 extension CMUXCLI {
     static let cmuxThemeOverrideBundleIdentifier = CmuxGhosttyConfigPathResolver.releaseBundleIdentifier
-    static let cmuxThemesReloadNotificationName = "com.cmuxterm.themes.reload-config"
+    static let cmuxThemesReloadNotificationName = "app.w3dev.cmux.themes.reload-config"
 
     struct ThemeSelection {
         let rawValue: String?

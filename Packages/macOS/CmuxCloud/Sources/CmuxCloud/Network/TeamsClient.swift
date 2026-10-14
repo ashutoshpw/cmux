@@ -212,7 +212,6 @@ public actor TeamsClient {
         req.timeoutInterval = 20
         req.setValue("application/json", forHTTPHeaderField: "Accept")
         req.setValue("Bearer \(tokens.accessToken)", forHTTPHeaderField: "Authorization")
-        req.setValue(tokens.refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         if let jsonBody {
             req.setValue("application/json", forHTTPHeaderField: "content-type")
             req.httpBody = try JSONSerialization.data(withJSONObject: jsonBody, options: [])

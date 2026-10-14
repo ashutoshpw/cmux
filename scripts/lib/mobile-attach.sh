@@ -88,7 +88,7 @@ cmux_attach__bundle_seg() {
 
 # The tagged macOS Debug app's bundle id (the iOS pairing host lives on the Mac).
 cmux_attach_mac_bundle_id() {
-  printf 'com.cmuxterm.app.debug.%s' "$(cmux_attach__bundle_seg "$1")"
+  printf 'app.w3dev.cmux.debug.%s' "$(cmux_attach__bundle_seg "$1")"
 }
 
 # Unsigned Simulator apps have no application-identifier entitlement, so iOS
@@ -134,7 +134,7 @@ PY
 
 # The tagged Mac app's debug socket path.
 cmux_attach_socket_path() {
-  printf '/tmp/cmux-debug-%s.sock' "$(cmux_attach__slug "$1")"
+  printf '/tmp/cmux-w3dev-debug-%s.sock' "$(cmux_attach__slug "$1")"
 }
 
 # Remove a stale socket only for one validated tagged-build identity. Callers
@@ -159,12 +159,12 @@ cmux_attach_remove_stale_socket() {
 
 # The locally-built tagged macOS Debug .app bundle path (cloud/local reloads both
 # download/install here). Both the DerivedData dir AND the .app basename use the
-# sanitized slug, matching reload.sh (`APP_NAME="cmux DEV ${TAG_SLUG}"`); the raw
+# sanitized slug, matching reload.sh (`APP_NAME="cmux W3Dev DEV ${TAG_SLUG}"`); the raw
 # tag would miss for any tag whose slug differs (e.g. "Fix Foo" -> "fix-foo").
 cmux_attach_mac_app_path() {
   local slug
   slug="$(cmux_attach__slug "$1")"
-  printf '%s/Library/Developer/Xcode/DerivedData/cmux-%s/Build/Products/Debug/cmux DEV %s.app' \
+  printf '%s/Library/Developer/Xcode/DerivedData/cmux-%s/Build/Products/Debug/cmux W3Dev DEV %s.app' \
     "$HOME" "$slug" "$slug"
 }
 
@@ -785,7 +785,7 @@ NODE
 # nonce (CMUX_DOGFOOD_READINESS_NONCE) so a stale file can never pass. An app
 # without the key keeps the mac-rpc readiness mode (tagged Mac
 # mobile.rpc.ready event), unchanged.
-CMUX_ATTACH_APP_RECEIPT_RELATIVE_PATH="Library/Application Support/cmux-dogfood/readiness.json"
+CMUX_ATTACH_APP_RECEIPT_RELATIVE_PATH="Library/Application Support/cmux-w3dev-dogfood/readiness.json"
 
 # Print the readiness mode one app bundle declares: "app-receipt" or "mac-rpc".
 # A missing bundle, Info.plist, or key means mac-rpc. An unknown value fails

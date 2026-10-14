@@ -3,7 +3,7 @@ import Foundation
 import NetworkExtension
 import os
 
-nonisolated private let logger = Logger(subsystem: "com.cmuxterm.app", category: "CloudTunnelNE")
+nonisolated private let logger = Logger(subsystem: "app.w3dev.cmux", category: "CloudTunnelNE")
 
 /// The real ``CloudTunnelControlling``: the bundled network system extension
 /// plus one `NETunnelProviderManager` (the VPN configuration macOS shows as

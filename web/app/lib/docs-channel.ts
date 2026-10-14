@@ -1,12 +1,13 @@
+import { forkDeployment } from "../../services/deployment/config";
 export type DocsChannel = "release" | "nightly";
 
-const productionOrigin = "https://cmux.com";
-const defaultReleaseDocsOrigin = "https://cmux-docs-release.vercel.app";
-const defaultNightlyDocsOrigin = "https://cmux-docs-nightly.vercel.app";
+const productionOrigin = forkDeployment.productionOrigin;
+const defaultReleaseDocsOrigin = "";
+const defaultNightlyDocsOrigin = "";
 const docsPathnamePattern = /^\/(?:[a-z]{2}(?:-[A-Z]{2})?\/)?docs(?:\/|$)/u;
 
 /**
- * The deployment that serves cmux.com/docs. The main site rewrites every docs
+ * The deployment that serves cmux.w3dev.app/docs. The main site rewrites every docs
  * path there, and it is built from the latest release tag, not from main.
  */
 export function releaseDocsOrigin(
@@ -15,7 +16,7 @@ export function releaseDocsOrigin(
   return env.CMUX_RELEASE_DOCS_ORIGIN ?? defaultReleaseDocsOrigin;
 }
 
-/** The deployment that serves cmux.com/docs/nightly, built from main. */
+/** The deployment that serves cmux.w3dev.app/docs/nightly, built from main. */
 export function nightlyDocsOrigin(
   env: Readonly<Record<string, string | undefined>> = process.env,
 ): string {

@@ -72,7 +72,7 @@ import Testing
                 "admission": "suppressed_mac_active",
                 "queue_persistence": "healthy",
                 "hide_content": true,
-                "api_origin": "https://cmux-staging.vercel.app",
+                "api_origin": "https://staging.cmux.w3dev.app",
                 "account_scope": "verified_same_account"
               }
             }
@@ -85,17 +85,17 @@ import Testing
             admission: .suppressedMacActive,
             queuePersistence: .healthy,
             hideContent: true,
-            apiOrigin: "https://cmux-staging.vercel.app",
+            apiOrigin: "https://staging.cmux.w3dev.app",
             accountScope: .verifiedSameAccount
         ))
     }
 
     @Test func hostStatusKeepsMissingQueueHealthDistinctFromFailure() throws {
         let missing = try MobileHostStatusResponse.decode(Data(
-            #"{"phone_push":{"forwarding_enabled":true,"mode":"always","admission":"allowed","api_origin":"https://cmux.com","account_scope":"verified_same_account"}}"#.utf8
+            #"{"phone_push":{"forwarding_enabled":true,"mode":"always","admission":"allowed","api_origin":"https://cmux.w3dev.app","account_scope":"verified_same_account"}}"#.utf8
         ))
         let failed = try MobileHostStatusResponse.decode(Data(
-            #"{"phone_push":{"forwarding_enabled":true,"mode":"always","admission":"allowed","queue_persistence":"save_failed","api_origin":"https://cmux.com","account_scope":"verified_same_account"}}"#.utf8
+            #"{"phone_push":{"forwarding_enabled":true,"mode":"always","admission":"allowed","queue_persistence":"save_failed","api_origin":"https://cmux.w3dev.app","account_scope":"verified_same_account"}}"#.utf8
         ))
 
         #expect(missing.phonePush?.queuePersistence == .unknown)

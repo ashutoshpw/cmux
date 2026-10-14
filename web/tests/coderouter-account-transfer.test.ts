@@ -36,7 +36,7 @@ const teams = [
 
 function request(body: unknown = { destinationTeamId: "team-destination" }): Request {
   return new Request(
-    `https://coderouter.dev/api/coderouter/accounts/${ACCOUNT_ID}/transfer`,
+    `https://cmux.w3dev.app/api/coderouter/accounts/${ACCOUNT_ID}/transfer`,
     {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -112,7 +112,7 @@ describe("coderouter account transfer route", () => {
       transfer,
     });
     const response = await POST(new Request(
-      "https://coderouter.dev/api/coderouter/accounts/not-an-id/transfer",
+      "https://cmux.w3dev.app/api/coderouter/accounts/not-an-id/transfer",
       { method: "POST" },
     ), { params: Promise.resolve({ accountId: "not-an-id" }) });
 

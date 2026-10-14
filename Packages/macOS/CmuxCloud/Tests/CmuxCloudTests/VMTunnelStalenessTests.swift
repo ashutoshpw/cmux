@@ -8,9 +8,9 @@ import Testing
 struct VMTunnelStalenessTests {
     @Test("One tunnel per deployment: production keeps `cmux`, other deployments get their own interface")
     func interfaceNamePerEnvironment() {
-        #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://cmux.com")!) == "cmux")
-        #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://www.cmux.com")!) == "cmux")
-        #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://cmux-staging.vercel.app")!) == "cmux-staging")
+        #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://cmux.w3dev.app")!) == "cmux")
+        #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://cmux.w3dev.app")!) == "cmux")
+        #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://staging.cmux.w3dev.app")!) == "cmux-staging")
         #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "http://localhost:3820")!) == "cmux-local")
         #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://cmux-dev-backend-1.tail137216.ts.net:3916")!) == "cmux-dev")
         for name in ["cmux", "cmux-staging", "cmux-local", "cmux-dev"] {

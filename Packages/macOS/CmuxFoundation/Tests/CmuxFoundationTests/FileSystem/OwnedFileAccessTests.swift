@@ -142,9 +142,9 @@ import Testing
         let directory = try TemporaryDirectory()
         defer { directory.remove() }
         let path = directory.path("marker")
-        try Data("  /tmp/cmux-debug-tag.log\n".utf8).write(to: URL(fileURLWithPath: path))
+        try Data("  /tmp/cmux-w3dev-debug-tag.log\n".utf8).write(to: URL(fileURLWithPath: path))
 
-        #expect(OwnedMarkerFileReader().trimmedContents(atPath: path) == "/tmp/cmux-debug-tag.log")
+        #expect(OwnedMarkerFileReader().trimmedContents(atPath: path) == "/tmp/cmux-w3dev-debug-tag.log")
     }
 
     @Test func refusesASymbolicLinkMarker() throws {
@@ -162,7 +162,7 @@ import Testing
         let directory = try TemporaryDirectory()
         defer { directory.remove() }
         let path = directory.path("marker")
-        try Data("/tmp/cmux-debug.log\n".utf8).write(to: URL(fileURLWithPath: path))
+        try Data("/tmp/cmux-w3dev-debug.log\n".utf8).write(to: URL(fileURLWithPath: path))
 
         #expect(OwnedMarkerFileReader(expectedOwnerID: geteuid() &+ 1).trimmedContents(atPath: path) == nil)
     }

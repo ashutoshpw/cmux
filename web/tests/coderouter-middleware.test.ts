@@ -5,8 +5,8 @@ import middleware from "../proxy";
 describe("coderouter middleware", () => {
   test.each(["en", "ja"])("serves the OAuth handoff in %s without a locale rewrite or sign-in", (locale) => {
     const response = middleware(
-      new NextRequest("https://cmux.com/coderouter/auth/complete", {
-        headers: { host: "cmux.com", "accept-language": locale },
+      new NextRequest("https://cmux.w3dev.app/coderouter/auth/complete", {
+        headers: { host: "cmux.w3dev.app", "accept-language": locale },
       }),
     );
 
@@ -16,10 +16,10 @@ describe("coderouter middleware", () => {
     expect(response.headers.get("x-middleware-request-x-next-intl-locale")).toBe(locale);
   });
 
-  test("serves the same dedicated landing page on cmux.com/coderouter", () => {
+  test("serves the same dedicated landing page on cmux.w3dev.app/coderouter", () => {
     const response = middleware(
-      new NextRequest("https://cmux.com/coderouter", {
-        headers: { host: "cmux.com" },
+      new NextRequest("https://cmux.w3dev.app/coderouter", {
+        headers: { host: "cmux.w3dev.app" },
       }),
     );
 
@@ -27,21 +27,17 @@ describe("coderouter middleware", () => {
     expect(response.headers.get("x-middleware-next")).toBe("1");
   });
 
-  test("serves a dedicated landing page on coderouter.dev", () => {
-    const response = middleware(
-      new NextRequest("https://coderouter.dev/", {
-        headers: { host: "coderouter.dev" },
-      }),
-    );
-
-    expect(response.headers.get("x-middleware-rewrite")).toBe(
-      "https://coderouter.dev/coderouter",
-    );
+  test("the primary homepage stays the product homepage", () => {
+    const response = middleware(new NextRequest("https://cmux.w3dev.app/", {
+      headers: { host: "cmux.w3dev.app", "accept-language": "en" },
+    }));
+    expect(response.headers.get("location")).toBeNull();
+    expect(response.headers.get("x-middleware-rewrite")).toBe("https://cmux.w3dev.app/en");
   });
 
   test("does not localize the OpenAI-compatible data-plane route", () => {
     const response = middleware(
-      new NextRequest("https://coderouter.dev/v1/responses", {
+      new NextRequest("https://cmux.w3dev.app/v1/responses", {
         method: "POST",
         headers: { "content-type": "application/json" },
       }),
@@ -53,7 +49,7 @@ describe("coderouter middleware", () => {
 
   test("does not localize Pi's Codex-compatible data-plane route", () => {
     const response = middleware(
-      new NextRequest("https://coderouter.dev/v1/codex/responses", {
+      new NextRequest("https://cmux.w3dev.app/v1/codex/responses", {
         method: "POST",
         headers: { "content-type": "application/json" },
       }),
@@ -66,7 +62,7 @@ describe("coderouter middleware", () => {
   test("forwards the localized dashboard destination to the server auth gate", () => {
     const response = middleware(
       new NextRequest(
-        "https://cmux.com/ja/dashboard/coderouter?team=team-1",
+        "https://cmux.w3dev.app/ja/dashboard/coderouter?team=team-1",
         {
           headers: {
             "x-cmux-dashboard-return-path": "/pricing",
@@ -82,7 +78,7 @@ describe("coderouter middleware", () => {
   });
 
   test("keeps a dashboard POST body while adding the auth return path", async () => {
-    const request = new NextRequest("https://cmux.com/en/dashboard/testflight", {
+    const request = new NextRequest("https://cmux.w3dev.app/en/dashboard/testflight", {
       method: "POST",
       headers: {
         "content-type": "application/x-www-form-urlencoded",

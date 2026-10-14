@@ -625,8 +625,8 @@ guest_coderouter_usage_render() {
     def rpad(\$w): tostring | if length >= \$w then . else . + (" " * (\$w - length)) end;
     def bar(\$max): if . <= 0 or \$max <= 0 then "" else ((. * 12 / \$max) | ceil | if . < 1 then 1 else . end) as \$n | ("█" * \$n) end;
     def share(\$all): if \$all > 0 then " (\\((. * 100 / \$all) | round)%)" else "" end;
-    def section(\$label; \$items; \$lw; \$total): if (\$items | length) == 0 then empty else
-        "\\(\$label | rpad(\$lw))  " + ([\$items[:5][] | "\\(.name) \\(.totals.totalTokens | whole)\\(.totals.totalTokens | share(\$total))"] | join("   "))
+    def section(\$sectionLabel; \$items; \$lw; \$total): if (\$items | length) == 0 then empty else
+        "\\(\$sectionLabel | rpad(\$lw))  " + ([\$items[:5][] | "\\(.name) \\(.totals.totalTokens | whole)\\(.totals.totalTokens | share(\$total))"] | join("   "))
         + (if (\$items | length) > 5 then "   \\(\$dim)\\(\$moreTpl | sub("%1"; ((\$items | length) - 5 | tostring)))\\(\$reset)" else "" end) end;
     .totals as \$t
     | (.workspaces // []) as \$rawWs
@@ -676,7 +676,7 @@ guest_coderouter_usage_render() {
   done
   printf '\\n%s' "\$cmux_cu_dim"
   cmux_message usageJsonHint
-  cmux_message usageTeamHint "https://cmux.com/dashboard/coderouter"
+  cmux_message usageTeamHint "https://cmux.w3dev.app/dashboard/coderouter"
   printf '%s' "\$cmux_cu_reset"
 }
 
