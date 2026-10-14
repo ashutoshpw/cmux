@@ -14,7 +14,7 @@ import { deviceObservability } from "./observability";
 export const SETUP_HEADER = "x-cmux-v2-setup";
 const INTERNAL_HEADER = "x-cmux-v2-verified-authority";
 export const AuthoritySchema = z.strictObject({
-  environment: identifier, projectId: identifier, teamId: identifier, userId: identifier, verifiedAt: timestamp,
+  environment: identifier, projectId: identifier, teamId: identifier, userId: identifier, verifiedAt: timestamp, sessionId: identifier,
 });
 const AuthorizationSchema = z.strictObject({ authority: AuthoritySchema, expiresAt: timestamp, issueTicket: z.boolean() });
 const InternalBodySchema = z.strictObject({ setup: SocketSetupSchema, input: z.unknown().optional() });
@@ -24,7 +24,7 @@ export interface RoutingDependencies {
   environment: string;
   projectId: string;
   ticketKeys: Readonly<Record<string, string>>;
-  stack: Pick<StackAuthority, "verify">;
+  stack: Pick<StackAuthority, "verify" | "verifyTeamMember">;
   now: () => number;
   chargeOpen: (userId: string) => Promise<void>;
   dispatchTeam: (teamId: string, request: Request) => Promise<Response>;
@@ -173,8 +173,9 @@ async function authenticate(header: string | null, setup: SocketSetup, dependenc
     }
     const authority: VerifiedAuthority = {
       environment: claims.identity.environment, projectId: claims.identity.projectId,
-      teamId: claims.identity.teamId, userId: claims.identity.userId, verifiedAt: claims.issuedAt,
+      teamId: claims.identity.teamId, userId: claims.identity.userId, verifiedAt: claims.issuedAt, sessionId: claims.sessionId,
     };
+    if (!await dependencies.stack.verifyTeamMember(authority.teamId, authority.userId, authority)) throw new OperationError("team_access_revoked", 403);
     return { authority, expiresAt: claims.expiresAt, issueTicket: false };
   }
   if (!header.startsWith("Bearer ")) throw new OperationError("unauthorized", 401);

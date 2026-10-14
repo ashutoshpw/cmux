@@ -1,32 +1,30 @@
-import { describe, expect, test } from "bun:test";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { describe, expect, mock, test } from "bun:test";
+import React from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import type { CmuxSignInMessages } from "../app/handler/cmux-sign-in";
+import { loadMessages } from "../i18n/messages";
 
-describe("coderouter sign-in privacy", () => {
-  test("uses passwordless email instead of the broad shared Google connector", () => {
-    const source = readFileSync(
-      resolve(
-        fileURLToPath(new URL(".", import.meta.url)),
-        "../app/handler/[...stack]/page.tsx",
-      ),
-      "utf8",
-    );
-    expect(source).toContain("coderouterHost");
-    expect(source).toContain("<MagicLinkSignIn />");
-    expect(source).toContain("Drive, Gmail, and Calendar");
+mock.module("next/navigation", () => ({ useSearchParams: () => new URLSearchParams() }));
+mock.module("../app/lib/stack-client", () => ({ authClient: {} }));
+const { CmuxSignIn } = await import("../app/handler/cmux-sign-in");
+
+describe("owned sign-in privacy", () => {
+  test("offers email and passkey authentication with no unconfigured social connector", async () => {
+    const messages = (await loadMessages("en")).cmuxSignIn as CmuxSignInMessages;
+    const html = renderToStaticMarkup(React.createElement(CmuxSignIn, { mode: "sign-in", messages, providers: [] }));
+    expect(html).toContain('type="email"');
+    expect(html).toContain(messages.signInWithPasskey);
+    expect(html).toContain(messages.continueWithEmail);
+    expect(html).not.toContain("Google");
+    expect(html).not.toContain("GitHub");
+    expect(html).not.toContain("Gmail");
   });
 
-  test("renders Stack Auth as a blocking route instead of an empty instant shell", () => {
-    const appRoot = resolve(
-      fileURLToPath(new URL(".", import.meta.url)),
-      "../app/handler",
-    );
-    const page = readFileSync(resolve(appRoot, "[...stack]/page.tsx"), "utf8");
-    const layout = readFileSync(resolve(appRoot, "layout.tsx"), "utf8");
-
-    expect(page).toContain("export const instant = false");
-    expect(layout).toContain("export const instant = false");
-    expect(layout).not.toContain("<Suspense");
+  test("shows only the social providers the owned deployment enables", async () => {
+    const messages = (await loadMessages("en")).cmuxSignIn as CmuxSignInMessages;
+    const html = renderToStaticMarkup(React.createElement(CmuxSignIn, { mode: "sign-in", messages, providers: ["github"] }));
+    expect(html).toContain("GitHub");
+    expect(html).not.toContain("Google");
+    expect(html).not.toContain("Gmail");
   });
 });

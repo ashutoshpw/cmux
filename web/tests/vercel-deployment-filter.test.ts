@@ -14,8 +14,14 @@ function deploymentEnabled(
   return matchingRules.length === 0 || matchingRules.includes(true);
 }
 
-test("automatically deploys main but skips ephemeral branches", () => {
-  for (const config of [vercelConfig, docsVercelConfig]) {
+test("app publication belongs to the GitHub deployment workflow", () => {
+  for (const branch of ["main", "fork-cloud-origin", "codex/refresh-generated-assets"]) {
+    expect(deploymentEnabled(branch, vercelConfig.git.deploymentEnabled)).toBe(false);
+  }
+});
+
+test("separate docs publication remains scoped to main", () => {
+  for (const config of [docsVercelConfig]) {
     expect(config.git.deploymentEnabled).toEqual({
       main: true,
       "**": false,

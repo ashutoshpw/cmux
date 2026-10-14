@@ -8,7 +8,7 @@ import { reportMissingRateLimitRule } from "../../../services/rateLimitObservabi
 import { recordSpanError, setSpanAttributes, withApiRouteSpan } from "../../../services/telemetry";
 
 
-const feedbackRecipient = "feedback@manaflow.com";
+const feedbackRecipient = process.env.CMUX_FEEDBACK_TO_EMAIL?.trim();
 const maxAttachmentCount = 10;
 const maxAttachmentBytes = 4 * 1024 * 1024;
 // Keep multipart requests below Vercel Functions' 4.5 MB request-body limit.
@@ -146,8 +146,8 @@ export async function POST(request: Request) {
       const resend = new Resend(feedbackConfig.resendApiKey);
 
       const { error } = await resend.emails.send({
-        from: `Manaflow <${feedbackConfig.fromEmail}>`,
-        to: [feedbackRecipient],
+        from: `cmux <${feedbackConfig.fromEmail}>`,
+        to: [feedbackRecipient!],
         replyTo: email,
         subject,
         text: buildTextBody({
@@ -215,7 +215,7 @@ function resolveFeedbackConfig() {
   // rateLimitId is optional: unset means the route runs without rate limiting.
   const rateLimitId = env.CMUX_FEEDBACK_RATE_LIMIT_ID;
 
-  if (!resendApiKey || !fromEmail) {
+  if (!resendApiKey || !fromEmail || !feedbackRecipient) {
     return null;
   }
 

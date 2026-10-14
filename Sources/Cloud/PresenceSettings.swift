@@ -19,12 +19,12 @@ enum PresenceSettings {
     static let serviceURLEnvKey = "CMUX_PRESENCE_BASE_URL"
     /// The dev/staging worker (dev Stack project), the Debug-build default.
     /// See workers/presence/README.md.
-    static let debugDefaultServiceURL = "https://cmux-presence-dev.debussy.workers.dev"
+    static let debugDefaultServiceURL = "https://presence.staging.cmux.w3dev.app"
 
     /// The production presence worker (prod Stack project), the Release-build
     /// default so stable cmux can announce presence once the user enables mobile.
     /// See workers/presence/README.md.
-    static let productionServiceURL = "https://presence.cmux.dev"
+    static let productionServiceURL = "https://presence.cmux.w3dev.app"
 
     /// Whether the heartbeat gate is on. An explicitly written value always wins.
     /// With no stored value, presence FOLLOWS the mobile feature: announcing the

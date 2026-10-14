@@ -1,26 +1,22 @@
-import {
-  projectPermissionCreatedWebhookEvent,
-  projectPermissionDeletedWebhookEvent,
-} from "@hexclave/shared/dist/interface/crud/project-permissions";
-import {
-  teamMembershipCreatedWebhookEvent,
-  teamMembershipDeletedWebhookEvent,
-} from "@hexclave/shared/dist/interface/crud/team-memberships";
-import {
-  teamPermissionCreatedWebhookEvent,
-  teamPermissionDeletedWebhookEvent,
-} from "@hexclave/shared/dist/interface/crud/team-permissions";
-import {
-  teamCreatedWebhookEvent,
-  teamDeletedWebhookEvent,
-  teamUpdatedWebhookEvent,
-} from "@hexclave/shared/dist/interface/crud/teams";
-import {
-  userCreatedWebhookEvent,
-  userDeletedWebhookEvent,
-  userUpdatedWebhookEvent,
-} from "@hexclave/shared/dist/interface/crud/users";
-import { ValidationError, type InferType, type ISchema } from "yup";
+import { object, string, number, boolean, array, mixed, ValidationError, type InferType, type ISchema } from "yup";
+const userSchema = object({ id: string().defined(), primary_email: string().nullable().defined(), display_name: string().nullable().defined(), is_anonymous: boolean().defined(), client_read_only_metadata: mixed<Record<string, unknown>>().nullable().defined(), signed_up_at_millis: number().defined() });
+const teamSchema = object({ id: string().defined(), display_name: string().defined(), client_read_only_metadata: mixed<Record<string, unknown>>().nullable().defined(), created_at_millis: number().defined() });
+const membershipSchema = object({ team_id: string().defined(), user_id: string().defined() });
+const teamPermissionSchema = membershipSchema.shape({ id: string().defined() });
+const projectPermissionSchema = object({ id: string().defined(), user_id: string().defined() });
+function historicalEvent<T extends ISchema<unknown>>(type: string, schema: T) { return { type, schema }; }
+const userCreatedWebhookEvent = historicalEvent("user.created", userSchema);
+const userUpdatedWebhookEvent = historicalEvent("user.updated", userSchema);
+const userDeletedWebhookEvent = historicalEvent("user.deleted", object({ id: string().defined(), teams: array(object({ id: string().defined() })).defined() }));
+const teamCreatedWebhookEvent = historicalEvent("team.created", teamSchema);
+const teamUpdatedWebhookEvent = historicalEvent("team.updated", teamSchema);
+const teamDeletedWebhookEvent = historicalEvent("team.deleted", object({ id: string().defined() }));
+const teamMembershipCreatedWebhookEvent = historicalEvent("team_membership.created", membershipSchema);
+const teamMembershipDeletedWebhookEvent = historicalEvent("team_membership.deleted", membershipSchema);
+const teamPermissionCreatedWebhookEvent = historicalEvent("team_permission.created", teamPermissionSchema);
+const teamPermissionDeletedWebhookEvent = historicalEvent("team_permission.deleted", teamPermissionSchema);
+const projectPermissionCreatedWebhookEvent = historicalEvent("project_permission.created", projectPermissionSchema);
+const projectPermissionDeletedWebhookEvent = historicalEvent("project_permission.deleted", projectPermissionSchema);
 
 /**
  * Hexclave webhook catalog, keyed by wire type.

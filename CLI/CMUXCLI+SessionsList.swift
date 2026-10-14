@@ -477,7 +477,7 @@ extension CMUXCLI {
         let root = URL(fileURLWithPath: homeDirectory, isDirectory: true)
             .appendingPathComponent(".local", isDirectory: true)
             .appendingPathComponent("state", isDirectory: true)
-            .appendingPathComponent("cmux", isDirectory: true)
+            .appendingPathComponent("cmux-w3dev", isDirectory: true)
             .appendingPathComponent("agent-artifacts", isDirectory: true)
             .appendingPathComponent(provider, isDirectory: true)
             .appendingPathComponent(sessionID, isDirectory: true)

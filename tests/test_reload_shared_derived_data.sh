@@ -13,7 +13,7 @@ eval "$(awk '/^resolve_tagged_derived_data\(\) \{/,/^}/' "$ROOT/scripts/reload.s
 declare -F resolve_tagged_derived_data >/dev/null || fail "resolve_tagged_derived_data not found in reload.sh"
 
 unset CMUX_DERIVED_DATA
-[[ "$(resolve_tagged_derived_data one 0 "")" == "$HOME/Library/Developer/Xcode/DerivedData/cmux-one" ]] \
+[[ "$(resolve_tagged_derived_data one 0 "")" == "$HOME/Library/Developer/Xcode/DerivedData/cmux-w3dev-one" ]] \
   || fail "without CMUX_DERIVED_DATA the default must stay one directory per tag"
 [[ "$(resolve_tagged_derived_data one 0 "")" != "$(resolve_tagged_derived_data two 0 "")" ]] \
   || fail "two tags must not share a DerivedData by default"
@@ -42,7 +42,7 @@ grep -Fq 'DERIVED_DATA="$(resolve_tagged_derived_data "$TAG_SLUG" "$DERIVED_SET"
 
 # cmux-debug-cli.sh must look for the tagged CLI where reload.sh built it.
 tmp="$(mktemp -d)"; trap 'rm -rf "$tmp"' EXIT
-sock="/tmp/cmux-debug-ddtest-$$.sock"
+sock="/tmp/cmux-w3dev-debug-ddtest-$$.sock"
 command -v python3 >/dev/null || fail "python3 is required for the test listener"
 mkfifo "$tmp/ready"
 # The listener accepts until the EXIT trap kills it, and reports readiness through the FIFO.
@@ -61,7 +61,7 @@ disown "$server" 2>/dev/null || true
 trap 'kill "$server" 2>/dev/null || true; rm -f "$sock"; rm -rf "$tmp"' EXIT
 read -r _ < "$tmp/ready" || true
 [[ -S "$sock" ]] || fail "test socket was not created"
-cli_dir="$tmp/dd/Build/Products/Debug/cmux DEV ddtest-$$.app/Contents/Resources/bin"
+cli_dir="$tmp/dd/Build/Products/Debug/cmux W3Dev DEV ddtest-$$.app/Contents/Resources/bin"
 mkdir -p "$cli_dir"
 printf '#!/bin/sh\necho shared-cli "$@"\n' > "$cli_dir/cmux"; chmod +x "$cli_dir/cmux"
 out="$(CMUX_TAG="ddtest-$$" CMUX_DERIVED_DATA="$tmp/dd" "$ROOT/scripts/cmux-debug-cli.sh" ping 2>&1)" \
@@ -78,15 +78,15 @@ fi
 # The cmux shim must run the CLI from the DerivedData the tag was built into, even when
 # a stale build of the same tag sits in the default per-tag directory.
 tag="ddtest-$$"
-link="/tmp/cmux-$tag"
-trap 'kill "$server" 2>/dev/null || true; rm -f "$sock" "$link" "/tmp/cmux-ddstale-$$"; rm -rf "$tmp"' EXIT
+link="/tmp/cmux-w3dev-$tag"
+trap 'kill "$server" 2>/dev/null || true; rm -f "$sock" "$link" "/tmp/cmux-w3dev-ddstale-$$"; rm -rf "$tmp"' EXIT
 eval "$(awk '/^reload_socket_is_live\(\) \{/,/^}/' "$ROOT/scripts/reload.sh")"
 # The shim body is a heredoc with its own top-level braces, so the function ends at the first "}" after it.
 eval "$(awk '/^write_dev_cli_shim\(\) \{/ { on = 1 } on { print } on && /<<EOF$/ { doc = 1 } on && /^EOF$/ { doc = 0 } on && !doc && /^}/ { exit }' "$ROOT/scripts/reload.sh")"
 declare -F write_dev_cli_shim >/dev/null || fail "write_dev_cli_shim not found in reload.sh"
 fake_home="$tmp/home"
-stale_app="$fake_home/Library/Developer/Xcode/DerivedData/cmux-$tag/Build/Products/Debug/cmux DEV $tag.app"
-shared_app="$tmp/dd/Build/Products/Debug/cmux DEV $tag.app"
+stale_app="$fake_home/Library/Developer/Xcode/DerivedData/cmux-w3dev-$tag/Build/Products/Debug/cmux W3Dev DEV $tag.app"
+shared_app="$tmp/dd/Build/Products/Debug/cmux W3Dev DEV $tag.app"
 mkdir -p "$stale_app/Contents/Resources/bin"
 printf '#!/bin/sh\necho stale-cli "$@"\n' > "$stale_app/Contents/Resources/bin/cmux"
 chmod +x "$stale_app/Contents/Resources/bin/cmux"
@@ -127,37 +127,37 @@ reminder_args() {
 }
 has_arg() { grep -Fxq -- "$1" "$2"; }
 args="$tmp/args"
-ln -s "$tmp/dd" "/tmp/cmux-ddstale-$$"
+ln -s "$tmp/dd" "/tmp/cmux-w3dev-ddstale-$$"
 out="$(HOME="$fake_home" print_tag_cleanup_reminder "$tag" "$tmp/dd")"
 reminder_args "$out" "$args"
 has_arg "$shared_app" "$args" || fail "the reminder does not remove the current tag's app from the shared DerivedData: $out"
-has_arg "$tmp/dd/Build/Products/Debug/cmux DEV ddstale-$$.app" "$args" \
+has_arg "$tmp/dd/Build/Products/Debug/cmux W3Dev DEV ddstale-$$.app" "$args" \
   || fail "the reminder does not remove a stale tag's app from the shared DerivedData: $out"
 ! has_arg "$tmp/dd" "$args" || fail "the reminder suggests deleting a shared DerivedData: $out"
-out="$(HOME="$fake_home" print_tag_cleanup_reminder "$tag" "$fake_home/Library/Developer/Xcode/DerivedData/cmux-$tag")"
+out="$(HOME="$fake_home" print_tag_cleanup_reminder "$tag" "$fake_home/Library/Developer/Xcode/DerivedData/cmux-w3dev-$tag")"
 reminder_args "$out" "$args"
-has_arg "$fake_home/Library/Developer/Xcode/DerivedData/cmux-$tag" "$args" \
+has_arg "$fake_home/Library/Developer/Xcode/DerivedData/cmux-w3dev-$tag" "$args" \
   || fail "the reminder must still remove a per-tag DerivedData: $out"
 
 # The reminder is pasted into a shell, so a path carrying shell syntax must come back out
 # as that literal path and must never run.
 evil_dd="$tmp/dd \"warm\" \$(touch pwned-subst) \`touch pwned-tick\`"
 evil_home="$tmp/home \"two\" \$(touch pwned-home)"
-evil_tag_dir="/tmp/cmux-ddbad-$$-\$(touch pwned-tag)"
-trap 'kill "$server" 2>/dev/null || true; rm -f "$sock" "$link" "/tmp/cmux-ddstale-$$" "/tmp/cmux-ddevil-$$"; rm -rf "$tmp" "$evil_tag_dir"' EXIT
+evil_tag_dir="/tmp/cmux-w3dev-ddbad-$$-\$(touch pwned-tag)"
+trap 'kill "$server" 2>/dev/null || true; rm -f "$sock" "$link" "/tmp/cmux-w3dev-ddstale-$$" "/tmp/cmux-w3dev-ddevil-$$"; rm -rf "$tmp" "$evil_tag_dir"' EXIT
 mkdir -p "$evil_dd/Build/Products/Debug" "$evil_tag_dir/Build/Products/Debug"
-ln -s "$evil_dd" "/tmp/cmux-ddevil-$$"
+ln -s "$evil_dd" "/tmp/cmux-w3dev-ddevil-$$"
 out="$(HOME="$evil_home" print_tag_cleanup_reminder "$tag" "$evil_dd")"
 reminder_args "$out" "$args"
 pwned="$(cd "$sandbox" && ls)"
 [[ -z "$pwned" ]] || fail "pasting the reminder ran shell syntax from a path ($pwned): $out"
-has_arg "$evil_dd/Build/Products/Debug/cmux DEV $tag.app" "$args" \
+has_arg "$evil_dd/Build/Products/Debug/cmux W3Dev DEV $tag.app" "$args" \
   || fail "the current tag's app in a DerivedData with shell syntax does not parse back to its path: $out"
-has_arg "$evil_dd/Build/Products/Debug/cmux DEV ddevil-$$.app" "$args" \
+has_arg "$evil_dd/Build/Products/Debug/cmux W3Dev DEV ddevil-$$.app" "$args" \
   || fail "a stale tag's app behind a symlink target with shell syntax does not parse back to its path: $out"
-has_arg "$evil_home/Library/Application Support/cmux/cmuxd-dev-$tag.sock" "$args" \
+has_arg "$evil_home/Library/Application Support/cmux-w3dev/cmuxd-dev-$tag.sock" "$args" \
   || fail "a HOME with shell syntax does not parse back to its path: $out"
-has_arg "cmux DEV $tag.app/Contents/MacOS/cmux DEV" "$args" || fail "the pkill pattern does not parse back to the app's process: $out"
+has_arg "cmux W3Dev DEV $tag.app/Contents/MacOS/cmux W3Dev DEV" "$args" || fail "the pkill pattern does not parse back to the app's process: $out"
 [[ "$out" != *"pwned-tag"* ]] || fail "the reminder offers cleanup for a /tmp name that is not a tag slug: $out"
 
 echo "PASS: reload.sh shared DerivedData default"

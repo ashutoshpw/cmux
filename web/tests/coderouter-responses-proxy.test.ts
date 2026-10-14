@@ -161,7 +161,7 @@ beforeEach(() => {
 });
 
 function responsesRequest(headers: Record<string, string> = {}): Request {
-  return new Request("https://coderouter.dev/v1/responses", {
+  return new Request("https://cmux.w3dev.app/v1/responses", {
     method: "POST",
     headers: {
       authorization: "Bearer crt_token",
@@ -674,7 +674,7 @@ describe("codex responses proxy session routing", () => {
       }),
       cooldown: async () => {},
     }, { fetch: abortingFetch });
-    const request = new Request("https://coderouter.dev/v1/responses", {
+    const request = new Request("https://cmux.w3dev.app/v1/responses", {
       method: "POST",
       headers: {
         authorization: "Bearer crt_token",
@@ -798,7 +798,7 @@ describe("codex responses proxy with no account configured", () => {
     expect(response.headers.get("retry-after")).toBeNull();
     expect(await response.json()).toEqual({
       error: {
-        message: "No Codex account is configured for this team or shared with this caller. Add one with `cr add codex` or at coderouter.dev.",
+        message: "No Codex account is configured for this team or shared with this caller. Add one with `cr add codex` or at https://cmux.w3dev.app/dashboard/coderouter.",
         type: "invalid_request_error",
         code: "no_account_configured",
       },
@@ -814,7 +814,7 @@ describe("codex responses proxy with no account configured", () => {
     expect(response.status).toBe(403);
     expect(await response.json()).toEqual({
       error: {
-        message: "No Codex account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at coderouter.dev, or add one here with `cr add codex` (accounts added on a Cloud machine are shared with its team).",
+        message: "No Codex account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at https://cmux.w3dev.app/dashboard/coderouter, or add one here with `cr add codex` (accounts added on a Cloud machine are shared with its team).",
         type: "invalid_request_error",
         code: "no_account_configured",
       },
@@ -961,7 +961,7 @@ describe("codex models proxy outcomes", () => {
         throw new Error("upstream headers timed out");
       },
     });
-    const response = await modelsProxy(new Request("https://coderouter.dev/v1/models", {
+    const response = await modelsProxy(new Request("https://cmux.w3dev.app/v1/models", {
       headers: { authorization: "Bearer crt_token", "anthropic-version": "2023-06-01" },
     }));
     expect(response.status).toBe(503);
@@ -972,7 +972,7 @@ describe("codex models proxy outcomes", () => {
 
 describe("codex responses proxy VM-bound route tokens", () => {
   function edgeRequest(headers: Record<string, string>): Request {
-    return new Request("https://coderouter.dev/v1/responses", {
+    return new Request("https://cmux.w3dev.app/v1/responses", {
       method: "POST",
       headers: {
         authorization: `Bearer ${VM_PLACEHOLDER_API_KEY}`,

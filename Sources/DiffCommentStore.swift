@@ -4,7 +4,7 @@ import Foundation
 
 /// Persists diff viewer review comments per git repository, one JSON file per
 /// repo (keyed by a hash of the canonical repo root path) under
-/// `Application Support/cmux/diff-comments/`. Comments outlive individual
+/// `Application Support/cmux-w3dev/diff-comments/`. Comments outlive individual
 /// `cmux diff` invocations, so a regenerated diff for the same repo shows the
 /// same comments.
 @MainActor
@@ -124,7 +124,7 @@ final class DiffCommentStore {
     ) -> URL? {
         guard !isRunningUnderAutomatedTests, let appSupportDirectory else { return nil }
         return appSupportDirectory
-            .appendingPathComponent("cmux", isDirectory: true)
+            .appendingPathComponent("cmux-w3dev", isDirectory: true)
             .appendingPathComponent("diff-comments", isDirectory: true)
     }
 

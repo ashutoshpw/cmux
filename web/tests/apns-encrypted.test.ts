@@ -6,7 +6,7 @@ import { parsePushPayload } from "../services/apns/routePolicy";
 import { APNS_MAX_PAYLOAD_BYTES, sendApnsNotification } from "../services/apns/sender";
 
 const correlationId = "62dbd6e3-f8ef-4d40-bafc-88b2ecc3dbe7";
-const bundleID = "dev.cmux.ios.e2en12";
+const bundleID = "app.w3dev.cmux.ios.debug.e2en12";
 function envelope(installationID = "installation-one", keyID = "key-one", bytes = 1800) {
   return {
     version: 2,
@@ -21,7 +21,7 @@ function envelope(installationID = "installation-one", keyID = "key-one", bytes 
       iosInstallationID: installationID,
       macDeviceID: "mac-one",
       macInstanceTag: "e2en12",
-      macBuildID: "com.cmuxterm.app.debug.e2en12",
+      macBuildID: "app.w3dev.cmux.debug.e2en12",
     },
   };
 }
@@ -133,7 +133,7 @@ describe("encrypted production APNs boundary", () => {
     const stale = await sendApnsNotification(config, [{ ...targets[0]!, pushKeyId: "rotated" }], input, 1000, transport);
     expect(stale[0]?.reason).toBe("push_recipient_key_changed");
     expect(requests).toHaveLength(0);
-    const wrongBuild = await sendApnsNotification(config, [{ ...targets[0]!, bundleId: "dev.cmux.ios.other" }], input, 1000, transport);
+    const wrongBuild = await sendApnsNotification(config, [{ ...targets[0]!, bundleId: "app.w3dev.cmux.ios.debug.other" }], input, 1000, transport);
     expect(wrongBuild[0]?.reason).toBe("push_recipient_key_changed");
     expect(requests).toHaveLength(0);
   });

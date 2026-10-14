@@ -56,7 +56,7 @@ describe("billing recovery route", () => {
     expect(recoverPaid).toHaveBeenCalledWith("Billing.Fixture@Gmail.com");
     expect(sendMagicLink).toHaveBeenCalledWith({
       email: "Billing.Fixture@Gmail.com",
-      callbackURL: "https://cmux.com/handler/after-sign-in",
+      callbackURL: "https://cmux.w3dev.app/handler/after-sign-in",
     });
     expect(sendVerification).not.toHaveBeenCalled();
   });
@@ -75,7 +75,7 @@ describe("billing recovery route", () => {
     expect(response.status).toBe(202);
     expect(sendMagicLink).toHaveBeenCalledWith({
       email: "billingfixture@gmail.com",
-      callbackURL: "https://cmux.com/handler/after-sign-in",
+      callbackURL: "https://cmux.w3dev.app/handler/after-sign-in",
     });
   });
 
@@ -147,7 +147,7 @@ describe("billing recovery route", () => {
     expect(await response.json()).toEqual(acceptedResponse());
     expect(deps.sendVerification).toHaveBeenCalledWith({
       email: "buyer@example.com",
-      callbackURL: "https://cmux.com/handler/email-verification",
+      callbackURL: "https://cmux.w3dev.app/handler/after-sign-in",
     });
     expect(deps.sendMagicLink).not.toHaveBeenCalled();
   });

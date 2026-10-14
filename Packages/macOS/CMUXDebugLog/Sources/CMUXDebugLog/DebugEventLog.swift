@@ -473,23 +473,23 @@ public final class DebugEventLog: @unchecked Sendable {
 
         if let tag = env["CMUX_TAG"]?.trimmingCharacters(in: .whitespacesAndNewlines),
            !tag.isEmpty {
-            return "/tmp/cmux-debug-\(sanitizePathToken(tag)).log"
+            return "/tmp/cmux-w3dev-debug-\(sanitizePathToken(tag)).log"
         }
 
         if let socketPath = env["CMUX_SOCKET_PATH"]?.trimmingCharacters(in: .whitespacesAndNewlines),
            !socketPath.isEmpty {
             let socketBase = URL(fileURLWithPath: socketPath).deletingPathExtension().lastPathComponent
-            if socketBase.hasPrefix("cmux-debug-") {
+            if socketBase.hasPrefix("cmux-w3dev-debug-") {
                 return "/tmp/\(socketBase).log"
             }
         }
 
         if let bundleId = Bundle.main.bundleIdentifier,
-           bundleId != "com.cmuxterm.app.debug" {
-            return "/tmp/cmux-debug-\(sanitizePathToken(bundleId)).log"
+           bundleId != "app.w3dev.cmux.debug" {
+            return "/tmp/cmux-w3dev-debug-\(sanitizePathToken(bundleId)).log"
         }
 
-        return "/tmp/cmux-debug.log"
+        return "/tmp/cmux-w3dev-debug.log"
     }
 }
 

@@ -65,7 +65,7 @@ public struct SettingsJSONSection: View {
         ) {
             Link(
                 String(localized: "settings.settingsJSON.docsButton", defaultValue: "Open Docs"),
-                destination: URL(string: "https://cmux.com/docs/configuration#cmux-json")!
+                destination: URL(string: "https://cmux.w3dev.app/docs/configuration#cmux-json")!
             )
             .cmuxFont(.caption)
             .accessibilityIdentifier("SettingsJSONDocsLink")

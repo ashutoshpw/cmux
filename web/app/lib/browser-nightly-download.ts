@@ -1,3 +1,4 @@
+import { forkDeployment } from "../../services/deployment/config";
 import { createPublicKey, verify as verifySignature } from "node:crypto";
 
 import { BROWSER_RELEASE_REPOSITORY_URL } from "./download";
@@ -7,19 +8,15 @@ export const BROWSER_NIGHTLY_FEED_URL =
   `${BROWSER_RELEASE_REPOSITORY_URL}/releases/download/nightly/update.json`;
 
 /** Immutable public R2 origin used by signed production feed entries. */
-export const BROWSER_PUBLIC_ASSET_ORIGIN = "https://browser-assets.cmux.com";
+export const BROWSER_PUBLIC_ASSET_ORIGIN = `${forkDeployment.artifactsOrigin}/browser`;
 
 /**
- * P-256 update public key compiled into cmux Browser's updater.
+ * Fork-owned P-256 update verification key, also used by the Browser updater.
  *
- * This is public verification material, not a credential. Keep it byte-for-byte
- * in sync with cmux-browser's `docs/update-public-key.pem` whenever the updater
- * key is deliberately rotated.
+ * Provision CMUX_BROWSER_UPDATE_PUBLIC_KEY_PEM before enabling downloads.
  */
-export const CMUX_BROWSER_UPDATE_PUBLIC_KEY_PEM = `-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEzeE5/HttjLz27hU3LFU0h/88Ex7i
-oqZjMnYz3AN/iyfNbz1meZL/8Kyd3PsvCvoiAI62dzAdAE+gNkbNrfw6/Q==
------END PUBLIC KEY-----`;
+export const CMUX_BROWSER_UPDATE_PUBLIC_KEY_PEM =
+  process.env.CMUX_BROWSER_UPDATE_PUBLIC_KEY_PEM?.replace(/\\n/g, "\n").trim() ?? "";
 
 const FEED_TIMEOUT_MS = 8_000;
 const MAX_FEED_BYTES = 64 * 1024;
@@ -76,6 +73,7 @@ const BROWSER_NIGHTLY_TARGETS = {
 
 export type BrowserNightlyDownloadErrorCode =
   | "not_found"
+  | "not_configured"
   | "unavailable"
   | "upstream_unavailable"
   | "invalid_feed";
@@ -111,11 +109,10 @@ export async function resolveBrowserNightlyDownload(
   const target = routeTarget(platform, artifact);
   if (!target) throw new BrowserNightlyDownloadError("not_found");
 
+  const publicKeyPem = dependencies.publicKeyPem ?? CMUX_BROWSER_UPDATE_PUBLIC_KEY_PEM;
+  if (!publicKeyPem) throw new BrowserNightlyDownloadError("not_configured");
   const fetchImplementation = dependencies.fetch ?? globalThis.fetch;
-  const payload = await fetchAndVerifyFeed(
-    fetchImplementation,
-    dependencies.publicKeyPem ?? CMUX_BROWSER_UPDATE_PUBLIC_KEY_PEM,
-  );
+  const payload = await fetchAndVerifyFeed(fetchImplementation, publicKeyPem);
   const rawEntry = payload.platforms[target.config.feedPlatform];
   if (rawEntry === undefined) {
     throw new BrowserNightlyDownloadError("unavailable");
@@ -256,9 +253,9 @@ function verifiedAssetLocation(
     throw invalidFeed();
   }
 
-  if (signedUrl.host === "browser-assets.cmux.com") {
+  if (signedUrl.host === new URL(BROWSER_PUBLIC_ASSET_ORIGIN).host) {
     const r2Path = signedUrl.pathname.match(
-      /^\/nightly\/([^/]+)\/([^/]+)$/u,
+      /^\/browser\/nightly\/([^/]+)\/([^/]+)$/u,
     );
     if (!r2Path) throw invalidFeed();
     let r2Version: string;
@@ -282,7 +279,7 @@ function verifiedAssetLocation(
   if (signedUrl.host !== "github.com") throw invalidFeed();
 
   const releasePath = signedUrl.pathname.match(
-    /^\/manaflow-ai\/cmux-v2\/releases\/download\/([^/]+)\/([^/]+)$/u,
+    /^\/ashutoshpw\/cmux\/releases\/download\/([^/]+)\/([^/]+)$/u,
   );
   if (!releasePath || releasePath[2] !== expectedArchive) throw invalidFeed();
   const releaseTag = releasePath[1];

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-const command = "curl -fsSL https://cmux.com/coderouter/install.sh | sh";
+const command = "curl -fsSL https://cmux.w3dev.app/coderouter/install.sh | sh";
 
 export function CoderouterInstallCommand() {
   const [copied, setCopied] = useState(false);

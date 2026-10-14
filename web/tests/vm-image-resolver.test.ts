@@ -1,15 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import {
-  findVmImageKindDefault,
-  listVmImageKindDefaults,
-  reportVmImageConfigError,
-  inferVmProviderForImage,
-  listVmImageKinds,
-  listVmImageSizes,
-  resolveVmImage,
-  vmImageKindFor,
-  type VmImageKind,
-} from "../services/vms/images/resolver";
+import { createVmImageCatalog, type VmImageKind, type VmImageManifestEntry } from "../services/vms/images/resolver";
+import validatedUpstreamCatalog from "../services/vms/images/upstream-manifest.json";
+const {
+  findVmImageKindDefault, listVmImageKindDefaults, reportVmImageConfigError,
+  inferVmProviderForImage, listVmImageKinds, listVmImageSizes, resolveVmImage, vmImageKindFor,
+} = createVmImageCatalog({ ...validatedUpstreamCatalog, images: validatedUpstreamCatalog.images as VmImageManifestEntry[] });
 import { VM_IMAGE_SIZE_NAMES, pickVmImageSizeForMemory, vmImageSize } from "../services/vms/images/sizes";
 import { VmImageConfigError } from "../services/vms/errors";
 
@@ -23,7 +18,7 @@ function captureImageConfigError(fn: () => unknown): VmImageConfigError {
   throw new Error("expected VmImageConfigError to be thrown");
 }
 
-// The resolver must follow the currently promoted manifest ladder. Deriving
+// The resolver must follow the selected catalog's validated ladder. Deriving
 // this fixture from the flagged defaults keeps a valid image promotion from
 // becoming a false test failure. The consistency test below still protects
 // each kind's ladder and version suffixes.
@@ -47,7 +42,7 @@ const baseLadder = Object.fromEntries(
 const ladderVersion = ladderDefaults.desktop.sm!.version.replace(/-sm$/, "");
 const baseLadderVersion = ladderDefaults.base.sm!.version.replace(/-sm-base$/, "");
 
-test("the promoted Freestyle ladder is complete and internally consistent", () => {
+test("the validated historical catalog ladder is complete and internally consistent", () => {
   for (const size of VM_IMAGE_SIZE_NAMES) {
     const desktop = ladderDefaults.desktop[size];
     const base = ladderDefaults.base[size];
@@ -108,7 +103,7 @@ describe("VM image resolver: request by kind", () => {
     expect(err.reason).toMatch(/base image, not a desktop image/);
   });
 
-  test("the committed manifest ladder serves both kinds; no memory means the smallest size", () => {
+  test("a validated catalog ladder serves both kinds; no memory means the smallest size", () => {
     // The manifest is the only source of truth: the entries flagged
     // defaultForKind are what every runtime serves, deployed or local. With no
     // `memoryMb` the resolver picks the smallest sized default (the documented

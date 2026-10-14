@@ -129,7 +129,7 @@ struct ClientRuntimeTestFixture {
             "binding_id": bindingID,
             "device_id": deviceID,
             "app_instance_id": appInstanceID,
-            "tag": "cmux-ios-v0",
+            "tag": "cmux-w3dev-ios-v0",
             "platform": "ios",
             "display_name": "Test iPhone",
             "endpoint_id": endpointID,

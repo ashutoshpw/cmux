@@ -143,7 +143,7 @@ class FeedTests(unittest.TestCase):
     def test_watches_the_cmux_next_feed(self):
         # nightly-next ships as cmux NEXT with its own feed (cx-x7hwx); the old
         # cmux NIGHTLY-identity feed is no longer written.
-        self.assertEqual(watch.FEED_URL, "https://files-next.cmux.com/nightly-next/next/appcast-arm64.xml")
+        self.assertEqual(watch.FEED_URL, "https://files.cmux.w3dev.app/nightly-next/next/appcast-arm64.xml")
 
 
 class FakeGitHub:

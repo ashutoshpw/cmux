@@ -16,11 +16,11 @@ struct SocketClientCapabilityTests {
     @Test func authorityRecreationPreservesIssuedCapabilities() {
         let original = SocketClientCapabilityAuthority(
             secret: secret,
-            audience: "com.cmuxterm.test"
+            audience: "app.w3dev.cmux.test"
         )
         let recreated = SocketClientCapabilityAuthority(
             secret: secret,
-            audience: "com.cmuxterm.test"
+            audience: "app.w3dev.cmux.test"
         )
         let capability = original.issueCapability(nonce: nonce)
 
@@ -30,11 +30,11 @@ struct SocketClientCapabilityTests {
     @Test func audienceAndSignatureAreBound() {
         let issuer = SocketClientCapabilityAuthority(
             secret: secret,
-            audience: "com.cmuxterm.test"
+            audience: "app.w3dev.cmux.test"
         )
         let otherAudience = SocketClientCapabilityAuthority(
             secret: secret,
-            audience: "com.cmuxterm.other"
+            audience: "app.w3dev.cmux.other"
         )
         let capability = issuer.issueCapability(nonce: nonce)
         let tampered = capability.dropLast() + (capability.last == "A" ? "B" : "A")
@@ -46,7 +46,7 @@ struct SocketClientCapabilityTests {
     @Test func envelopeRoundTripsWithoutExposingCapabilityToDispatch() throws {
         let issuer = SocketClientCapabilityAuthority(
             secret: secret,
-            audience: "com.cmuxterm.test"
+            audience: "app.w3dev.cmux.test"
         )
         let capability = issuer.issueCapability(nonce: nonce)
         let envelope = try #require(SocketClientCapabilityEnvelope(capability: capability))

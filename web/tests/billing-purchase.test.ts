@@ -16,6 +16,10 @@ process.env.STACK_SECRET_SERVER_KEY ??= "test-stack-secret";
 process.env.NEXT_PUBLIC_STACK_PROJECT_ID ??= "00000000-0000-4000-8000-000000000000";
 process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY ??= "test-stack-publishable";
 
+const realStackFacade = await import("../app/lib/stack");
+const promoteOwnedAnonymous = mock(async (_userId: string, _email: string) => { void _userId; void _email; });
+mock.module("../app/lib/stack", () => ({ ...realStackFacade, promoteStackUserFromAnonymousViaApi: promoteOwnedAnonymous }));
+
 const {
   applySubscriptionUpdate,
   canonicalizeEmailForMatching,
@@ -571,7 +575,7 @@ describe("recordFoundersCheckoutCompletion", () => {
     });
     expect(update).not.toHaveBeenCalledWith({ primaryEmailVerified: true });
     expect(sendMagicLinkEmail).toHaveBeenCalledWith("buyer@example.com", {
-      callbackUrl: "https://cmux.com/handler/after-sign-in",
+      callbackUrl: "https://cmux.w3dev.app/handler/after-sign-in",
     });
     expect(
       inserts.some(
@@ -652,7 +656,7 @@ describe("recordFoundersCheckoutCompletion", () => {
       primaryEmailAuthEnabled: true,
     });
     expect(sendMagicLinkEmail).toHaveBeenCalledWith("billing.fixture@gmail.com", {
-      callbackUrl: "https://cmux.com/handler/after-sign-in",
+      callbackUrl: "https://cmux.w3dev.app/handler/after-sign-in",
     });
   });
 
@@ -1192,7 +1196,7 @@ describe("recordCheckoutCompletion", () => {
     });
     expect(update).not.toHaveBeenCalledWith({ primaryEmailVerified: true });
     expect(sendMagicLinkEmail).toHaveBeenCalledWith("buyer@example.com", {
-      callbackUrl: "https://cmux.com/handler/after-sign-in",
+      callbackUrl: "https://cmux.w3dev.app/handler/after-sign-in",
     });
     expect(update).toHaveBeenCalledWith({
       clientReadOnlyMetadata: { cmuxPlan: "pro" },
@@ -1200,7 +1204,7 @@ describe("recordCheckoutCompletion", () => {
   });
 
   test("promotes an already verified anonymous checkout account before granting Pro access", async () => {
-    const previousFetch = globalThis.fetch;
+    promoteOwnedAnonymous.mockClear();
     const update = mock(async () => undefined);
     const sendMagicLinkEmail = mock(async () => undefined);
     const user = {
@@ -1212,33 +1216,15 @@ describe("recordCheckoutCompletion", () => {
       clientReadOnlyMetadata: {},
       update,
     };
-    const fetchMock = mock(async (rawInput: unknown, rawInit?: unknown) => {
-      const request = new Request(rawInput as RequestInfo | URL, rawInit as RequestInit);
-      expect(request.method).toBe("PATCH");
-      expect(request.url).toContain("/api/v1/users/anonymous_checkout");
-      expect(await request.json()).toEqual({
-        primary_email_auth_enabled: true,
-        is_anonymous: false,
-      });
-      return new Response(null, { status: 200 });
+    const input = checkoutInput();
+    input.session.client_reference_id = user.id;
+    input.subscription.metadata.stackUserId = user.id;
+    await recordCheckoutCompletion(input as never, {
+      db: fakeDb() as never,
+      stackApp: { getUser: async () => user, sendMagicLinkEmail } as never,
     });
-    globalThis.fetch = fetchMock as typeof globalThis.fetch;
-    try {
-      const input = checkoutInput();
-      input.session.client_reference_id = user.id;
-      input.subscription.metadata.stackUserId = user.id;
-      await recordCheckoutCompletion(input as never, {
-        db: fakeDb() as never,
-        stackApp: {
-          getUser: async () => user,
-          sendMagicLinkEmail,
-        } as never,
-      });
-    } finally {
-      globalThis.fetch = previousFetch;
-    }
-
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(promoteOwnedAnonymous).toHaveBeenCalledTimes(1);
+    expect(promoteOwnedAnonymous).toHaveBeenCalledWith(user.id, "buyer@example.com");
     expect(user.update).not.toHaveBeenCalledWith({
       primaryEmail: "buyer@example.com",
       primaryEmailAuthEnabled: true,
@@ -1247,7 +1233,7 @@ describe("recordCheckoutCompletion", () => {
       clientReadOnlyMetadata: { cmuxPlan: "pro" },
     });
     expect(sendMagicLinkEmail).toHaveBeenCalledWith("buyer@example.com", {
-      callbackUrl: "https://cmux.com/handler/after-sign-in",
+      callbackUrl: "https://cmux.w3dev.app/handler/after-sign-in",
     });
   });
 
@@ -1270,7 +1256,7 @@ describe("recordCheckoutCompletion", () => {
 
     expect(update).not.toHaveBeenCalledWith({ primaryEmailVerified: true });
     expect(sendMagicLinkEmail).toHaveBeenCalledWith("buyer@example.com", {
-      callbackUrl: "https://cmux.com/handler/after-sign-in",
+      callbackUrl: "https://cmux.w3dev.app/handler/after-sign-in",
     });
   });
 
@@ -1354,7 +1340,7 @@ describe("recordCheckoutCompletion", () => {
       primaryEmailVerified: false,
     });
     expect(sendMagicLinkEmail).toHaveBeenCalledWith("buyer@example.com", {
-      callbackUrl: "https://cmux.com/handler/after-sign-in",
+      callbackUrl: "https://cmux.w3dev.app/handler/after-sign-in",
     });
   });
 
@@ -1978,7 +1964,7 @@ describe("recordCheckoutCompletion", () => {
     });
     expect(sendMagicLinkEmail).toHaveBeenCalledWith(
       "billing.fixture@gmail.com",
-      { callbackUrl: "https://cmux.com/handler/after-sign-in" },
+      { callbackUrl: "https://cmux.w3dev.app/handler/after-sign-in" },
     );
     expect(
       inserts.some(
@@ -3354,7 +3340,7 @@ describe("purchase sign-in email delivery", () => {
     );
     expect(kind).toBe("magic_link");
     expect(sendMagicLinkEmail).toHaveBeenCalledWith("buyer@example.com", {
-      callbackUrl: "https://cmux.com/handler/after-sign-in",
+      callbackUrl: "https://cmux.w3dev.app/handler/after-sign-in",
     });
   });
 
@@ -3377,7 +3363,7 @@ describe("purchase sign-in email delivery", () => {
     const kind = await deliverPurchaseSignInEmail(stackApp as never, { email: "buyer@example.com", stackUserId: "u1" });
     expect(kind).toBe("verification");
     expect(sendVerificationEmail).toHaveBeenCalledWith({
-      callbackUrl: "https://cmux.com/handler/email-verification",
+      callbackUrl: "https://cmux.w3dev.app/handler/email-verification",
     });
   });
 

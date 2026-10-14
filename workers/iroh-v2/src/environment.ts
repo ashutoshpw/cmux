@@ -6,6 +6,8 @@ import { PlanetScaleOwnership } from "./ownership/planetscale";
 import { RELAY_TOKEN_AUDIENCE, RELAY_TOKEN_ISSUER, RelayIssuer } from "./relay";
 export type Environment = Cloudflare.Env & {
   DASHBOARD_ALLOWED_ORIGINS?: string;
+  CMUX_AUTH_ORIGIN?: string;
+  CMUX_AUTH_SERVICE_KEY?: string;
   /** Local tooling may provide this alias; deployments normalize it to DATABASE_URL. */
   PLANETSCALE_DATABASE_URL?: string;
   AXIOM_TOKEN?: string; AXIOM_DATASET?: string; AXIOM_INGEST_URL?: string;
@@ -15,7 +17,7 @@ export type Environment = Cloudflare.Env & {
 };
 
 export function environmentScope(env: Environment) {
-  return { environment: identifier.parse(env.ENVIRONMENT), projectId: identifier.parse(env.STACK_PROJECT_ID) };
+  return { environment: identifier.parse(env.ENVIRONMENT), projectId: identifier.parse(env.CMUX_AUTH_ORIGIN) };
 }
 
 const runtimes = new WeakMap<object, ReturnType<typeof createRuntime>>();
@@ -37,10 +39,10 @@ function createRuntime(env: Environment) {
       const url = new URL(value);
       return url.origin === value && (url.protocol === "https:" || (scope.environment !== "production"
         && url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname)));
-    })).max(32).parse(JSON.parse(env.DASHBOARD_ALLOWED_ORIGINS ?? '["https://cmux.com","https://www.cmux.com"]'));
+    })).max(32).parse(JSON.parse(env.DASHBOARD_ALLOWED_ORIGINS ?? JSON.stringify([scope.projectId])));
     return {
       ...scope, keys, currentKeyId, currentKey, allowedOrigins,
-      stack: new StackAuthority({ ...scope, apiURL: env.STACK_API_URL, publishableKey: env.STACK_PUBLISHABLE_KEY, serverKey: env.STACK_SERVER_KEY }),
+      stack: new StackAuthority({ ...scope, apiURL: scope.projectId, serverKey: env.CMUX_AUTH_SERVICE_KEY }),
       ownership: new PlanetScaleOwnership(env.DATABASE_URL ?? env.PLANETSCALE_DATABASE_URL, scope.environment, scope.projectId),
       relays: new RelayIssuer({
         ...scope, relayURLs, issuer: RELAY_TOKEN_ISSUER, audience: RELAY_TOKEN_AUDIENCE,

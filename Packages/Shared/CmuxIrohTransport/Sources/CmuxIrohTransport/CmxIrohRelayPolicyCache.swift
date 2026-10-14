@@ -41,7 +41,7 @@ public actor CmxIrohRelayPolicyCache {
     ///   - verifier: The stateless root-pinned policy verifier.
     public init(
         secureStore: any CmxIrohSecureCredentialStoring = CmxIrohKeychainCredentialStore(
-            service: "com.cmuxterm.iroh.relay-policy.v1"
+            service: "app.w3dev.cmux.iroh.relay-policy.v1"
         ),
         verifier: CmxIrohRelayPolicyVerifier = CmxIrohRelayPolicyVerifier()
     ) {

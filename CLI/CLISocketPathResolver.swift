@@ -132,11 +132,11 @@ struct CLISocketPathResolver {
     }
 
     private static let stableSocketFileName = "cmux.sock"
-    static let legacyDefaultSocketPath = "/tmp/cmux.sock"
-    private static let fallbackSocketPath = "/tmp/cmux-debug.sock"
-    private static let nightlySocketPath = "/tmp/cmux-nightly.sock"
-    private static let rcSocketPath = "/tmp/cmux-rc.sock"
-    private static let stagingSocketPath = "/tmp/cmux-staging.sock"
+    static let legacyDefaultSocketPath = "/tmp/cmux-w3dev.sock"
+    private static let fallbackSocketPath = "/tmp/cmux-w3dev-debug.sock"
+    private static let nightlySocketPath = "/tmp/cmux-w3dev-nightly.sock"
+    private static let rcSocketPath = "/tmp/cmux-w3dev-rc.sock"
+    private static let stagingSocketPath = "/tmp/cmux-w3dev-staging.sock"
 
     private let environment: [String: String]
     private let bundleIdentifier: String?
@@ -525,7 +525,7 @@ struct CLISocketPathResolver {
 
     /// The directory holding the control socket and its marker files.
     ///
-    /// Resolves to ``CmuxStateDirectory`` (`~/.local/state/cmux`), matching the
+    /// Resolves to ``CmuxStateDirectory`` (`~/.local/state/cmux-w3dev`), matching the
     /// app's `SocketControlSettings.stableSocketDirectoryURL()`. This keeps the
     /// CLI off the app's TCC-protected Application Support data on the agent hook
     /// path (https://github.com/manaflow-ai/cmux/issues/5146). The CLI is a

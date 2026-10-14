@@ -6,7 +6,7 @@ internal import Foundation
 internal import OSLog
 
 private let exactlyOnceInputLog = Logger(
-    subsystem: Bundle.main.bundleIdentifier ?? "dev.cmux.ios",
+    subsystem: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux.ios.debug",
     category: "terminal-input"
 )
 

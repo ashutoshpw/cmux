@@ -23,7 +23,7 @@ import Testing
     @Test func offAllowlistURLSettlesFailed() async {
         let load = MobileWhatsNewWebPageLoad(
             url: URL(string: "https://not-allowlisted.example/whats-new")!,
-            allowedHosts: ["cmux.com"],
+            allowedHosts: ["cmux.w3dev.app"],
             webAppSession: nil,
             // The main-frame policy rejection settles the load directly, so
             // this normally never waits; the deadline only bounds the test
@@ -36,8 +36,8 @@ import Testing
 
     @Test func deadlineSettlesFailedWhileSessionExchangeHangs() async {
         let load = MobileWhatsNewWebPageLoad(
-            url: URL(string: "https://cmux.com/whats-new")!,
-            allowedHosts: ["cmux.com"],
+            url: URL(string: "https://cmux.w3dev.app/whats-new")!,
+            allowedHosts: ["cmux.w3dev.app"],
             webAppSession: HangingWebAppSession(),
             deadline: .milliseconds(50)
         )
@@ -46,8 +46,8 @@ import Testing
 
     @Test func settledOutcomeAnswersLateAwaitersImmediately() async {
         let load = MobileWhatsNewWebPageLoad(
-            url: URL(string: "https://cmux.com/whats-new")!,
-            allowedHosts: ["cmux.com"],
+            url: URL(string: "https://cmux.w3dev.app/whats-new")!,
+            allowedHosts: ["cmux.w3dev.app"],
             webAppSession: HangingWebAppSession(),
             deadline: .milliseconds(50)
         )

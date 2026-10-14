@@ -8,13 +8,15 @@ if [[ "$#" -ne 1 ]]; then
 fi
 
 binary="$1"
-requirement='anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists and identifier "com.cmuxterm.coderouter" and certificate leaf[subject.OU] = "7WLXT3NR37"'
+team="${CMUX_APPLE_TEAM_ID:?CMUX_APPLE_TEAM_ID must identify the fork signing team}"
+[[ "$team" =~ ^[A-Z0-9]{10}$ ]] || { echo "Invalid fork signing team" >&2; exit 1; }
+requirement='anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] exists and certificate leaf[field.1.2.840.113635.100.6.1.13] exists and identifier "app.w3dev.cmux.coderouter" and certificate leaf[subject.OU] = "'"$team"'"'
 
 codesign --verify --strict --verbose=2 -R="$requirement" "$binary"
 
 signing_details="$(codesign -dv --verbose=4 "$binary" 2>&1)"
-grep -Fxq 'Identifier=com.cmuxterm.coderouter' <<<"$signing_details"
-grep -Fxq 'TeamIdentifier=7WLXT3NR37' <<<"$signing_details"
+grep -Fxq 'Identifier=app.w3dev.cmux.coderouter' <<<"$signing_details"
+grep -Fxq "TeamIdentifier=$team" <<<"$signing_details"
 grep -Eq '^CodeDirectory .*flags=0x[0-9a-fA-F]+\(runtime\)' <<<"$signing_details"
 
 # CodeRouter needs no entitlement. Both the XML and the current text output

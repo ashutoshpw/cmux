@@ -816,7 +816,7 @@ final class MachinesPanelModelTests: XCTestCase {
     }
 
     func testCloudTreeLocalBrowsersGroupAndEmptyLocalPlaceholder() {
-        let browser = SurfaceResource(id: SurfaceResourceID(machine: .local, kind: .browser, key: "BBB"), title: "Docs", detail: nil, lifecycle: .running, agent: nil, remoteWorkspace: nil, port: nil, url: "https://cmux.com/docs")
+        let browser = SurfaceResource(id: SurfaceResourceID(machine: .local, kind: .browser, key: "BBB"), title: "Docs", detail: nil, lifecycle: .running, agent: nil, remoteWorkspace: nil, port: nil, url: "https://cmux.w3dev.app/docs")
         let local = UUID()
         let snapshot = SurfaceCatalogSnapshot(
             machines: [machineInfo(.local)],
@@ -866,7 +866,7 @@ final class MachinesPanelModelTests: XCTestCase {
         let local = UUID(), other = UUID()
         let localTerm = terminal(.local, "AAA", title: "zsh")
         let localTerm2 = terminal(.local, "BBB", title: "fish")
-        let localBrowser = SurfaceResource(id: SurfaceResourceID(machine: .local, kind: .browser, key: "CCC"), title: "Web", detail: nil, lifecycle: .running, agent: nil, remoteWorkspace: nil, port: nil, url: "https://cmux.com")
+        let localBrowser = SurfaceResource(id: SurfaceResourceID(machine: .local, kind: .browser, key: "CCC"), title: "Web", detail: nil, lifecycle: .running, agent: nil, remoteWorkspace: nil, port: nil, url: "https://cmux.w3dev.app")
         let snapshot = SurfaceCatalogSnapshot(
             machines: [machineInfo(.local), machineInfo(.cloud("m"), hasDesktop: false)],
             resources: [browserMain, termSide, termB, termA, localTerm2, localTerm, localBrowser],
@@ -1215,7 +1215,7 @@ struct MachinesPanelListProblemTests {
         )
         #expect(
             MachinesPanelViewModel.classifyListFailure(
-                .backendUnreachable(url: "https://cmux.com", detail: "offline")
+                .backendUnreachable(url: "https://cmux.w3dev.app", detail: "offline")
             ) == .unreachable
         )
         #expect(
@@ -1265,7 +1265,7 @@ struct MachinesPanelPaidPlanTests {
     @Test("vm_requires_pro without a server action still names the upgrade path")
     func requiresProErrorIncludesUpgradePathWhenServerOmitsAction() {
         let error = VMClientError.httpStatus(402, #"{"error":"vm_requires_pro"}"#)
-        #expect(error.description.contains("https://cmux.com/pricing"))
+        #expect(error.description.contains("https://cmux.w3dev.app/pricing"))
         #expect(error.description.contains("Upgrade to cmux Pro"))
     }
 }

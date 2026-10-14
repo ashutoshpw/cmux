@@ -120,16 +120,16 @@ public enum MobileMacBuildCompatibilityPolicy: Equatable, Sendable {
     }
 
     private static func isDevelopmentMacNamespace(_ value: String) -> Bool {
-        value == "mac:com.cmuxterm.app.debug"
-            || value.hasPrefix("mac:com.cmuxterm.app.debug.")
+        value == "mac:app.w3dev.cmux.debug"
+            || value.hasPrefix("mac:app.w3dev.cmux.debug.")
     }
 
     private static func isOfficialMacNamespace(_ value: String) -> Bool {
-        value == "mac:com.cmuxterm.app"
-            || value == "mac:com.cmuxterm.app.nightly"
-            || value.hasPrefix("mac:com.cmuxterm.app.nightly.")
-            || value == "mac:com.cmuxterm.app.rc"
-            || value.hasPrefix("mac:com.cmuxterm.app.rc.")
+        value == "mac:app.w3dev.cmux"
+            || value == "mac:app.w3dev.cmux.nightly"
+            || value.hasPrefix("mac:app.w3dev.cmux.nightly.")
+            || value == "mac:app.w3dev.cmux.rc"
+            || value.hasPrefix("mac:app.w3dev.cmux.rc.")
     }
 
     /// Returns whether authenticated host status is compatible with this build.

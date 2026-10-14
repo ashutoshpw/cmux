@@ -81,7 +81,7 @@ struct WorkspaceListEmptyStateScaffold<Detail: View, Actions: View>: View {
 }
 
 struct MobileWorkspaceListEmptyRow: View {
-    private static let docsURL = URL(string: "https://cmux.com/docs/ios#prerequisites")!
+    private static let docsURL = URL(string: "https://cmux.w3dev.app/docs/ios#prerequisites")!
     private static let retryTimeout: Duration = .seconds(30)
 
     let retry: (@Sendable () async -> Void)?

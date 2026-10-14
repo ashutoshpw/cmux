@@ -31,11 +31,11 @@ describe("coderouter route session", () => {
     const GET = makeCoderouterSessionGetHandler(authenticate);
 
     const valid = await GET(new Request(
-      "https://coderouter.dev/api/coderouter/session",
+      "https://cmux.w3dev.app/api/coderouter/session",
       { headers: { authorization: "Bearer crt_valid" } },
     ));
     const invalid = await GET(new Request(
-      "https://coderouter.dev/api/coderouter/session",
+      "https://cmux.w3dev.app/api/coderouter/session",
       { headers: { authorization: "Bearer crt_invalid" } },
     ));
 
@@ -52,7 +52,7 @@ describe("coderouter route session", () => {
     );
 
     const response = await GET(new Request(
-      "https://coderouter.dev/api/coderouter/session",
+      "https://cmux.w3dev.app/api/coderouter/session",
       { headers: { authorization: `Bearer ${token}` } },
     ));
 
@@ -70,7 +70,7 @@ describe("coderouter route session", () => {
     });
 
     const response = await POST(
-      new Request("https://coderouter.dev/api/coderouter/session", {
+      new Request("https://cmux.w3dev.app/api/coderouter/session", {
         method: "POST",
       }),
     );
@@ -81,7 +81,7 @@ describe("coderouter route session", () => {
       teamId: "team_1",
       token: "crt_test",
       expiresAt: "2026-09-01T00:00:00.000Z",
-      openaiBaseUrl: "https://coderouter.dev/v1",
+      openaiBaseUrl: "https://cmux.w3dev.app/v1",
     });
     expect(issueToken).toHaveBeenCalledWith("team_1", "user_1");
   });
@@ -120,7 +120,7 @@ describe("coderouter route session", () => {
     });
 
     const response = await POST(
-      new Request("https://coderouter.dev/api/coderouter/session", {
+      new Request("https://cmux.w3dev.app/api/coderouter/session", {
         method: "POST",
       }),
     );
@@ -139,7 +139,7 @@ describe("coderouter route session", () => {
     });
 
     const response = await POST(
-      new Request("https://coderouter.dev/api/coderouter/session", {
+      new Request("https://cmux.w3dev.app/api/coderouter/session", {
         method: "POST",
       }),
     );

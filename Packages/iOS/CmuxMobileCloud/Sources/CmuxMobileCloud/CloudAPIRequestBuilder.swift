@@ -213,7 +213,6 @@ public struct CloudAPIRequestBuilder: Sendable, Equatable {
         request.httpMethod = method
         request.timeoutInterval = timeout
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         if let body {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")

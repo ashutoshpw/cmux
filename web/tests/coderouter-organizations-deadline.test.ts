@@ -1,3 +1,4 @@
+import { ownedPrincipal } from "./helpers/owned-principal";
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from "bun:test";
 
 // GET /api/coderouter/organizations runs Stack verification, the identity
@@ -47,6 +48,10 @@ const hasPermission = mock(async () => {
   state.permissionLookups += 1;
   return true;
 });
+
+mock.module("../services/auth/betterAuthPrincipal", () => ({
+  resolveBetterAuthPrincipal: async (headers: Headers) => ownedPrincipal(stackUser, headers),
+}));
 
 mock.module("../app/lib/stack", () => ({
   isStackConfigured: () => true,
@@ -113,14 +118,14 @@ afterEach(async () => {
 });
 
 describe("GET /api/coderouter/organizations deadline", () => {
-  test("a stalled identity snapshot write does not hold the catalog past its deadline", async () => {
+  test("the owned catalog never waits on a legacy identity snapshot write", async () => {
     state.stallSnapshotWrite = true;
     const response = await organizationsGet(organizationsRequest(), authorizedCoderouterTeams);
     expect(response.status).toBe(200);
     const body = await response.json() as { teams: { id: string }[] };
     expect(body.teams.map((team) => team.id)).toEqual(["team-a", "team-b", "team-c", "user-1"]);
-    // The snapshot is still refreshed; it just is not on the response path.
-    expect(state.snapshotWrites).toBe(1);
+    // Owned authorization does not consult or update the legacy snapshot.
+    expect(state.snapshotWrites).toBe(0);
   });
 
   test("permission lookups fetch the Stack user once for every team", async () => {

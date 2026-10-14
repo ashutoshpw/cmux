@@ -8,7 +8,7 @@
  * contract on a desktop image), then asserts the
  * daemon contract with NO bootstrap of its own: the baked cmux-tui daemon must
  * come up by itself after resume, bound to this machine's instance id, with
- * the binary at the current files.cmux.com pin. A second machine from the same
+ * the binary at the current files.cmux.w3dev.app pin. A second machine from the same
  * snapshot must hold a different daemon identity (the snapshot is a memory
  * image; see cmux-devbox-boot). Both sandboxes are deleted.
  *
@@ -427,7 +427,7 @@ if (provider === "freestyle") {
     if (settled.exitCode !== 0) throw new Error(`baked daemon never reached its listener: ${settled.output.slice(-500)}`);
     // The baked binary must be the pin the bake resolved and recorded in
     // /etc/cmux/cmux-tui-pin (that is the image's contract; the manifest entry
-    // carries the same commit). The live files.cmux.com pin moves with every
+    // carries the same commit). The live files.cmux.w3dev.app pin moves with every
     // cmux-tui release, so drift from it is reported, not failed: a new pin
     // reaches machines through a rebake.
     const bakedPin = await exec("cat /etc/cmux/cmux-tui-pin", 30_000);
@@ -442,8 +442,8 @@ if (provider === "freestyle") {
     const live = await resolveCmuxTuiSource("freestyle");
     console.log(
       live.sha256 === bakedSha
-        ? `cmux-tui pin: ${bakedCommit} (${bakedSha.slice(0, 12)}…), the current files.cmux.com pin`
-        : `cmux-tui pin: baked ${bakedCommit} (${bakedSha.slice(0, 12)}…); files.cmux.com now pins ${live.commit} (${live.sha256.slice(0, 12)}…), a rebake picks it up`,
+        ? `cmux-tui pin: ${bakedCommit} (${bakedSha.slice(0, 12)}…), the current files.cmux.w3dev.app pin`
+        : `cmux-tui pin: baked ${bakedCommit} (${bakedSha.slice(0, 12)}…); files.cmux.w3dev.app now pins ${live.commit} (${live.sha256.slice(0, 12)}…), a rebake picks it up`,
     );
     // An idle machine must not wake: the terminal host's main thread (the warm
     // template terminal) stays under a small bound of voluntary context

@@ -69,14 +69,14 @@ cr pi --model <model>`}</CodeBlock>
 
       <DocsHeading level={3} id="claude-code">{t("claudeTitle")}</DocsHeading>
       <p>{t("claudeDesc")}</p>
-      <p>{t("apiKeyCreate")} <Link href="/dashboard/coderouter" className={linkClass}>cmux.com/dashboard/coderouter</Link></p>
+      <p>{t("apiKeyCreate")} <Link href="/dashboard/coderouter" className={linkClass}>cmux.w3dev.app/dashboard/coderouter</Link></p>
       <CodeBlock lang="bash">{`# Claude Code and Anthropic Messages API clients
-export ANTHROPIC_BASE_URL=https://coderouter.dev
+export ANTHROPIC_BASE_URL=https://cmux.w3dev.app
 export ANTHROPIC_API_KEY=crk_...
 claude
 
 # OpenAI Responses API clients
-export OPENAI_BASE_URL=https://coderouter.dev/v1
+export OPENAI_BASE_URL=https://cmux.w3dev.app/v1
 export OPENAI_API_KEY=crk_...`}</CodeBlock>
       <p>{t("apiKeyScope")}</p>
       <p>{t("apiKeyLogin")}</p>

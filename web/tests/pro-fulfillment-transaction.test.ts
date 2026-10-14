@@ -15,6 +15,7 @@ import {
 } from "../db/schema";
 
 process.env.RESEND_API_KEY ??= "test-resend-key";
+process.env.CMUX_PRO_FROM_EMAIL = "cmux W3Dev <pro@w3dev.app>";
 process.env.CMUX_FEEDBACK_FROM_EMAIL ??= "feedback@example.com";
 process.env.CMUX_FEEDBACK_RATE_LIMIT_ID ??= "test-feedback-rate-limit";
 process.env.STACK_SECRET_SERVER_KEY ??= "test-stack-secret";

@@ -13,8 +13,8 @@ from typing import Any, Mapping
 
 
 CHANNELS = {
-    "nightly": {"prefix": "cmux-nightly-macos", "release_tag": "nightly", "app": "cmux NIGHTLY.app"},
-    "rc": {"prefix": "cmux-rc-macos", "release_tag": "rc", "app": "cmux RC.app"},
+    "nightly": {"prefix": "cmux-nightly-macos", "release_tag": "nightly", "app": "cmux W3Dev NIGHTLY.app"},
+    "rc": {"prefix": "cmux-rc-macos", "release_tag": "rc", "app": "cmux W3Dev RC.app"},
 }
 VARIANTS = {"arm64", "x86_64", "universal"}
 HEX_SHA256 = re.compile(r"[0-9a-fA-F]{64}\Z")

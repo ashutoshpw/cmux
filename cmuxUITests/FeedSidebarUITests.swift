@@ -23,7 +23,7 @@ final class FeedSidebarUITests: XCTestCase {
     override func setUp() {
         super.setUp()
         continueAfterFailure = false
-        socketPath = "/tmp/cmux-debug-\(UUID().uuidString).sock"
+        socketPath = "/tmp/cmux-w3dev-debug-\(UUID().uuidString).sock"
         diagnosticsPath = "/tmp/cmux-feed-sidebar-\(UUID().uuidString).json"
         feedResultPath = "/tmp/cmux-feed-sidebar-result-\(UUID().uuidString).json"
         feedTUIReadyPath = "/tmp/cmux-feed-sidebar-tui-ready-\(UUID().uuidString).json"

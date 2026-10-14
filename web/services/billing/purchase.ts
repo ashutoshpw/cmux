@@ -1,3 +1,4 @@
+import { applicationOrigin } from "../deployment/origin";
 import { requirePersonalPlanIdForSubscription } from "./subscriptionPlan";
 export { personalPlanIdForSubscription } from "./subscriptionPlan";
 import { findIdentitySnapshotUserIdsByEmail } from "../auth/identitySnapshot";
@@ -72,7 +73,7 @@ export const ACTIVE_STRIPE_SUBSCRIPTION_STATUSES = new Set([
   "past_due",
 ]);
 const DELETED_ACCOUNT_ACTOR_ID = "deleted-account";
-const PURCHASE_MAGIC_LINK_CALLBACK = "https://cmux.com/handler/after-sign-in";
+const PURCHASE_MAGIC_LINK_CALLBACK = `${applicationOrigin()}/handler/after-sign-in`;
 const MAX_STACK_USER_LOOKUP_PAGES = 100;
 
 type BillingDb = ReturnType<typeof cloudDb>;
@@ -3113,7 +3114,7 @@ async function requestPurchaseMagicLink(
   }
 }
 
-const PURCHASE_VERIFICATION_CALLBACK = "https://cmux.com/handler/email-verification";
+const PURCHASE_VERIFICATION_CALLBACK = `${applicationOrigin()}/handler/email-verification`;
 
 /**
  * Send the purchaser the one email that lets them reach their entitlement.

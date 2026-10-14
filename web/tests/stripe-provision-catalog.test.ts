@@ -537,7 +537,7 @@ if (url.endsWith("/prices") && !isPost) {
       data: [{
         id: "bpc_default",
         is_default: true,
-        business_profile: { headline: "cmux", privacy_policy_url: "https://cmux.com/privacy" },
+        business_profile: { headline: "cmux", privacy_policy_url: "https://cmux.w3dev.app/privacy" },
       }],
       has_more: false,
     });
@@ -559,8 +559,8 @@ if (url.endsWith("/prices") && !isPost) {
   if (scenario === "duplicate-webhooks") {
     respond({
       data: [
-        { id: "we_one", url: "https://cmux.com/api/stripe/webhook", status: "enabled" },
-        { id: "we_two", url: "https://cmux.com/api/stripe/webhook", status: "enabled" },
+        { id: "we_one", url: "https://cmux.w3dev.app/api/stripe/webhook", status: "enabled" },
+        { id: "we_two", url: "https://cmux.w3dev.app/api/stripe/webhook", status: "enabled" },
       ],
       has_more: false,
     });
@@ -574,7 +574,7 @@ if (url.endsWith("/prices") && !isPost) {
     startingAfter === "we_other"
   ) {
     respond({
-      data: [{ id: "we_existing", url: "https://cmux.com/api/stripe/webhook", status: "enabled" }],
+      data: [{ id: "we_existing", url: "https://cmux.w3dev.app/api/stripe/webhook", status: "enabled" }],
       has_more: false,
     });
   } else {

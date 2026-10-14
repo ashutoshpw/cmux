@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cmux.dev/schemas/resource-api-v2.json",
+  "$id": "https://cmux.w3dev.app/schemas/resource-api-v2.json",
   "title": "cmux.protocol/2 envelope",
   "description": "This endpoint describes exactly one local mux session. Cross-machine aggregation requires a later broker protocol.",
   "oneOf": [

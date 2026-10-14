@@ -1,278 +1,887 @@
-import { trace } from "@opentelemetry/api";
+import { Effect } from "effect";
 import { cache } from "react";
-import { StackServerApp } from "@hexclave/next";
-import { env } from "../env";
-import { stackApiBaseURL } from "../../services/auth/stackApiBaseURL";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
+import { and, asc, eq, gt, ilike, or } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
 import { cloudDb } from "../../db/client";
+import {
+  betterAuthUser as users,
+  betterAuthSession as sessions,
+  betterAuthOrganization as organizations,
+  betterAuthMember as members,
+  betterAuthInvitation as invitations,
+  betterAuthAccount as accounts,
+  betterAuthApiKey as apiKeys,
+} from "../../db/betterAuthSchema";
+import { getBetterAuth } from "../../services/auth/betterAuthServer";
+import {
+  resolveBetterAuthPrincipal,
+  getBetterAuthBrowserAccessToken,
+  revokeBetterAuthSession,
+} from "../../services/auth/betterAuthPrincipal";
 import { withFreshAccountMetadataUser } from "../../services/account/metadataMutation";
 import { canonicalizeEmailForMatching } from "../../services/billing/emailMatching";
-import { withStackAuthSpan } from "../../services/auth/stackTelemetry";
+import { applicationOrigin } from "../../services/deployment/origin";
+import { assertOrganizationMembershipAdmission } from "../../services/teams/organizationAdministration";
+import { withTeamAdminLock } from "../../services/teams/repository";
 
-// env.ts trims every runtimeEnv source, so consumers receive sanitized values
-// regardless of whether zod validation is skipped.
-const projectId = env.NEXT_PUBLIC_STACK_PROJECT_ID;
-const publishableClientKey = env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY;
-const secretServerKey = env.STACK_SECRET_SERVER_KEY;
+type UserRow = typeof users.$inferSelect;
+type OrganizationRow = typeof organizations.$inferSelect;
+type KeyRow = typeof apiKeys.$inferSelect;
+type Metadata = Record<string, unknown>;
+export type AuthJson = {
+  accessToken: string | null;
+  refreshToken: string | null;
+};
+export type AuthTokenStore =
+  | { readonly headers: { get(name: string): string | null } }
+  | {
+      readonly accessToken?: string | null;
+      readonly refreshToken?: string | null;
+    };
+type ListOptions = {
+  cursor?: string;
+  limit?: number;
+  query?: string;
+  includeAnonymous?: boolean;
+  includeRestricted?: boolean;
+  orderBy?: string;
+  desc?: boolean;
+};
+export type AuthPage<T> = T[] & { nextCursor: string | null };
+export type UserUpdate = {
+  displayName?: string | null;
+  profileImageUrl?: string | null;
+  primaryEmail?: string | null;
+  primaryEmailVerified?: boolean;
+  clientMetadata?: unknown;
+  clientReadOnlyMetadata?: unknown;
+  serverMetadata?: unknown;
+  selectedTeamId?: string | null;
+  isAnonymous?: boolean;
+};
 
-let stackServerAppCache: StackServerApp<true> | null = null;
-let nonRedirectingStackServerAppCache: StackServerApp<true> | null = null;
+function metadata(value: unknown): Metadata {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? Object.fromEntries(Object.entries(value))
+    : {};
+}
+async function authHeaders(store?: AuthTokenStore): Promise<Headers> {
+  if (!store) return new Headers(await headers());
+  const result = new Headers();
+  if ("headers" in store) {
+    for (const name of [
+      "cookie",
+      "authorization",
+      "origin",
+      "user-agent",
+      "x-forwarded-for",
+    ]) {
+      const value = store.headers.get(name);
+      if (value !== null) result.set(name, value);
+    }
+  } else if (store.accessToken)
+    result.set("authorization", `Bearer ${store.accessToken}`);
+  return result;
+}
+function page<T>(
+  items: T[],
+  limit: number,
+  id: (item: T) => string,
+): AuthPage<T> {
+  const selected = items.slice(0, limit);
+  return Object.assign(selected, {
+    nextCursor:
+      items.length > limit ? id(selected[selected.length - 1]!) : null,
+  });
+}
+const ADMIN_PERMISSIONS = [
+  "team_admin",
+  "$update_team",
+  "$delete_team",
+  "$invite_members",
+  "$read_members",
+  "$remove_members",
+  "$manage_api_keys",
+];
+function permissions(role: string) {
+  return role.split(",").some((role) => role === "owner" || role === "admin")
+    ? ADMIN_PERMISSIONS
+    : ["$read_members"];
+}
+async function invalidate(userId: string) {
+  const [{ invalidateNativeAuthCacheForUser }, { deleteIdentitySnapshot }] =
+    await Promise.all([
+      import("../../services/vms/auth"),
+      import("../../services/auth/identitySnapshot"),
+    ]);
+  invalidateNativeAuthCacheForUser(userId);
+  await deleteIdentitySnapshot(userId, undefined, { throwOnError: true });
+}
 
-type RequestStackUser = Awaited<ReturnType<StackServerApp<true>["getUser"]>>;
-
-// React creates one value per server render. This map deduplicates repeated
-// read-only user lookups without sharing auth state between users or requests.
-const requestStackUserCache = cache(
-  () => new Map<string, Promise<RequestStackUser>>(),
-);
-
-/** Resolve the current browser user once per server render. */
-export function getRequestScopedStackUser(flow: string): Promise<RequestStackUser> {
-  const cache = requestStackUserCache();
-  const key = "current-user";
-  const existing = cache.get(key);
-  if (existing) {
-    trace.getActiveSpan()?.setAttribute("cmux.auth.request_cache", "hit");
-    return existing;
+export class OwnedApiKey {
+  constructor(private readonly row: KeyRow) {}
+  get id() {
+    return this.row.id;
   }
-
-  trace.getActiveSpan()?.setAttribute("cmux.auth.request_cache", "miss");
-  const pending = withStackAuthSpan(
-    "get_user",
-    () => getStackServerApp().getUser({ or: "return-null" }),
-    { "cmux.auth.flow": flow },
+  get description() {
+    return this.row.description;
+  }
+  get createdAt() {
+    return this.row.createdAt;
+  }
+  get expiresAt() {
+    return this.row.expiresAt;
+  }
+  get manuallyRevokedAt() {
+    return this.row.revokedAt;
+  }
+  get value() {
+    return { lastFour: this.row.lastFour };
+  }
+  whyInvalid(): "manually-revoked" | "expired" | null {
+    if (this.row.revokedAt) return "manually-revoked";
+    return this.row.expiresAt && this.row.expiresAt.getTime() <= Date.now()
+      ? "expired"
+      : null;
+  }
+  async revoke() {
+    await cloudDb()
+      .update(apiKeys)
+      .set({ revokedAt: new Date() })
+      .where(eq(apiKeys.id, this.id));
+  }
+}
+async function listKeys(
+  owner: { userId: string } | { organizationId: string },
+) {
+  return (
+    await cloudDb()
+      .select()
+      .from(apiKeys)
+      .where(
+        "userId" in owner
+          ? eq(apiKeys.userId, owner.userId)
+          : eq(apiKeys.organizationId, owner.organizationId),
+      )
+  ).map((row) => new OwnedApiKey(row));
+}
+type KeyCreateInput = { description: string; expiresAt?: Date | null; expiresInMillis?: number | null; permissions?: readonly string[] };
+type KeyFirstView = { id: string; description: string; createdAt: Date; expiresAt: Date | null; value: { reveal(): string; lastFour: string } };
+export class OwnedTeam {
+  constructor(private readonly row: OrganizationRow) {}
+  get id() {
+    return this.row.id;
+  }
+  get displayName() {
+    return this.row.name;
+  }
+  get profileImageUrl() {
+    return this.row.logo;
+  }
+  get clientReadOnlyMetadata() {
+    return metadata(this.row.clientReadOnlyMetadata);
+  }
+  get serverMetadata() {
+    return metadata(this.row.serverMetadata);
+  }
+  get createdAt() {
+    return this.row.createdAt;
+  }
+  async listUsers() {
+    const rows = await cloudDb()
+      .select({ user: users, member: members })
+      .from(members)
+      .innerJoin(users, eq(members.userId, users.id))
+      .where(eq(members.organizationId, this.id));
+    return Promise.all(
+      rows.map(async ({ user, member }) =>
+        Object.assign(await ownedUser(user), {
+          teamProfile: {
+            displayName: member.displayName,
+            profileImageUrl: member.image,
+          },
+        }),
+      ),
+    );
+  }
+  async addUser(userId: string) {
+    await withTeamAdminLock(this.id, async tx => {
+      await assertOrganizationMembershipAdmission(tx, this.id, userId);
+      await tx.insert(members).values({
+        id: randomUUID(),
+        organizationId: this.id,
+        userId,
+        role: "member",
+        createdAt: new Date(),
+      }).onConflictDoNothing();
+      await invalidate(userId);
+    });
+  }
+  async removeUser(userId: string) {
+    const { revokeTeamMemberAccess } =
+      await import("../../services/vms/teamMemberRevocation");
+    await revokeTeamMemberAccess({ teamId: this.id, userId });
+    await cloudDb()
+      .delete(members)
+      .where(
+        and(eq(members.organizationId, this.id), eq(members.userId, userId)),
+      );
+    await cloudDb()
+      .update(sessions)
+      .set({ activeOrganizationId: null })
+      .where(
+        and(
+          eq(sessions.userId, userId),
+          eq(sessions.activeOrganizationId, this.id),
+        ),
+      );
+    await cloudDb()
+      .update(users)
+      .set({ selectedTeamId: null })
+      .where(and(eq(users.id, userId), eq(users.selectedTeamId, this.id)));
+    await invalidate(userId);
+  }
+  async inviteUser(input: { email: string; callbackUrl?: string }) {
+    await getBetterAuth().api.createInvitation({
+      headers: await headers(),
+      body: { email: input.email, organizationId: this.id, role: "member" },
+    });
+  }
+  async listInvitations() {
+    return (
+      await cloudDb()
+        .select()
+        .from(invitations)
+        .where(
+          and(
+            eq(invitations.organizationId, this.id),
+            eq(invitations.status, "pending"),
+          ),
+        )
+    ).map((row) => ({
+      id: row.id,
+      recipientEmail: row.email,
+      expiresAt: row.expiresAt,
+      revoke: async () => {
+        await cloudDb()
+          .update(invitations)
+          .set({ status: "canceled" })
+          .where(eq(invitations.id, row.id));
+      },
+    }));
+  }
+  async update(input: {
+    displayName?: string;
+    profileImageUrl?: string | null;
+    clientReadOnlyMetadata?: unknown;
+    serverMetadata?: unknown;
+  }) {
+    await cloudDb()
+      .update(organizations)
+      .set({
+        ...(input.displayName === undefined ? {} : { name: input.displayName }),
+        ...(input.profileImageUrl === undefined
+          ? {}
+          : { logo: input.profileImageUrl }),
+        ...(input.clientReadOnlyMetadata === undefined
+          ? {}
+          : { clientReadOnlyMetadata: metadata(input.clientReadOnlyMetadata) }),
+        ...(input.serverMetadata === undefined
+          ? {}
+          : { serverMetadata: metadata(input.serverMetadata) }),
+      })
+      .where(eq(organizations.id, this.id));
+    await Promise.all(
+      (await this.listUsers()).map((user) => invalidate(user.id)),
+    );
+  }
+  async delete() {
+    const people = await this.listUsers();
+    const { revokeTeamAccess } =
+      await import("../../services/vms/teamMemberRevocation");
+    await revokeTeamAccess({ teamId: this.id });
+    await cloudDb().delete(organizations).where(eq(organizations.id, this.id));
+    await Promise.all(people.map((user) => invalidate(user.id)));
+  }
+  listApiKeys() {
+    return listKeys({ organizationId: this.id });
+  }
+  createApiKey(
+    _input: KeyCreateInput,
+  ): Promise<KeyFirstView> {
+    void _input;
+    return Promise.reject(new Error("API key authentication is not enabled"));
+  }
+}
+export class OwnedUser {
+  constructor(
+    private readonly row: UserRow,
+    readonly selectedTeam: OwnedTeam | null,
+    private readonly sessionId: string | null = null,
+    private readonly request?: Headers,
+  ) {}
+  get id() {
+    return this.row.id;
+  }
+  get displayName() {
+    return this.row.name;
+  }
+  get primaryEmail() {
+    return this.row.email;
+  }
+  get primaryEmailVerified() {
+    return this.row.emailVerified;
+  }
+  get profileImageUrl() {
+    return this.row.image;
+  }
+  get signedUpAt() {
+    return this.row.createdAt;
+  }
+  get isAnonymous() {
+    return this.row.isAnonymous === true;
+  }
+  get isRestricted() {
+    return !this.isAnonymous && !this.primaryEmailVerified;
+  }
+  get clientMetadata() {
+    return metadata(this.row.clientMetadata);
+  }
+  get clientReadOnlyMetadata() {
+    return metadata(this.row.clientReadOnlyMetadata);
+  }
+  get serverMetadata() {
+    return metadata(this.row.serverMetadata);
+  }
+  async listTeams(options: ListOptions = {}): Promise<AuthPage<OwnedTeam>> {
+    const limit = Math.min(options.limit ?? 100, 1000);
+    const conditions = [eq(members.userId, this.id)];
+    if (options.cursor) conditions.push(gt(organizations.id, options.cursor));
+    if (options.query)
+      conditions.push(
+        or(
+          eq(organizations.id, options.query),
+          ilike(organizations.name, `%${options.query}%`),
+        )!,
+      );
+    const rows = await cloudDb()
+      .select({ organization: organizations })
+      .from(members)
+      .innerJoin(organizations, eq(members.organizationId, organizations.id))
+      .where(and(...conditions))
+      .orderBy(asc(organizations.id))
+      .limit(limit + 1);
+    return page(
+      rows.map(({ organization }) => new OwnedTeam(organization)),
+      limit,
+      (team) => team.id,
+    );
+  }
+  async getTeam(id: string) {
+    const [row] = await cloudDb()
+      .select({ organization: organizations })
+      .from(members)
+      .innerJoin(organizations, eq(members.organizationId, organizations.id))
+      .where(and(eq(members.userId, this.id), eq(organizations.id, id)))
+      .limit(1);
+    return row ? new OwnedTeam(row.organization) : null;
+  }
+  async hasPermission(scope: { readonly id: string }, permission: string) {
+    const [row] = await cloudDb()
+      .select()
+      .from(members)
+      .where(
+        and(eq(members.userId, this.id), eq(members.organizationId, scope.id)),
+      )
+      .limit(1);
+    return row ? permissions(row.role).includes(permission) : false;
+  }
+  async grantPermission(scope: { readonly id: string }, permission: string) {
+    if (permission !== "team_admin")
+      throw new Error(`Unsupported permission: ${permission}`);
+    const [member] = await cloudDb()
+      .select()
+      .from(members)
+      .where(
+        and(eq(members.userId, this.id), eq(members.organizationId, scope.id)),
+      )
+      .limit(1);
+    if (member?.role !== "owner")
+      await cloudDb()
+        .update(members)
+        .set({ role: "admin" })
+        .where(
+          and(
+            eq(members.userId, this.id),
+            eq(members.organizationId, scope.id),
+          ),
+        );
+    await invalidate(this.id);
+  }
+  async revokePermission(scope: { readonly id: string }, permission: string) {
+    if (permission !== "team_admin")
+      throw new Error(`Unsupported permission: ${permission}`);
+    await cloudDb()
+      .update(members)
+      .set({ role: "member" })
+      .where(
+        and(eq(members.userId, this.id), eq(members.organizationId, scope.id)),
+      );
+    await invalidate(this.id);
+  }
+  async update(input: UserUpdate) {
+    if (input.selectedTeamId && !(await this.getTeam(input.selectedTeamId)))
+      throw new Error("Organization membership required");
+    await cloudDb()
+      .update(users)
+      .set({
+        updatedAt: new Date(),
+        ...(input.displayName === undefined
+          ? {}
+          : { name: input.displayName ?? "" }),
+        ...(input.profileImageUrl === undefined
+          ? {}
+          : { image: input.profileImageUrl }),
+        ...(input.primaryEmail === undefined
+          ? {}
+          : { email: input.primaryEmail ?? "" }),
+        ...(input.primaryEmailVerified === undefined
+          ? {}
+          : { emailVerified: input.primaryEmailVerified }),
+        ...(input.isAnonymous === undefined
+          ? {}
+          : { isAnonymous: input.isAnonymous }),
+        ...(input.selectedTeamId === undefined
+          ? {}
+          : { selectedTeamId: input.selectedTeamId }),
+        ...(input.clientMetadata === undefined
+          ? {}
+          : { clientMetadata: metadata(input.clientMetadata) }),
+        ...(input.clientReadOnlyMetadata === undefined
+          ? {}
+          : { clientReadOnlyMetadata: metadata(input.clientReadOnlyMetadata) }),
+        ...(input.serverMetadata === undefined
+          ? {}
+          : { serverMetadata: metadata(input.serverMetadata) }),
+      })
+      .where(eq(users.id, this.id));
+    if (input.selectedTeamId !== undefined && this.sessionId)
+      await cloudDb()
+        .update(sessions)
+        .set({ activeOrganizationId: input.selectedTeamId })
+        .where(eq(sessions.id, this.sessionId));
+    await invalidate(this.id);
+  }
+  setPrimaryEmail(email: string | null, options: { verified?: boolean } = {}) {
+    if (!email) throw new Error("A primary email is required");
+    return this.update({
+      primaryEmail: email,
+      primaryEmailVerified: options.verified,
+    });
+  }
+  createTeam(input: { displayName: string }) {
+    return getStackServerApp().createTeam({ ...input, creatorUserId: this.id });
+  }
+  async listContactChannels() {
+    return [
+      {
+        id: this.id,
+        type: "email" as const,
+        value: this.primaryEmail,
+        isVerified: this.primaryEmailVerified,
+        isPrimary: true,
+        usedForAuth: !this.isAnonymous,
+        sendVerificationEmail: async (input: { callbackUrl?: string } = {}) => {
+          await getBetterAuth().api.sendVerificationEmail({
+            body: {
+              email: this.primaryEmail,
+              callbackURL: ownedAuthCallback(input.callbackUrl),
+            },
+          });
+        },
+      },
+    ];
+  }
+  async getActiveSessions() {
+    return (
+      await cloudDb()
+        .select()
+        .from(sessions)
+        .where(
+          and(eq(sessions.userId, this.id), gt(sessions.expiresAt, new Date())),
+        )
+    ).map((session) => ({
+      id: session.id,
+      createdAt: session.createdAt,
+      lastUsedAt: session.updatedAt,
+      isImpersonation: false,
+      isCurrentSession: session.id === this.sessionId,
+      geoInfo: { ip: session.ipAddress, cityName: null, countryCode: null },
+    }));
+  }
+  async listOAuthProviders() {
+    return (
+      await cloudDb()
+        .select()
+        .from(accounts)
+        .where(eq(accounts.userId, this.id))
+    )
+      .filter((account) => account.providerId !== "credential")
+      .map((account) => ({
+        id: account.providerId,
+        type: account.providerId,
+        email: this.primaryEmail,
+        allowSignIn: true,
+        allowConnectedAccounts: true,
+      }));
+  }
+  listApiKeys() {
+    return listKeys({ userId: this.id });
+  }
+  createApiKey(
+    _input: KeyCreateInput,
+  ): Promise<KeyFirstView> {
+    void _input;
+    return Promise.reject(new Error("API key authentication is not enabled"));
+  }
+  async listNotificationCategories() {
+    const preferences = metadata(this.clientMetadata.notifications);
+    return [
+      {
+        id: "account",
+        name: "Account notifications",
+        enabled: true,
+        canDisable: false,
+      },
+      {
+        id: "product",
+        name: "Product updates",
+        enabled: preferences.product !== false,
+        canDisable: true,
+      },
+    ];
+  }
+  async delete() {
+    await cloudDb().delete(users).where(eq(users.id, this.id));
+    await invalidate(this.id);
+  }
+  get currentSession() {
+    return {
+      getTokens: async () =>
+        getStackServerApp().getAuthJson({
+          tokenStore: { headers: this.request ?? new Headers() },
+        }),
+    };
+  }
+}
+async function ownedUser(
+  row: UserRow,
+  sessionId: string | null = null,
+  request?: Headers,
+): Promise<OwnedUser> {
+  let selected: OwnedTeam | null = null;
+  if (row.selectedTeamId) {
+    const [joined] = await cloudDb()
+      .select({ organization: organizations })
+      .from(members)
+      .innerJoin(organizations, eq(organizations.id, members.organizationId))
+      .where(
+        and(
+          eq(members.userId, row.id),
+          eq(members.organizationId, row.selectedTeamId),
+        ),
+      )
+      .limit(1);
+    if (joined) selected = new OwnedTeam(joined.organization);
+  }
+  return new OwnedUser(row, selected, sessionId, request);
+}
+export class OwnedAuthServerApp {
+  async getUser(
+    input?:
+      | string
+      | {
+          tokenStore?: AuthTokenStore;
+          or?: string;
+          includeRestricted?: boolean;
+          allowDeletingAccount?: boolean;
+        },
+  ): Promise<OwnedUser | null> {
+    let userId: string;
+    let sessionId: string | null = null;
+    let request: Headers | undefined;
+    if (typeof input === "string") userId = input;
+    else {
+      request = await authHeaders(input?.tokenStore);
+      const principal = await resolveBetterAuthPrincipal(request, {
+        allowDeletingAccount: input?.allowDeletingAccount,
+      });
+      if (!principal) {
+        if (input?.or === "redirect") redirect("/handler/sign-in");
+        return null;
+      }
+      userId = principal.userId;
+      sessionId = principal.sessionId;
+    }
+    const [row] = await cloudDb()
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    return row ? ownedUser(row, sessionId, request) : null;
+  }
+  async getTeam(id: string) {
+    const [row] = await cloudDb()
+      .select()
+      .from(organizations)
+      .where(eq(organizations.id, id))
+      .limit(1);
+    return row ? new OwnedTeam(row) : null;
+  }
+  async createTeam(input: { displayName: string; creatorUserId?: string }) {
+    const id = randomUUID();
+    const row = await cloudDb().transaction(async (tx) => {
+      const [organization] = await tx
+        .insert(organizations)
+        .values({
+          id,
+          name: input.displayName,
+          slug: `org-${id}`,
+          createdAt: new Date(),
+        })
+        .returning();
+      if (!organization)
+        throw new Error("Organization creation returned no row");
+      if (input.creatorUserId)
+        await tx
+          .insert(members)
+          .values({
+            id: randomUUID(),
+            organizationId: id,
+            userId: input.creatorUserId,
+            role: "owner",
+            createdAt: new Date(),
+          });
+      return organization;
+    });
+    return new OwnedTeam(row);
+  }
+  async listTeamMemberPermissions(
+    id: string,
+    _options?: { recursive?: boolean },
+  ) {
+    void _options;
+    return (
+      await cloudDb()
+        .select()
+        .from(members)
+        .where(eq(members.organizationId, id))
+    ).flatMap((row) =>
+      permissions(row.role).map((permissionId) => ({
+        userId: row.userId,
+        permissionId,
+      })),
+    );
+  }
+  async listUsers(options: ListOptions = {}): Promise<AuthPage<OwnedUser>> {
+    const limit = Math.min(options.limit ?? 100, 1000);
+    const conditions = [];
+    if (options.cursor) conditions.push(gt(users.id, options.cursor));
+    if (options.query)
+      conditions.push(
+        or(
+          ilike(users.email, `%${options.query}%`),
+          ilike(users.name, `%${options.query}%`),
+          eq(users.id, options.query),
+        )!,
+      );
+    if (!options.includeAnonymous)
+      conditions.push(eq(users.isAnonymous, false));
+    const rows = await cloudDb()
+      .select()
+      .from(users)
+      .where(and(...conditions))
+      .orderBy(asc(users.id))
+      .limit(limit + 1);
+    return page(
+      await Promise.all(rows.map((row) => ownedUser(row))),
+      limit,
+      (user) => user.id,
+    );
+  }
+  async listTeams(options: ListOptions = {}): Promise<AuthPage<OwnedTeam>> {
+    const limit = Math.min(options.limit ?? 100, 1000);
+    const conditions = [];
+    if (options.cursor) conditions.push(gt(organizations.id, options.cursor));
+    if (options.query)
+      conditions.push(
+        or(
+          ilike(organizations.name, `%${options.query}%`),
+          eq(organizations.id, options.query),
+        )!,
+      );
+    const rows = await cloudDb()
+      .select()
+      .from(organizations)
+      .where(and(...conditions))
+      .orderBy(asc(organizations.id))
+      .limit(limit + 1);
+    return page(
+      rows.map((row) => new OwnedTeam(row)),
+      limit,
+      (team) => team.id,
+    );
+  }
+  async createUser(input: {
+    displayName?: string | null;
+    primaryEmail?: string | null;
+    primaryEmailVerified?: boolean;
+    isAnonymous?: boolean;
+    clientReadOnlyMetadata?: unknown;
+    serverMetadata?: unknown;
+  }) {
+    const id = randomUUID();
+    const now = new Date();
+    const [row] = await cloudDb()
+      .insert(users)
+      .values({
+        id,
+        name: input.displayName ?? "",
+        email: input.primaryEmail ?? `${id}@anonymous.invalid`,
+        emailVerified: input.primaryEmailVerified ?? false,
+        isAnonymous: input.isAnonymous ?? false,
+        clientReadOnlyMetadata: metadata(input.clientReadOnlyMetadata),
+        serverMetadata: metadata(input.serverMetadata),
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
+    if (!row) throw new Error("User creation returned no row");
+    return ownedUser(row);
+  }
+  async getProject() {
+    return {
+      displayName: "cmux W3Dev",
+      config: {
+        credentialEnabled: true,
+        passkeyEnabled: true,
+        magicLinkEnabled: true,
+        allowUserApiKeys: false,
+        allowTeamApiKeys: false,
+        clientUserDeletionEnabled: true,
+        oauthProviders: [
+          ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+            ? [{ id: "google" }]
+            : []),
+          ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+            ? [{ id: "github" }]
+            : []),
+        ],
+      },
+    };
+  }
+  async getAuthJson(
+    input: { tokenStore?: AuthTokenStore; allowDeletingAccount?: boolean } = {},
+  ): Promise<AuthJson> {
+    const request = await authHeaders(input.tokenStore);
+    const principal = await resolveBetterAuthPrincipal(request, {
+      allowDeletingAccount: input?.allowDeletingAccount,
+    });
+    if (!principal) return { accessToken: null, refreshToken: null };
+    const bearer = request.get("authorization");
+    return {
+      accessToken: bearer?.toLowerCase().startsWith("bearer ")
+        ? bearer.slice(7)
+        : await getBetterAuthBrowserAccessToken(request),
+      refreshToken: null,
+    };
+  }
+  async sendMagicLinkEmail(email: string, options?: { callbackUrl?: string }) {
+    await getBetterAuth().api.signInMagicLink({
+      body: { email, callbackURL: ownedAuthCallback(options?.callbackUrl) },
+      headers: new Headers({ origin: applicationOrigin() }),
+    });
+    return { status: "ok" as const };
+  }
+  async signOut(input: { tokenStore?: AuthTokenStore } = {}) {
+    const request = await authHeaders(input.tokenStore);
+    if (request.has("authorization"))
+      await Effect.runPromise(revokeBetterAuthSession(request));
+    else await getBetterAuth().api.signOut({ headers: request });
+  }
+}
+function ownedAuthCallback(value?: string): string {
+  const origin = applicationOrigin();
+  const callback = new URL(value ?? "/handler/after-sign-in", origin);
+  if (callback.origin !== origin || callback.username || callback.password) {
+    throw new Error("Authentication callback must use the configured application origin");
+  }
+  return callback.toString();
+}
+const serverApp = new OwnedAuthServerApp();
+export function isStackConfigured() {
+  return Boolean(
+    process.env.BETTER_AUTH_SECRET &&
+    (process.env.DATABASE_URL || process.env.DIRECT_DATABASE_URL),
   );
-  cache.set(key, pending);
-  void pending.catch(() => {
-    if (cache.get(key) === pending) cache.delete(key);
-  });
-  return pending;
 }
-
-export function isStackConfigured(): boolean {
-  return Boolean(projectId && publishableClientKey && secretServerKey);
+export function getStackServerApp() {
+  return serverApp;
 }
-
-export function getStackServerApp(): StackServerApp<true> {
-  if (!projectId || !publishableClientKey || !secretServerKey) {
-    throw new Error("Stack Auth is not configured");
-  }
-
-  stackServerAppCache ??= new StackServerApp({
-    projectId,
-    publishableClientKey,
-    secretServerKey,
-    tokenStore: "nextjs-cookie",
-    urls: {
-      afterSignIn: "/handler/after-sign-in",
-      afterSignUp: "/handler/after-sign-in",
-      accountSettings: "/dashboard/settings",
-    },
-  });
-  return stackServerAppCache;
+export function createUncachedStackServerApp() {
+  return new OwnedAuthServerApp();
 }
-
-/**
- * A new app with nothing cached, for checking a saved session. The shared
- * apps keep each session's access token, so a session revoked elsewhere
- * still looks signed in until that token expires; a fresh app has to refresh
- * first, and a revoked session fails right there. Session mutations never
- * redirect.
- */
-export function createUncachedStackServerApp(): StackServerApp<true> {
-  if (!projectId || !publishableClientKey || !secretServerKey) {
-    throw new Error("Stack Auth is not configured");
-  }
-  return new StackServerApp({
-    projectId,
-    publishableClientKey,
-    secretServerKey,
-    // Never used: every call passes the session it checks.
-    tokenStore: "memory",
-    redirectMethod: "none",
-  });
+export function getNonRedirectingStackServerApp() {
+  return serverApp;
 }
-
-// Native clients need a JSON response after revoking their exact token pair.
-// Stack's normal Next.js redirect mode throws a redirect after sign-out, so
-// keep a separate app instance whose session mutations never redirect.
-export function getNonRedirectingStackServerApp(): StackServerApp<true> {
-  if (!projectId || !publishableClientKey || !secretServerKey) {
-    throw new Error("Stack Auth is not configured");
-  }
-
-  nonRedirectingStackServerAppCache ??= new StackServerApp({
-    projectId,
-    publishableClientKey,
-    secretServerKey,
-    tokenStore: "nextjs-cookie",
-    redirectMethod: "none",
-    urls: {
-      afterSignIn: "/handler/after-sign-in",
-      afterSignUp: "/handler/after-sign-in",
-      accountSettings: "/dashboard/settings",
-    },
-  });
-  return nonRedirectingStackServerAppCache;
+export const stackServerApp = isStackConfigured() ? serverApp : null;
+const currentUser = cache(() => serverApp.getUser({ or: "return-null" }));
+export function getRequestScopedStackUser(_flow: string) {
+  void _flow;
+  return currentUser();
 }
-
-/**
- * Mark a server-owned Stack user's primary email as verified through the
- * server API.
- *
- * The SDK normally exposes this as `ServerUser.setPrimaryEmail(...,
- * { verified: true })`. This small fallback keeps the billing repair path
- * usable with an older SDK while keeping the secret server key entirely on
- * the server.
- */
 export async function markStackUserEmailVerifiedViaApi(
-  userId: string,
+  id: string,
   email: string,
-): Promise<void> {
-  await updateStackUserViaApi(
-    userId,
-    {
-      primary_email: email,
-      primary_email_verified: true,
-      primary_email_auth_enabled: true,
-    },
-    "Stack Auth email verification update failed",
-  );
+) {
+  const user = await serverApp.getUser(id);
+  if (!user) throw new Error("User not found");
+  await user.setPrimaryEmail(email, { verified: true });
 }
-
-/**
- * Convert an anonymous user whose email is already verified into a normal
- * account.
- *
- * The caller must have just observed `primaryEmailVerified === true`. This
- * patch does not set the verification bit, so a billing email can never turn
- * an unverified account into an authenticated account. Omitting `password`
- * preserves any password already stored on the account.
- */
 export async function promoteStackUserFromAnonymousViaApi(
-  userId: string,
+  id: string,
   email: string,
-): Promise<void> {
-  if (!email.trim()) {
-    throw new Error("Stack Auth anonymous promotion requires a verified email");
-  }
-  await updateStackUserViaApi(
-    userId,
-    {
-      primary_email_auth_enabled: true,
-      is_anonymous: false,
-    },
-    "Stack Auth anonymous user promotion failed",
-  );
+) {
+  const user = await serverApp.getUser(id);
+  if (
+    !user ||
+    !user.primaryEmailVerified ||
+    canonicalizeEmailForMatching(user.primaryEmail) !==
+      canonicalizeEmailForMatching(email)
+  )
+    throw new Error("Verified email is required to promote an anonymous user");
+  await user.update({ isAnonymous: false });
 }
-
-/**
- * Promote a verified anonymous user while coordinating with account deletion.
- * The user is re-read after the deletion lease is held, so a stale callback
- * cannot resurrect a tombstoned account.
- */
 export async function promoteStackUserFromAnonymousWithDeletionGuard(
   userId: string,
   email: string,
-): Promise<void> {
-  const app = getStackServerApp();
+) {
   await withFreshAccountMetadataUser({
     db: cloudDb(),
     userId,
-    loader: {
-      getUser: (requestedUserId) => app.getUser(requestedUserId),
-    },
+    loader: serverApp,
     operation: async (user, lease) => {
       if (
-        user.id !== userId ||
-        user.isAnonymous !== true ||
-        user.primaryEmailVerified !== true ||
-        canonicalizeEmailForMatching(user.primaryEmail ?? "") !==
+        !user.isAnonymous ||
+        !user.primaryEmailVerified ||
+        canonicalizeEmailForMatching(user.primaryEmail) !==
           canonicalizeEmailForMatching(email)
-      ) {
-        throw new Error("Stack Auth anonymous promotion precondition changed");
-      }
+      )
+        throw new Error("Anonymous promotion precondition changed");
       await lease.refresh();
-      await promoteStackUserFromAnonymousViaApi(
-        user.id,
-        user.primaryEmail ?? email,
-      );
+      await promoteStackUserFromAnonymousViaApi(user.id, email);
     },
   });
 }
-
-type StackUserApiPatch = {
-  readonly primary_email?: string;
-  readonly primary_email_verified?: boolean;
-  readonly primary_email_auth_enabled?: boolean;
-  readonly is_anonymous?: false;
-};
-
-async function updateStackUserViaApi(
-  userId: string,
-  patch: StackUserApiPatch,
-  failureMessage: string,
-): Promise<void> {
-  if (!projectId || !secretServerKey) {
-    throw new Error("Stack Auth is not configured");
-  }
-
-  const normalizedBaseURL = stackApiBaseURL();
-  const baseURL = /\/api\/v1$/u.test(normalizedBaseURL)
-    ? normalizedBaseURL
-    : `${normalizedBaseURL}/api/v1`;
-  const response = await withStackAuthSpan(
-    "user_update",
-    async (span) => {
-      const response = await fetch(
-        `${baseURL.replace(/\/+$/, "")}/users/${encodeURIComponent(userId)}`,
-        {
-          method: "PATCH",
-          headers: {
-            "content-type": "application/json",
-            // Hexclave names only: Stack answers 429 to a request that also
-            // carries the legacy x-stack-* secret headers (2026-10-13).
-            "x-hexclave-access-type": "server",
-            "x-hexclave-project-id": projectId,
-            "x-hexclave-secret-server-key": secretServerKey,
-            "x-hexclave-override-error-status": "true",
-          },
-          body: JSON.stringify(patch),
-          signal: AbortSignal.timeout(10_000),
-        },
-      );
-      span.setAttribute("http.response.status_code", stackActualStatus(response));
-      span.setAttribute("cmux.external.success", stackActualStatus(response) < 400);
-      return response;
-    },
-    { "cmux.auth.flow": "server_user_update" },
-  );
-  const status = stackActualStatus(response);
-  if (status >= 400) {
-    await response.body?.cancel().catch(() => undefined);
-    // Do not include response bodies: Stack can echo account data or provider
-    // details, and this helper is called from webhook/recovery code paths.
-    const error = new Error(failureMessage) as Error & {
-      code?: string;
-      status?: number;
-    };
-    const knownError =
-      response.headers.get("x-hexclave-known-error") ??
-      response.headers.get("x-stack-known-error");
-    if (knownError) error.code = knownError;
-    error.status = status;
-    throw error;
-  }
-}
-
-/**
- * The request sets override-error-status, so Stack answers a failure with
- * HTTP 200 and names the real status in a header.
- */
-function stackActualStatus(response: Response): number {
-  const header = response.headers.get("x-hexclave-actual-status") ??
-    response.headers.get("x-stack-actual-status");
-  const status = header === null || header.trim() === "" ? Number.NaN : Number(header);
-  return Number.isInteger(status) && status >= 100 && status <= 599 ? status : response.status;
-}
-
-export const stackServerApp = isStackConfigured() ? getStackServerApp() : null;

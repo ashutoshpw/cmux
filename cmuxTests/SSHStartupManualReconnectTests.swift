@@ -70,7 +70,7 @@ struct SSHStartupManualReconnectTests {
         environment["CMUX_BUNDLED_CLI_PATH"] = fakeCLI.path
         environment["CMUX_TEST_FAKE_SSH"] = fakeSSH.path
         environment["CMUX_PERSISTENT_PTY_EXEC_HELPER"] = "/usr/bin/true"
-        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-debug-test.sock"
+        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-w3dev-debug-test.sock"
         environment["CMUX_WORKSPACE_ID"] = "11111111-1111-1111-1111-111111111111"
         environment["CMUX_SURFACE_ID"] = "22222222-2222-2222-2222-222222222222"
         environment["CMUX_TEST_SESSION_END_LOG"] = logFile.path
@@ -131,7 +131,7 @@ struct SSHStartupManualReconnectTests {
         environment["CMUX_BUNDLED_CLI_PATH"] = fakeCLI.path
         environment["CMUX_TEST_FAKE_SSH"] = fakeSSH.path
         environment["CMUX_PERSISTENT_PTY_EXEC_HELPER"] = "/usr/bin/true"
-        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-debug-test.sock"
+        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-w3dev-debug-test.sock"
         environment["CMUX_WORKSPACE_ID"] = "11111111-1111-1111-1111-111111111111"
         environment["CMUX_SURFACE_ID"] = "22222222-2222-2222-2222-222222222222"
         environment["CMUX_SSH_RECONNECT_LIMIT"] = "0"
@@ -199,7 +199,7 @@ struct SSHStartupManualReconnectTests {
         environment["CMUX_BUNDLED_CLI_PATH"] = fakeCLI.path
         environment["CMUX_TEST_FAKE_SSH"] = fakeSSH.path
         environment["CMUX_PERSISTENT_PTY_EXEC_HELPER"] = "/usr/bin/true"
-        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-debug-test.sock"
+        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-w3dev-debug-test.sock"
         environment["CMUX_WORKSPACE_ID"] = "11111111-1111-1111-1111-111111111111"
         environment["CMUX_SURFACE_ID"] = "22222222-2222-2222-2222-222222222222"
         environment["CMUX_TEST_AUTH_CHILD_PID"] = childPIDFile.path
@@ -293,7 +293,7 @@ struct SSHStartupManualReconnectTests {
         environment["CMUX_BUNDLED_CLI_PATH"] = fakeCLI.path
         environment["CMUX_TEST_FAKE_SSH"] = fakeSSH.path
         environment["CMUX_PERSISTENT_PTY_EXEC_HELPER"] = "/usr/bin/true"
-        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-debug-test.sock"
+        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-w3dev-debug-test.sock"
         environment["CMUX_WORKSPACE_ID"] = "11111111-1111-1111-1111-111111111111"
         environment["CMUX_SURFACE_ID"] = "22222222-2222-2222-2222-222222222222"
         environment["CMUX_TEST_BACKOFF_READY"] = backoffReadyMarker.path
@@ -385,7 +385,7 @@ struct SSHStartupManualReconnectTests {
         environment["CMUX_BUNDLED_CLI_PATH"] = fakeCLI.path
         environment["CMUX_TEST_FAKE_SSH"] = fakeSSH.path
         environment["CMUX_PERSISTENT_PTY_EXEC_HELPER"] = "/usr/bin/true"
-        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-debug-test.sock"
+        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-w3dev-debug-test.sock"
         environment["CMUX_WORKSPACE_ID"] = "11111111-1111-1111-1111-111111111111"
         environment["CMUX_SURFACE_ID"] = "22222222-2222-2222-2222-222222222222"
         environment["CMUX_TEST_ATTEMPT_FILE"] = attemptFile.path

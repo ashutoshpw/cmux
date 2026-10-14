@@ -68,9 +68,9 @@ class VerifyPublishedManifestTests(TestCase):
     def provenance(self, manifest: dict[str, object]) -> dict[str, object]:
         manifest.update(
             {
-                "sourceRepository": "https://github.com/manaflow-ai/cmux",
+                "sourceRepository": "https://github.com/ashutoshpw/cmux",
                 "sourceCommit": self.COMMIT,
-                "attestationUrl": "https://github.com/manaflow-ai/cmux/actions/runs/123456789",
+                "attestationUrl": "https://github.com/ashutoshpw/cmux/actions/runs/123456789",
                 "releaseUrl": None,
             }
         )
@@ -91,18 +91,18 @@ class VerifyPublishedManifestTests(TestCase):
                 payload = payloads[name]
                 target_artifacts[kind] = {
                     "name": name,
-                    "url": f"https://files.cmux.com/chatmux-relay/{self.COMMIT}/{name}",
+                    "url": f"https://files.cmux.w3dev.app/chatmux-relay/{self.COMMIT}/{name}",
                     "sha256": hashlib.sha256(payload).hexdigest(),
                     "size": len(payload),
                 }
             artifacts[target] = target_artifacts
         return {
             "schemaVersion": 1,
-            "sourceRepository": "https://github.com/manaflow-ai/cmux",
+            "sourceRepository": "https://github.com/ashutoshpw/cmux",
             "sourceCommit": self.COMMIT,
             "version": f"0.0.0-r2.sha-{self.COMMIT}",
-            "workflowRunUrl": "https://github.com/manaflow-ai/cmux/actions/runs/123456789",
-            "releaseUrl": f"https://github.com/manaflow-ai/cmux/releases/tag/chatmux-relay-r2-{self.COMMIT}",
+            "workflowRunUrl": "https://github.com/ashutoshpw/cmux/actions/runs/123456789",
+            "releaseUrl": f"https://github.com/ashutoshpw/cmux/releases/tag/chatmux-relay-r2-{self.COMMIT}",
             "artifacts": artifacts,
         }
 

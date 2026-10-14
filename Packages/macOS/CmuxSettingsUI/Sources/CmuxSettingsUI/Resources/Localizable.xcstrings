@@ -13935,55 +13935,55 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opt in to organize new Claude, Codex, and OpenCode panel scratch files under ~/.local/state/cmux/agent-artifacts. Provider transcripts and existing files are not moved."
+            "value": "Opt in to organize new Claude, Codex, and OpenCode panel scratch files under ~/.local/state/cmux-w3dev/agent-artifacts. Provider transcripts and existing files are not moved."
           }
         },
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "فعّل هذا الخيار لتنظيم الملفات المؤقتة الجديدة للوحات Claude وCodex وOpenCode ضمن ~/.local/state/cmux/agent-artifacts. لا يتم نقل نصوص جلسات الموفّرين والملفات الموجودة."
+            "value": "فعّل هذا الخيار لتنظيم الملفات المؤقتة الجديدة للوحات Claude وCodex وOpenCode ضمن ~/.local/state/cmux-w3dev/agent-artifacts. لا يتم نقل نصوص جلسات الموفّرين والملفات الموجودة."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aktivieren, um neue Scratch-Dateien der Claude-, Codex- und OpenCode-Panels unter ~/.local/state/cmux/agent-artifacts abzulegen. Anbieter-Transkripte und vorhandene Dateien werden nicht verschoben."
+            "value": "Aktivieren, um neue Scratch-Dateien der Claude-, Codex- und OpenCode-Panels unter ~/.local/state/cmux-w3dev/agent-artifacts abzulegen. Anbieter-Transkripte und vorhandene Dateien werden nicht verschoben."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Actívalo para organizar los nuevos archivos temporales de los paneles de Claude, Codex y OpenCode en ~/.local/state/cmux/agent-artifacts. Las transcripciones de los proveedores y los archivos existentes no se mueven."
+            "value": "Actívalo para organizar los nuevos archivos temporales de los paneles de Claude, Codex y OpenCode en ~/.local/state/cmux-w3dev/agent-artifacts. Las transcripciones de los proveedores y los archivos existentes no se mueven."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Activez cette option pour ranger les nouveaux fichiers de travail des panneaux Claude, Codex et OpenCode dans ~/.local/state/cmux/agent-artifacts. Les transcriptions des fournisseurs et les fichiers existants ne sont pas déplacés."
+            "value": "Activez cette option pour ranger les nouveaux fichiers de travail des panneaux Claude, Codex et OpenCode dans ~/.local/state/cmux-w3dev/agent-artifacts. Les transcriptions des fournisseurs et les fichiers existants ne sont pas déplacés."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "オンにすると、新しい Claude、Codex、OpenCode パネルのスクラッチファイルを ~/.local/state/cmux/agent-artifacts にまとめます。プロバイダのトランスクリプトや既存のファイルは移動されません。"
+            "value": "オンにすると、新しい Claude、Codex、OpenCode パネルのスクラッチファイルを ~/.local/state/cmux-w3dev/agent-artifacts にまとめます。プロバイダのトランスクリプトや既存のファイルは移動されません。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "켜면 새 Claude, Codex, OpenCode 패널 스크래치 파일을 ~/.local/state/cmux/agent-artifacts 아래에 정리합니다. 제공자 대화 기록과 기존 파일은 이동되지 않습니다."
+            "value": "켜면 새 Claude, Codex, OpenCode 패널 스크래치 파일을 ~/.local/state/cmux-w3dev/agent-artifacts 아래에 정리합니다. 제공자 대화 기록과 기존 파일은 이동되지 않습니다."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "启用后，新的 Claude、Codex 和 OpenCode 面板临时文件将统一存放在 ~/.local/state/cmux/agent-artifacts 下。提供方的对话记录和现有文件不会被移动。"
+            "value": "启用后，新的 Claude、Codex 和 OpenCode 面板临时文件将统一存放在 ~/.local/state/cmux-w3dev/agent-artifacts 下。提供方的对话记录和现有文件不会被移动。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "啟用後，新的 Claude、Codex 和 OpenCode 面板暫存檔案將統一存放在 ~/.local/state/cmux/agent-artifacts 下。提供者的對話紀錄和現有檔案不會被移動。"
+            "value": "啟用後，新的 Claude、Codex 和 OpenCode 面板暫存檔案將統一存放在 ~/.local/state/cmux-w3dev/agent-artifacts 下。提供者的對話紀錄和現有檔案不會被移動。"
           }
         }
       }

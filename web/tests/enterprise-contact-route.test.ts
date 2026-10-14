@@ -120,7 +120,7 @@ describe("enterprise contact route", () => {
       mock: { calls: Array<[Record<string, unknown>]> };
     }).mock.calls;
     expect(resendCalls[0]?.[0]).toMatchObject({
-      to: ["founders@cmux.com"],
+      to: ["enterprise@w3dev.app"],
       replyTo: "ada@good.test",
       subject: "Enterprise inquiry: Analytical Engines Inc.",
     });

@@ -20,8 +20,6 @@ const skipEnvValidation =
   process.env.SKIP_ENV_VALIDATION === "1" ||
   process.env.VERCEL_ENV === "preview" ||
   isDocsZone;
-const allowPreviewStackPlaceholders =
-  process.env.VERCEL_ENV === "preview" || isDocsZone;
 const isVercelNonPreviewDeployment =
   process.env.VERCEL === "1" &&
   typeof process.env.VERCEL_ENV === "string" &&
@@ -184,14 +182,6 @@ const coderouterPublicOrigin = z.string().url().superRefine((value, context) => 
     });
   }
 });
-const stackEnv = (
-  value: string | undefined,
-  fallback: string
-): string | undefined => {
-  const trimmed = trimEnv(value);
-  if (trimmed) return trimmed;
-  return allowPreviewStackPlaceholders ? fallback : undefined;
-};
 const positiveSafeIntegerEnv = (name: string) =>
   z.string()
     .regex(/^\d+$/)
@@ -210,6 +200,14 @@ const coderouterHeadersTimeoutEnv = z.string()
 
 export const env = createEnv({
   server: {
+    BETTER_AUTH_URL: z.string().url().optional(),
+    BETTER_AUTH_SECRET: requireVercelNonPreviewValue("BETTER_AUTH_SECRET", z.string().min(32)),
+    CMUX_AUTH_SERVICE_KEY: z.string().min(32).optional(),
+    CMUX_AUTH_FROM_EMAIL: z.string().email().optional(),
+    GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+    GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+    GITHUB_CLIENT_ID: z.string().min(1).optional(),
+    GITHUB_CLIENT_SECRET: z.string().min(1).optional(),
     RESEND_API_KEY: z.string().min(1),
     CMUX_FEEDBACK_FROM_EMAIL: z.string().email(),
     CMUX_TEAM_INVITE_FROM_EMAIL: z.string().email().optional(),
@@ -237,7 +235,7 @@ export const env = createEnv({
       "CMUX_CODEROUTER_PUBLIC_ORIGIN",
       coderouterPublicOrigin,
     ),
-    STACK_SECRET_SERVER_KEY: z.string().min(1),
+    STACK_SECRET_SERVER_KEY: retiredEnvValue("STACK_SECRET_SERVER_KEY", "BETTER_AUTH_SECRET"),
     // APNs push (iOS notifications). Optional: the app boots without them; the
     // push route returns a clear "not configured" error until they are set.
     // CMUX_APNS_KEY_P8 holds the .p8 PEM (literal "\n" escapes are normalized
@@ -274,7 +272,7 @@ export const env = createEnv({
     // Svix signing secret (`whsec_...`) for the Stack Auth webhook endpoint
     // `/api/webhooks/stack`. Optional: when unset the route answers 503 and
     // team removal is enforced only by the reconcile cron.
-    STACK_WEBHOOK_SECRET: z.string().min(1).optional(),
+    STACK_WEBHOOK_SECRET: retiredEnvValue("STACK_WEBHOOK_SECRET", "the owned Better Auth database"),
     // Price-id overrides carry the amount in their name, and every retired
     // name fails env validation instead of silently pinning checkout to a
     // grandfathered Price (Stripe amounts are immutable; see plans.ts).
@@ -383,9 +381,9 @@ export const env = createEnv({
     SUBROUTER_BASE_URL: z.string().url().optional(),
     SUBROUTER_ADMIN_TOKEN: z.string().min(1).max(1_024).optional(),
     SUBROUTER_HOSTED_URL: z.string().url().optional(),
-    SUBROUTER_STACK_TENANT_DELETE_TOKEN: requireVercelNonPreviewValue(
+    SUBROUTER_STACK_TENANT_DELETE_TOKEN: retiredEnvValue(
       "SUBROUTER_STACK_TENANT_DELETE_TOKEN",
-      z.string().min(32).max(1_024),
+      "the owned auth/account deletion path",
     ),
     SUBROUTER_STACK_AUTH_TIMEOUT_MS: z.string()
       .regex(/^[1-9][0-9]{0,4}$/)
@@ -473,10 +471,18 @@ export const env = createEnv({
       z.string().max(512).regex(/^[A-Za-z0-9+/]{43,}={0,2}$/).optional(),
   },
   client: {
-    NEXT_PUBLIC_STACK_PROJECT_ID: z.string().min(1),
-    NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: z.string().min(1),
+    NEXT_PUBLIC_STACK_PROJECT_ID: retiredEnvValue("NEXT_PUBLIC_STACK_PROJECT_ID", "the owned Better Auth issuer"),
+    NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: retiredEnvValue("NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY", "the same-origin Better Auth client"),
   },
   runtimeEnv: {
+    BETTER_AUTH_URL: trimEnv(process.env.BETTER_AUTH_URL),
+    BETTER_AUTH_SECRET: trimEnv(process.env.BETTER_AUTH_SECRET),
+    CMUX_AUTH_SERVICE_KEY: trimEnv(process.env.CMUX_AUTH_SERVICE_KEY),
+    CMUX_AUTH_FROM_EMAIL: trimEnv(process.env.CMUX_AUTH_FROM_EMAIL),
+    GOOGLE_CLIENT_ID: trimEnv(process.env.GOOGLE_CLIENT_ID),
+    GOOGLE_CLIENT_SECRET: trimEnv(process.env.GOOGLE_CLIENT_SECRET),
+    GITHUB_CLIENT_ID: trimEnv(process.env.GITHUB_CLIENT_ID),
+    GITHUB_CLIENT_SECRET: trimEnv(process.env.GITHUB_CLIENT_SECRET),
     RESEND_API_KEY: trimEnv(process.env.RESEND_API_KEY),
     CMUX_BILLING_RECOVERY_RATE_LIMIT_ID: trimEnv(
       process.env.CMUX_BILLING_RECOVERY_RATE_LIMIT_ID,
@@ -619,18 +625,9 @@ export const env = createEnv({
     CMUX_RELAY_ALLOW_HMAC_SECRET_B64: trimEnv(
       process.env.CMUX_RELAY_ALLOW_HMAC_SECRET_B64,
     ),
-    NEXT_PUBLIC_STACK_PROJECT_ID: stackEnv(
-      process.env.NEXT_PUBLIC_STACK_PROJECT_ID,
-      "00000000-0000-4000-8000-000000000000"
-    ),
-    NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: stackEnv(
-      process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY,
-      "preview-publishable-client-key"
-    ),
-    STACK_SECRET_SERVER_KEY: stackEnv(
-      process.env.STACK_SECRET_SERVER_KEY,
-      "preview-secret-server-key"
-    ),
+    NEXT_PUBLIC_STACK_PROJECT_ID: trimEnv(process.env.NEXT_PUBLIC_STACK_PROJECT_ID),
+    NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: trimEnv(process.env.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY),
+    STACK_SECRET_SERVER_KEY: trimEnv(process.env.STACK_SECRET_SERVER_KEY),
   },
   skipValidation: skipEnvValidation,
   onValidationError: (issues) => {

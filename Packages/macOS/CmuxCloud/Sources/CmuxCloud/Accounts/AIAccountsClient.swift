@@ -140,7 +140,6 @@ public actor AIAccountsClient {
         req.httpMethod = method
         req.timeoutInterval = 15
         req.setValue("Bearer \(tokens.accessToken)", forHTTPHeaderField: "Authorization")
-        req.setValue(tokens.refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         let teamID = explicitTeamID?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let teamID = teamID?.isEmpty == false ? teamID : resolvedTeamID, !teamID.isEmpty {
             req.setValue(teamID, forHTTPHeaderField: "X-Cmux-Team-Id")

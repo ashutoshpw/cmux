@@ -1,6 +1,7 @@
-import { adminCount, loadTeamAccess, memberRole, type TeamAccess } from "./access";
+import { loadTeamAccess, memberRole, type TeamAccess } from "./access";
 import { TeamApiError } from "./errors";
 import { TEAM_ADMIN_PERMISSION } from "./permissions";
+import { readOrganizationAdministration } from "./organizationAdministration";
 import { databaseTeamInviteStore, type TeamInviteStore, type TeamLockDb, withTeamAdminLock } from "./repository";
 import { defaultTeamSeatSync, type TeamSeatSync } from "./seatSync";
 import { defaultTeamStackApp, withStackDeadline, type StackTeamMember, type TeamStackApp } from "./stack";
@@ -29,7 +30,8 @@ async function withFreshTeam<T>(
   return lock(access.team.id, async (db) => {
     const fresh = await loadTeamAccess(access.userId, access.team.id, stack);
     if (!fresh) throw new TeamApiError("team_not_found", 403);
-    return operation(fresh, stack, db);
+    const current = db ? { ...fresh, liveAdministratorIds: (await readOrganizationAdministration(db, [fresh.team.id])).liveAdministratorIds } : fresh;
+    return operation(current, stack, db);
   });
 }
 
@@ -49,8 +51,9 @@ export function toTeamMember(access: TeamAccess, member: StackTeamMember, role: 
 }
 
 /** Throw `last_admin` when removing `userId`'s admin role would leave none. */
-export function assertNotLastAdmin(access: Pick<TeamAccess, "grants" | "members">, userId: string): void {
-  if (memberRole(access, userId) === "admin" && adminCount(access) <= 1) {
+export function assertNotLastAdmin(access: Pick<TeamAccess, "grants" | "members" | "liveAdministratorIds">, userId: string): void {
+  const hasReplacement = access.members.some(member => member.id !== userId && memberRole(access, member.id) === "admin" && (access.liveAdministratorIds === undefined || access.liveAdministratorIds.has(member.id)));
+  if (memberRole(access, userId) === "admin" && !hasReplacement) {
     throw new TeamApiError("last_admin", 409);
   }
 }

@@ -3,7 +3,6 @@
   "ignoreCommand": "bash tools/vercel-ignore-build.sh",
   "git": {
     "deploymentEnabled": {
-      "main": true,
       "**": false
     }
   },
@@ -13,10 +12,6 @@
   "crons": [
     {
       "path": "/api/cron/vm-runtime-limits",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/cron/hexclave-inbox",
       "schedule": "* * * * *"
     },
     {

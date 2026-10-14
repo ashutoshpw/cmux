@@ -1,22 +1,10 @@
-// Stack Auth verification for the presence worker.
-//
-// Mirrors `web/services/vms/auth.ts` (`verifyRequest` + `resolveTeam`): native
-// clients send `Authorization: Bearer <access token>`, and the team scope comes
-// from `X-Cmux-Team-Id` / `?teamId=` with a membership check, defaulting to the
-// caller's selected team and then to the solo-account user id. The web app
-// verifies through the Stack Next.js SDK; that SDK is just a wrapper over
-// Stack's REST API, so here we call the same two endpoints directly
-// (`/api/v1/users/me` and `/api/v1/teams?user_id=me`) with the client access
-// type, which both validates the access token server-side and yields the team
-// list. No cookie fallback: like the device-registry routes, only native
-// header auth is accepted (`allowCookie: false` on the web side).
-//
-// Heartbeats arrive every 15s per host, so verification results are cached in
-// isolate memory keyed by a SHA-256 of the access token, bounded by the
-// token's own `exp` and a short TTL so revocation latency stays small.
+// Verify OAuth bearer credentials against the configured owned Better Auth authority.
+// Current session and organization state are checked on every request. Only
+// rejected credentials are cached, scoped to their authority origin.
 
 export interface AuthEnv {
-  /** Stack REST API origin. Defaults to the hosted https://api.stack-auth.com. */
+  CMUX_AUTH_ORIGIN?: string;
+  /** Deprecated deployment inputs are never sent to a provider. */
   STACK_API_URL?: string;
   STACK_PROJECT_ID?: string;
   STACK_PUBLISHABLE_CLIENT_KEY?: string;
@@ -26,7 +14,7 @@ export interface AuthedUser {
   id: string;
   selectedTeamId: string | null;
   teamIds: readonly string[];
-  /** Profile fields resolved from the verified Stack user record. */
+  /** Profile fields resolved from the verified owned user record. */
   displayName?: string | null;
   profileImageURL?: string | null;
 }
@@ -141,61 +129,29 @@ async function sha256Hex(value: string): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-function stackHeaders(env: AuthEnv, accessToken: string): Record<string, string> {
-  return {
-    "x-stack-access-type": "client",
-    "x-stack-project-id": env.STACK_PROJECT_ID ?? "",
-    "x-stack-publishable-client-key": env.STACK_PUBLISHABLE_CLIENT_KEY ?? "",
-    "x-stack-access-token": accessToken,
-  };
+export function ownedAuthOrigin(env: AuthEnv): string {
+  const value = env.CMUX_AUTH_ORIGIN;
+  if (!value) throw new Error("Owned authentication origin is required");
+  const url = new URL(value);
+  if (url.origin !== value || !["https://cmux.w3dev.app", "https://staging.cmux.w3dev.app"].includes(url.origin)) throw new Error("Owned authentication origin is required");
+  return url.origin;
 }
-
 async function fetchStackUser(env: AuthEnv, accessToken: string): Promise<AuthedUser | null> {
-  const apiUrl = (env.STACK_API_URL ?? "https://api.stack-auth.com").replace(/\/$/, "");
-  const headers = stackHeaders(env, accessToken);
-
-  const meResponse = await fetch(`${apiUrl}/api/v1/users/me`, { headers });
-  if (!meResponse.ok) return null;
-  const me = (await meResponse.json()) as {
-    id?: unknown;
-    display_name?: unknown;
-    displayName?: unknown;
-    profile_image_url?: unknown;
-    profileImageUrl?: unknown;
-    selected_team_id?: unknown;
-    selected_team?: { id?: unknown } | null;
-  };
-  const userId = typeof me.id === "string" && me.id ? me.id : null;
-  if (!userId) return null;
-  const selectedTeamId =
-    typeof me.selected_team_id === "string" && me.selected_team_id
-      ? me.selected_team_id
-      : typeof me.selected_team?.id === "string" && me.selected_team.id
-        ? me.selected_team.id
-        : null;
-
-  // Membership list, equivalent to the web side's `user.listTeams()`. A
-  // failure here fails closed (no cross-team access on a partial view).
-  const teamsResponse = await fetch(`${apiUrl}/api/v1/teams?user_id=me`, { headers });
-  if (!teamsResponse.ok) return null;
-  const teams = (await teamsResponse.json()) as { items?: unknown };
-  const teamIds = Array.isArray(teams.items)
-    ? [
-        ...new Set(
-          teams.items
-            .map((item) => (item as { id?: unknown }).id)
-            .filter((id): id is string => typeof id === "string" && id.length > 0),
-        ),
-      ]
-    : [];
-
-  const displayName =
-    (typeof me.display_name === "string" ? me.display_name : null)
-    ?? (typeof me.displayName === "string" ? me.displayName : null);
-  const profileImageURL =
-    (typeof me.profile_image_url === "string" ? me.profile_image_url : null)
-    ?? (typeof me.profileImageUrl === "string" ? me.profileImageUrl : null);
-  return { id: userId, selectedTeamId, teamIds, displayName, profileImageURL };
+  const response = await fetch(`${ownedAuthOrigin(env)}/api/native-auth/session`, {
+    headers: { authorization: `Bearer ${accessToken}` }, signal: AbortSignal.timeout(5000), redirect: "error",
+  });
+  if (response.status === 401 || response.status === 403) return null;
+  if (!response.ok) throw new Error("Owned authentication service is unavailable");
+  const body: unknown = await response.json();
+  if (!body || typeof body !== "object" || !("user" in body) || !("organizations" in body)) throw new Error("Invalid authentication response");
+  const user = body.user;
+  if (!user || typeof user !== "object" || !("id" in user) || typeof user.id !== "string" || !Array.isArray(body.organizations)) throw new Error("Invalid authentication response");
+  const teamIds = body.organizations.map((organization: unknown) => {
+    if (!organization || typeof organization !== "object" || !("id" in organization) || typeof organization.id !== "string") throw new Error("Invalid organization response");
+    return organization.id;
+  });
+  const selected = "activeOrganizationId" in body && typeof body.activeOrganizationId === "string" && teamIds.includes(body.activeOrganizationId) ? body.activeOrganizationId : null;
+  return { id: user.id, selectedTeamId: selected, teamIds, displayName: "name" in user && typeof user.name === "string" ? user.name : null, profileImageURL: "image" in user && typeof user.image === "string" ? user.image : null };
 }
 
 /** Verify the caller. Returns the resolved user or null when unauthenticated
@@ -206,7 +162,6 @@ export async function verifyRequest(
   env: AuthEnv,
   options: { readonly fresh?: boolean } = {},
 ): Promise<AuthedUser | null> {
-  if (!env.STACK_PROJECT_ID || !env.STACK_PUBLISHABLE_CLIENT_KEY) return null;
   const token = bearerToken(request);
   if (!token) return null;
 
@@ -214,14 +169,15 @@ export async function verifyRequest(
   const expMs = tokenExpiryMs(token);
   if (expMs !== null && expMs <= now) return null;
 
-  const cacheKey = await sha256Hex(token);
+  const cacheKey = await sha256Hex(`${ownedAuthOrigin(env)}:${token}`);
   const cached = authCache.get(cacheKey);
   // A live entry serves either a verified user or a verified failure (null),
   // so a rejected token does not re-hit Stack on every request.
   // `fresh` (durable mutations: device revocation, control-socket setup)
   // never trusts a cached success, so a revoked bearer fails at once; a
   // cached rejection still answers without another Stack call.
-  if (cached && cached.expiresAt > now && !(options.fresh && cached.user !== null)) return cached.user;
+  // Authorization uses current membership and revocation state every time.
+  if (cached && cached.expiresAt > now && cached.user === null) return null;
   authCache.delete(cacheKey);
 
   const user = await fetchStackUser(env, token);

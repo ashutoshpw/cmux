@@ -234,7 +234,7 @@ struct CodeRouterHandoffClientTests {
         let request = await probe.request
         #expect(request?.url?.path == "/api/coderouter/handoff")
         #expect(request?.value(forHTTPHeaderField: "Authorization") == "Bearer access-secret")
-        #expect(request?.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == "refresh-secret")
+        #expect(request?.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == nil)
         #expect(request?.value(forHTTPHeaderField: "X-Cmux-Team-Id") == "team_a")
         #expect(request?.value(forHTTPHeaderField: "Cookie") == nil)
         #expect(request?.value(forHTTPHeaderField: "X-Cmux-Native") == nil)

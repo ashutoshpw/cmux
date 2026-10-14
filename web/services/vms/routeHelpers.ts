@@ -1,3 +1,5 @@
+import { jsonResponse } from "../http/jsonResponse";
+export { jsonResponse } from "../http/jsonResponse";
 import { cloudOperationId, CloudOperationProgress } from "../observability/cloudOperationProgress";
 import type { Span } from "@opentelemetry/api";
 import { trace } from "@opentelemetry/api";
@@ -251,16 +253,6 @@ function scheduleTraceFlush(): void {
  * promise settles but turbopack reports "No response is returned from route handler").
  * Use `new Response(JSON.stringify(...), { ... })` explicitly instead.
  */
-export function jsonResponse(
-  data: unknown,
-  status = 200,
-  headers: Readonly<Record<string, string>> = {},
-): Response {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "content-type": "application/json", ...headers },
-  });
-}
 
 export function enforceBrowserMutationProtection(
   request: Request,
@@ -540,7 +532,7 @@ export function vmBillingTeamErrorResponse(err: {
   });
 }
 
-const VM_UPGRADE_URL = "https://cmux.com/pricing";
+const VM_UPGRADE_URL = "https://cmux.w3dev.app/pricing";
 
 /**
  * The paid-plan gate response. Copy comes from the `vmErrors.requiresPro`
@@ -596,7 +588,7 @@ export async function vmMemoryRequiresPlanResponse(input: {
   const memoryGb = Math.round(input.memoryMb / 1024);
   const maxGb = Math.round(input.maxMemoryMb / 1024);
   const upgradeName = input.upgradePlanId.charAt(0).toUpperCase() + input.upgradePlanId.slice(1);
-  const upgradeUrl = `https://cmux.com/api/billing/checkout?plan=${encodeURIComponent(input.upgradePlanId)}&cmux_source=vm_memory_limit`;
+  const upgradeUrl = `https://cmux.w3dev.app/api/billing/checkout?plan=${encodeURIComponent(input.upgradePlanId)}&cmux_source=vm_memory_limit`;
   const copy = await vmMemoryErrorCopy("memoryPlan", locale, {
     memory: memoryGb, max: maxGb, plan: upgradeName, planId: input.upgradePlanId, upgradeUrl,
   });
@@ -702,7 +694,7 @@ export async function vmResourcePoolExceededResponse(
     requested: memory ? poolGb(error.requested.memoryMb) : error.requested.vcpus,
     canUpgrade: upgradePlanId !== null,
   });
-  const upgradeUrl = upgradePlanId ? `https://cmux.com/api/billing/checkout?plan=${upgradePlanId}` : null;
+  const upgradeUrl = upgradePlanId ? `https://cmux.w3dev.app/api/billing/checkout?plan=${upgradePlanId}` : null;
   return vmErrorResponse({
     error: "vm_resource_pool_exceeded",
     status: 402,
@@ -912,7 +904,7 @@ export async function goLimitResponse(
     action: copy.action,
     phase: "billing",
     retryable: false,
-    extra: { upgradeRequired: true, upgradePlanId: "pro", upgradeUrl: "https://cmux.com/api/billing/checkout?plan=pro" },
+    extra: { upgradeRequired: true, upgradePlanId: "pro", upgradeUrl: "https://cmux.w3dev.app/api/billing/checkout?plan=pro" },
   });
 }
 
@@ -1171,7 +1163,7 @@ export const vmWorkflowErrorResponders = {
       error: "vm_resources_require_pro", status: 402, phase: "billing",
       message: copy.message,
       action: copy.action,
-      extra: { upgradeRequired: true, upgradePlanId: "pro", upgradeUrl: "https://cmux.com/api/billing/checkout?plan=pro" },
+      extra: { upgradeRequired: true, upgradePlanId: "pro", upgradeUrl: "https://cmux.w3dev.app/api/billing/checkout?plan=pro" },
     });
   },
   VmCreateCreditsInsufficientError: () => null,
@@ -1412,7 +1404,7 @@ function vmNetworkFullResponse(error: VmProviderOperationError): Response {
     reason: "Every address in this account's private network is assigned to a machine or an enrolled Mac.",
     action:
       "Delete machines you no longer use with `cmux vm rm <id>`, or revoke Macs you no longer use on the " +
-      "Cloud Mac access page at https://cmux.com/dashboard/cloud, then try again.",
+      "Cloud Mac access page at https://cmux.w3dev.app/dashboard/cloud, then try again.",
     phase: vmPhaseForOperation(error.operation),
     retryable: false,
     displayTitle: "Private network full",

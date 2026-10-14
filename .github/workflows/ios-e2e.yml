@@ -458,7 +458,7 @@ jobs:
           set -euo pipefail
           source scripts/lib/mobile-attach.sh
           mac_bundle_id="$(cmux_attach_mac_bundle_id "$CMUX_E2E_TAG")"
-          ios_bundle_id="dev.cmux.ios.$(cmux_attach__slug "$CMUX_E2E_TAG")"
+          ios_bundle_id="app.w3dev.cmux.ios.debug.$(cmux_attach__slug "$CMUX_E2E_TAG")"
           xcrun simctl spawn "$CMUX_E2E_SIM_UDID" defaults write \
             "$ios_bundle_id" cmux.iroh.debug.transport-mode -string relayOnly
           xcrun simctl spawn "$CMUX_E2E_SIM_UDID" defaults write \
@@ -493,7 +493,7 @@ jobs:
           set -euo pipefail
           source scripts/lib/mobile-attach.sh
           mac_bundle_id="$(cmux_attach_mac_bundle_id "$CMUX_E2E_TAG")"
-          ios_bundle_id="dev.cmux.ios.$(cmux_attach__slug "$CMUX_E2E_TAG")"
+          ios_bundle_id="app.w3dev.cmux.ios.debug.$(cmux_attach__slug "$CMUX_E2E_TAG")"
           [ "$(defaults read "$mac_bundle_id" cmux.iroh.v2.force-relay)" = "1" ]
           [ "$(xcrun simctl spawn "$CMUX_E2E_SIM_UDID" defaults read "$ios_bundle_id" cmux.iroh.v2.config.CMUX_IROH_V2_FORCE_RELAY)" = "1" ]
 

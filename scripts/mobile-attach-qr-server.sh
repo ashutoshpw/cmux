@@ -38,7 +38,7 @@ PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 # the connected iPhone. The Open button shells out to it so a stale (or
 # missing) device build is brought current before launch — no manual reload.
 IOS_RELOAD = os.path.join(PROJECT_DIR, "ios", "scripts", "reload.sh")
-IOS_TEAM = os.environ.get("CMUX_IOS_TEAM", "7WLXT3NR37")
+IOS_TEAM = os.environ.get("CMUX_IOS_TEAM", os.environ.get("CMUX_APPLE_TEAM_ID", ""))
 # Build can take a couple minutes (xcodebuild incremental + install over the
 # tunnel); give it generous headroom.
 IOS_BUILD_TIMEOUT_SECONDS = 600
@@ -46,7 +46,7 @@ QR_SCRIPT = os.path.join(SCRIPT_DIR, "mobile-attach-qr.sh")
 TMP_ROOT = os.environ.get("TMPDIR", "/tmp").rstrip("/") or "/tmp"
 OUT_DIR = os.path.join(TMP_ROOT, f"cmux-mobile-attach-qr-{TAG}")
 IOS_TAG_SLUG = re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", IOS_TAG.lower())).strip("-") or "dev"
-IOS_BUNDLE_ID = f"dev.cmux.ios.{IOS_TAG_SLUG}"
+IOS_BUNDLE_ID = f"app.w3dev.cmux.ios.debug.{IOS_TAG_SLUG}"
 
 _LOCK = threading.Lock()
 _LAST_GEN_TS = 0.0
@@ -195,6 +195,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
         keeps serving other requests meanwhile."""
         if not os.path.exists(IOS_RELOAD):
             return f"no-reload-script ({IOS_RELOAD})"
+        if not re.fullmatch(r"[A-Z0-9]{10}", IOS_TEAM):
+            return "Set CMUX_IOS_TEAM or CMUX_APPLE_TEAM_ID to the fork signing team"
         cmd = [IOS_RELOAD, "--tag", IOS_TAG, "--device-only", "--team", IOS_TEAM]
         env = os.environ.copy()
         env["CMUX_TAG"] = IOS_TAG

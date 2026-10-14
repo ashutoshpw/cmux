@@ -33,7 +33,7 @@ describe("coderouter account removal", () => {
       },
     });
     const response = await handler(
-      new Request("https://coderouter.dev/api/coderouter/accounts/" + accountId, {
+      new Request("https://cmux.w3dev.app/api/coderouter/accounts/" + accountId, {
         method: "DELETE",
       }),
       { params: Promise.resolve({ accountId }) },
@@ -73,7 +73,7 @@ describe("coderouter account removal", () => {
       },
     });
     const response = await handler(
-      new Request("https://coderouter.dev", { method: "DELETE" }),
+      new Request("https://cmux.w3dev.app", { method: "DELETE" }),
       { params: Promise.resolve({ accountId: "../other-team" }) },
     );
     expect(response.status).toBe(400);

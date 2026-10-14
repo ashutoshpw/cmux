@@ -149,7 +149,7 @@ public struct MacSurfaceGalleryPreviewView: View {
     private static let browserSurface = MobileSurfacePreview(
         id: "gallery-browser",
         kind: .browser,
-        title: "cmux.com"
+        title: "cmux.w3dev.app"
     )
 
     private static let todoSnapshot = MobileTodoSnapshot(

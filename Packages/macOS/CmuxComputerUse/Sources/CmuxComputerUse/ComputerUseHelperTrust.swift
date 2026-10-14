@@ -1,9 +1,10 @@
 import Foundation
 import Security
+import CmuxControlSocket
 
 /// Decides which "cmux Computer Use" helper this build may install and launch.
 ///
-/// The Accessibility and Screen Recording rows for `com.cmuxterm.cua` hold the
+/// The Accessibility and Screen Recording rows for `app.w3dev.cmux.cua` hold the
 /// Developer ID requirement of the release helper. An ad-hoc signed copy (what
 /// a tagged dev build bundles) can never satisfy those rows, and granting one
 /// replaces the row, which breaks the release helper. So the runtime installs
@@ -14,17 +15,18 @@ import Security
 /// so macOS never shows a permission prompt for an ad-hoc identity.
 public struct ComputerUseHelperTrust: Sendable {
     /// The helper's bundle identifier, the key of its TCC rows.
-    public static let bundleIdentifier = "com.cmuxterm.cua"
-    /// The Developer ID team that signs release helpers.
-    public static let teamIdentifier = "7WLXT3NR37"
+    public static let bundleIdentifier = "app.w3dev.cmux.cua"
     /// The code requirement every usable helper satisfies: the release
     /// helper's designated requirement. The two certificate fields are the
     /// Developer ID intermediate and leaf markers, so an Apple Development or
     /// Distribution signature of the same team does not pass either.
-    static let requirementText = "identifier \"\(bundleIdentifier)\" and anchor apple generic"
-        + " and certificate 1[field.1.2.840.113635.100.6.2.6]"
-        + " and certificate leaf[field.1.2.840.113635.100.6.1.13]"
-        + " and certificate leaf[subject.OU] = \"\(teamIdentifier)\""
+    static var requirementText: String? {
+        guard let teamIdentifier = CodeSigningTeamIdentity().currentTeamIdentifier() else { return nil }
+        return "identifier \"\(bundleIdentifier)\" and anchor apple generic"
+            + " and certificate 1[field.1.2.840.113635.100.6.2.6]"
+            + " and certificate leaf[field.1.2.840.113635.100.6.1.13]"
+            + " and certificate leaf[subject.OU] = \"\(teamIdentifier)\""
+    }
 
     private let isSigned: @Sendable (URL) -> Bool
     private let installedCandidates: @Sendable () -> [URL]
@@ -67,6 +69,7 @@ public struct ComputerUseHelperTrust: Sendable {
     /// valid for every architecture and nested code and satisfy
     /// ``requirementText``. An ad-hoc signature has no certificate, so it fails.
     static func satisfiesRequirement(_ url: URL) -> Bool {
+        guard let requirementText else { return false }
         var code: SecStaticCode?
         guard SecStaticCodeCreateWithPath(url as CFURL, [], &code) == errSecSuccess, let code else {
             return false
@@ -87,7 +90,7 @@ public struct ComputerUseHelperTrust: Sendable {
         let helper = "Contents/Library/cmux Computer Use.app"
         var candidates: [URL] = []
         for root in [URL(fileURLWithPath: "/Applications"), home.appendingPathComponent("Applications")] {
-            for app in ["cmux NIGHTLY.app", "cmux RC.app", "cmux.app"] {
+            for app in ["cmux W3Dev NIGHTLY.app", "cmux W3Dev RC.app", "cmux W3Dev.app"] {
                 candidates.append(root.appendingPathComponent(app).appendingPathComponent(helper))
             }
         }

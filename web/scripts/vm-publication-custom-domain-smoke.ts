@@ -37,7 +37,7 @@ if (!zone) throw new Error("SMOKE_ZONE is required");
 const hostname = process.env.SMOKE_HOSTNAME?.trim() || zone;
 const principal: PublicationPrincipal = { userId: process.env.SMOKE_OWNER?.trim() || "smoke-owner", teamIds: [] };
 const forwardAuth = {
-  url: process.env.SMOKE_FORWARD_AUTH_URL?.trim() || "https://cmux.com/api/freestyle/forward-auth",
+  url: process.env.SMOKE_FORWARD_AUTH_URL?.trim() || "https://cmux.w3dev.app/api/freestyle/forward-auth",
   serviceToken: process.env.CMUX_VM_PUBLICATION_FORWARD_AUTH_SECRET?.trim() || `smoke-forward-auth-${"x".repeat(40)}`,
 };
 const stateFile = process.env.SMOKE_STATE?.trim() || `/tmp/cmux-custom-domain-smoke-${zone}.json`;

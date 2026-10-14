@@ -24,7 +24,7 @@ mock.module("next-intl/server", () => ({
 const { parseArtManifest } = await import("../app/[locale]/(landing)/art/art-manifest");
 const { ArtGallery } = await import("../app/[locale]/(landing)/art/art-gallery");
 
-const origin = "https://files.cmux.com/cmux-art/";
+const origin = "https://files.cmux.w3dev.app/cmux-art/";
 function work(id: string, collection: string, overrides: Record<string, unknown> = {}) {
   return {
     id,
@@ -58,7 +58,7 @@ async function render(locale: Locale, works = parseArtManifest(manifest)) {
   return renderToStaticMarkup(await ArtGallery({ locale, works }));
 }
 
-describe("cmux.com/art", () => {
+describe("cmux.w3dev.app/art", () => {
   test("shows each published work under its collection, in picker order", async () => {
     const html = await render("en");
     const order = ["Dark Art", "Museum Icons", "Calm", "Doré"].map((name) => html.indexOf(`>${name}</h2>`));

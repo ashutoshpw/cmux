@@ -69,11 +69,63 @@ def run(entitlements, profile=None, no_profile=False):
                 plistlib.dump(profile, handle)
             cmd += ["--profile", str(profile_path)]
         proc = subprocess.run(cmd, capture_output=True, text=True, check=False)
-        effective = plistlib.load(output.open("rb")) if output.exists() else None
+        effective = plistlib.loads(output.read_bytes()) if output.exists() else None
         return proc, effective
 
 
 class ReconcileEntitlementsTests(unittest.TestCase):
+    def test_fork_templates_resolve_exact_profile_identity_and_shared_groups(self):
+        for channel in ("release", "nightly", "rc"):
+            host = "app.w3dev.cmux" + ("" if channel == "release" else "." + channel)
+            for extension in (False, True):
+                bundle = host + (".tunnel" if extension else "")
+                path = ROOT / (f"TunnelExtension/cmuxTunnelExtension.{channel}.entitlements"
+                               if extension else f"cmux.{channel}.entitlements")
+                template = plistlib.loads(path.read_bytes())
+                profile = {"Entitlements": {
+                    **PROFILE_WITH_TUNNEL["Entitlements"],
+                    "com.apple.application-identifier": "FORKTEAM12." + bundle,
+                    "com.apple.developer.team-identifier": "FORKTEAM12",
+                    "keychain-access-groups": ["FORKTEAM12.*"],
+                    "com.apple.security.application-groups": ["FORKTEAM12." + host],
+                }}
+                with self.subTest(channel=channel, extension=extension):
+                    proc, effective = run(template, profile)
+                    self.assertEqual(proc.returncode, 0, proc.stderr)
+                    self.assertEqual(effective["com.apple.application-identifier"], "FORKTEAM12." + bundle)
+                    self.assertEqual(effective["com.apple.developer.team-identifier"], "FORKTEAM12")
+                    self.assertEqual(effective["com.apple.security.application-groups"], ["FORKTEAM12." + host])
+
+    def test_fork_template_rejects_upstream_profile_and_ungranted_groups(self):
+        template = {"com.apple.application-identifier": "$(AppIdentifierPrefix)app.w3dev.cmux",
+                    "com.apple.developer.team-identifier": "$(DEVELOPMENT_TEAM)",
+                    "com.apple.security.application-groups": ["$(AppIdentifierPrefix)app.w3dev.cmux"]}
+        for profile in (
+            PROFILE_WITH_TUNNEL,
+            {"Entitlements": {"com.apple.application-identifier": "FORKTEAM12.app.w3dev.cmux",
+                              "com.apple.developer.team-identifier": "FORKTEAM12",
+                              "com.apple.security.application-groups": ["FORKTEAM12.com.cmuxterm.app"]}},
+        ):
+            proc, effective = run(template, profile)
+            self.assertNotEqual(proc.returncode, 0)
+            self.assertIsNone(effective)
+
+    def test_legacy_app_prefix_stays_distinct_from_signing_team_and_app_groups(self):
+        desired = plistlib.loads((ROOT / "cmux.release.entitlements").read_bytes())
+        profile = {"Entitlements": {
+            **PROFILE_WITH_TUNNEL["Entitlements"],
+            "com.apple.application-identifier": "OLDPREFIX1.app.w3dev.cmux",
+            "com.apple.developer.team-identifier": "FORKTEAM12",
+            "keychain-access-groups": ["OLDPREFIX1.*"],
+            "com.apple.security.application-groups": ["FORKTEAM12.app.w3dev.cmux"],
+        }}
+        proc, effective = run(desired, profile)
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        self.assertEqual(effective["com.apple.application-identifier"], "OLDPREFIX1.app.w3dev.cmux")
+        self.assertEqual(effective["keychain-access-groups"], ["OLDPREFIX1.app.w3dev.cmux"])
+        self.assertEqual(effective["com.apple.developer.team-identifier"], "FORKTEAM12")
+        self.assertEqual(effective["com.apple.security.application-groups"], ["FORKTEAM12.app.w3dev.cmux"])
+
     def test_profile_without_tunnel_drops_only_the_tunnel_feature_set(self):
         proc, effective = run(DESIRED, PROFILE_WITHOUT_TUNNEL)
         self.assertEqual(proc.returncode, 0, proc.stderr)
@@ -168,8 +220,13 @@ class ReconcileEntitlementsTests(unittest.TestCase):
 
     def test_repo_entitlement_files_request_the_tunnel(self):
         for name in ("cmux.release.entitlements", "cmux.nightly.entitlements", "cmux.rc.entitlements"):
-            desired = plistlib.load((ROOT / name).open("rb"))
-            proc, effective = run(desired, PROFILE_WITHOUT_TUNNEL)
+            desired = plistlib.loads((ROOT / name).read_bytes())
+            host = "app.w3dev.cmux" + (".nightly" if "nightly" in name else ".rc" if ".rc." in name else "")
+            profile = {"Entitlements": {**PROFILE_WITHOUT_TUNNEL["Entitlements"],
+                       "com.apple.application-identifier": "FORKTEAM12." + host,
+                       "com.apple.developer.team-identifier": "FORKTEAM12",
+                       "keychain-access-groups": ["FORKTEAM12.*"]}}
+            proc, effective = run(desired, profile)
             self.assertEqual(proc.returncode, 0, proc.stderr)
             self.assertTrue(json.loads(proc.stdout)["tunnel_requested"], name)
             self.assertNotIn("com.apple.developer.networking.networkextension", effective, name)

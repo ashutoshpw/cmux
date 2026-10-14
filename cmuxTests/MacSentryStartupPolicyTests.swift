@@ -190,11 +190,11 @@ private var appHostIsolationRequiredByBuild: Bool {
     }
 
     @Test(arguments: [
-        "com.cmuxterm.app",
-        "com.cmuxterm.app.nightly",
-        "com.cmuxterm.app.rc",
-        "com.cmuxterm.app.rc.candidate1",
-        "com.cmuxterm.app.debug.snmsc"
+        "app.w3dev.cmux",
+        "app.w3dev.cmux.nightly",
+        "app.w3dev.cmux.rc",
+        "app.w3dev.cmux.rc.candidate1",
+        "app.w3dev.cmux.debug.snmsc"
     ])
     func cmuxBundleIdentityStartsSentry(_ bundleIdentifier: String) {
         #expect(

@@ -67,11 +67,11 @@ describe("provisionVmModelPlane", () => {
       [VM_AUTHORIZATION_HEADER]: "Bearer crt_test-token",
     };
     expect(provision.edgeRules).toEqual([
-      { domain: "coderouter.cmux.internal", destinationHost: "coderouter.dev", headers },
+      { domain: "coderouter.cmux.internal", destinationHost: "cmux.w3dev.app", headers },
       // Reflection: the same identity, plus the marker the proxy routes on.
       {
         domain: "reflection.cmux.internal",
-        destinationHost: "coderouter.dev",
+        destinationHost: "cmux.w3dev.app",
         headers: { ...headers, [VM_REFLECTION_ALIAS_HEADER]: VM_REFLECTION_ALIAS_VALUE },
       },
     ]);
@@ -91,7 +91,7 @@ describe("provisionVmModelPlane", () => {
     for (const rule of rules ?? []) {
       expect(rule).toMatchObject({
         source: {},
-        destination: { host: "coderouter.dev", port: 443 },
+        destination: { host: "cmux.w3dev.app", port: 443 },
         transform: [{ headers: { [VM_AUTHORIZATION_HEADER]: "Bearer crt_test-token" } }],
       });
     }
@@ -110,7 +110,7 @@ describe("provisionVmModelPlane", () => {
   test("outside production with no origin override, a machine gets no edge rule and no token", async () => {
     // A dev backend or local checkout signs with its own key and keeps its
     // database private; production can verify neither. Pointing its machines'
-    // edge at production made every one poll coderouter.dev with a refused
+    // edge at production made every one poll cmux.w3dev.app with a refused
     // credential for the machine's whole life.
     for (const vercelEnv of [undefined, "development"]) {
       let issued = 0;
@@ -128,21 +128,19 @@ describe("provisionVmModelPlane", () => {
     expect(wired.edgeRules.map((rule) => rule.destinationHost)).toEqual(["coderouter-dev.example.com", "coderouter-dev.example.com"]);
   });
 
-  test("an invalid origin override is a typed unavailable failure, not a create with a bad rule", async () => {
-    let issued = 0;
-    await expect(
-      provisionVmModelPlane(
-        INPUT,
-        deps({
-          edgeOriginEnv: () => "http://coderouter.dev",
-          issueToken: async () => {
-            issued += 1;
-            return { token: "crt_x", expiresAt: new Date(0) };
-          },
-        }),
-      ),
-    ).rejects.toBeInstanceOf(VmModelPlaneUnavailableError);
-    expect(issued).toBe(0);
+  test("an invalid or upstream origin refuses provisioning before issuing a token", async () => {
+    for (const origin of [
+      "http://edge.example", "https://coderouter.dev", "https://www.coderouter.dev", "https://CODEROUTER.DEV./",
+      "https://cmux.com", "https://sr.cmux.com", "https://presence.cmux.dev",
+      "https://machine.cmux.sh", "https://cmux.run",
+    ]) {
+      let issued = 0;
+      await expect(provisionVmModelPlane(INPUT, deps({
+        edgeOriginEnv: () => origin,
+        issueToken: async () => { issued += 1; return { token: "crt_x", expiresAt: new Date(0) }; },
+      }))).rejects.toBeInstanceOf(VmModelPlaneUnavailableError);
+      expect(issued).toBe(0);
+    }
   });
 
   test("a token issue infrastructure error is a typed unavailable failure", async () => {
@@ -188,12 +186,12 @@ describe("coderouterEdgeOrigin", () => {
 
   test("rejects anything an edge rule cannot express", () => {
     for (const bad of [
-      "http://coderouter.dev",
-      "https://coderouter.dev:8443",
-      "https://coderouter.dev/v1",
-      "https://coderouter.dev/?x=1",
-      "https://user:pw@coderouter.dev",
-      "coderouter.dev",
+      "http://cmux.w3dev.app",
+      "https://cmux.w3dev.app:8443",
+      "https://cmux.w3dev.app/v1",
+      "https://cmux.w3dev.app/?x=1",
+      "https://user:pw@cmux.w3dev.app",
+      "cmux.w3dev.app",
     ]) {
       expect(() => coderouterEdgeOrigin(bad)).toThrow(CODEROUTER_EDGE_ORIGIN_ENV);
     }
@@ -229,13 +227,13 @@ describe("preview deployments serve themselves as the edge origin", () => {
     const provision = await provisionVmModelPlane(
       { teamId: "team-1", stackUserId: "user-1", cloudVmId: "11111111-2222-4333-8444-555555555555" },
       deps({
-        edgeOriginEnv: () => "https://coderouter.dev",
+        edgeOriginEnv: () => "https://cmux.w3dev.app",
         vercelEnv: () => "production",
         vercelBranchUrl: () => "cmux-git-main-manaflow.vercel.app",
         vercelBypassSecret: () => "bypass-secret",
       }),
     );
-    expect(provision.edgeRules[0]?.destinationHost).toBe("coderouter.dev");
+    expect(provision.edgeRules[0]?.destinationHost).toBe("cmux.w3dev.app");
     expect(provision.edgeRules[0]?.headers["x-vercel-protection-bypass"]).toBeUndefined();
   });
 });

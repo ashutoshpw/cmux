@@ -12,7 +12,7 @@ const CACHE_CONTROL = "public, s-maxage=300, stale-while-revalidate=86400";
 const ALLOW_METHODS = "GET, OPTIONS";
 const ALLOW_HEADERS = "If-None-Match, Content-Type";
 /** In-app What's New webpages may load cmux-owned hosts only. */
-const ALLOWED_WEB_URL_HOSTS = new Set(["cmux.com", "www.cmux.com"]);
+const ALLOWED_WEB_URL_HOSTS = new Set(["cmux.w3dev.app"]);
 const VERSION_PATTERN = /^\d+(\.\d+)*$/;
 /**
  * The client's `MobileBuildType.token` vocabulary. Channel lists are

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+ROOT_FORK_CONFIG="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/scripts/lib/fork-deployment.env"
+source "$ROOT_FORK_CONFIG"
 
 if [[ $# -lt 2 ]]; then
   echo "Usage: $0 <dmg-path> <tag> [output-path]" >&2
@@ -16,8 +18,8 @@ if [[ -z "${SPARKLE_PRIVATE_KEY:-}" ]]; then
 fi
 
 SPARKLE_VERSION="${SPARKLE_VERSION:-2.8.1}"
-DOWNLOAD_URL_PREFIX="${DOWNLOAD_URL_PREFIX:-https://github.com/manaflow-ai/cmux/releases/download/$TAG/}"
-RELEASE_NOTES_URL="${RELEASE_NOTES_URL:-https://github.com/manaflow-ai/cmux/releases/tag/$TAG}"
+DOWNLOAD_URL_PREFIX="${DOWNLOAD_URL_PREFIX:-https://github.com/${CMUX_FORK_REPOSITORY}/releases/download/$TAG/}"
+RELEASE_NOTES_URL="${RELEASE_NOTES_URL:-https://github.com/${CMUX_FORK_REPOSITORY}/releases/tag/$TAG}"
 
 work_dir="$(mktemp -d)"
 cleanup() {

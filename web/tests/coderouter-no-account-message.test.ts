@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import { noAccountConfiguredMessage } from "../services/coderouter/noAccountMessage";
 
-const HOST_CODEX = "No Codex account is configured for this team or shared with this caller. Add one with `cr add codex` or at coderouter.dev.";
+const HOST_CODEX = "No Codex account is configured for this team or shared with this caller. Add one with `cr add codex` or at https://cmux.w3dev.app/dashboard/coderouter.";
 
 describe("coderouter no-account message", () => {
   test("an organization machine is told to share or add on the machine, per family", () => {
@@ -25,7 +25,7 @@ describe("coderouter no-account message", () => {
     ];
     for (const caller of callers) expect(noAccountConfiguredMessage("codex", caller)).toBe(HOST_CODEX);
     expect(noAccountConfiguredMessage("claude", callers[2]!)).toBe(
-      "No Claude upstream account is configured for this team or shared with this caller. Add one with `cmux coderouter claude add` or at coderouter.dev.",
+      "No Claude upstream account is configured for this team or shared with this caller. Add one with `cmux coderouter claude add` or at https://cmux.w3dev.app/dashboard/coderouter.",
     );
   });
 });

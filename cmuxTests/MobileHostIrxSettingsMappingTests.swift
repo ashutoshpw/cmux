@@ -300,10 +300,10 @@ struct MobileHostV2ConfigurationTests {
             )
             #if DEBUG
             #expect(configuration.environment == "development")
-            #expect(configuration.baseURL.absoluteString == "https://cmux-v2-development.debussy.workers.dev")
+            #expect(configuration.baseURL.absoluteString == "https://iroh.staging.cmux.w3dev.app")
             #else
             #expect(configuration.environment == "production")
-            #expect(configuration.baseURL.absoluteString == "https://cmux-v2.debussy.workers.dev")
+            #expect(configuration.baseURL.absoluteString == "https://iroh.cmux.w3dev.app")
             #endif
         }
     }
@@ -317,7 +317,7 @@ struct MobileHostV2ConfigurationTests {
                 bundle: bundle
             )
             #expect(configuration.environment == "production")
-            #expect(configuration.baseURL.absoluteString == "https://cmux-v2.debussy.workers.dev")
+            #expect(configuration.baseURL.absoluteString == "https://iroh.cmux.w3dev.app")
         }
     }
 
@@ -336,7 +336,7 @@ struct MobileHostV2ConfigurationTests {
     private func withBlankReleaseBundle(
         _ body: (Bundle, UserDefaults) throws -> Void
     ) throws {
-        let identifier = "com.cmuxterm.configuration-test.\(UUID().uuidString)"
+        let identifier = "app.w3dev.cmux.configuration-test.\(UUID().uuidString)"
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(identifier + ".bundle")
         let defaults = try #require(UserDefaults(suiteName: identifier))
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -345,7 +345,7 @@ struct MobileHostV2ConfigurationTests {
             try? FileManager.default.removeItem(at: directory)
         }
         let info: [String: String] = [
-            "CFBundleIdentifier": "com.cmuxterm.app.nightly",
+            "CFBundleIdentifier": "app.w3dev.cmux.nightly",
             "CMUX_IROH_V2_ENVIRONMENT": "",
             "CMUX_IROH_V2_BASE_URL": ""
         ]

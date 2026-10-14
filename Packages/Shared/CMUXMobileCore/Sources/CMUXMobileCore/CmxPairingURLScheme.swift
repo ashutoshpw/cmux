@@ -36,7 +36,7 @@ public struct CmxPairingURLScheme {
             self.rawValue = normalized
             return
         }
-        let prefix = "cmux-ios-"
+        let prefix = "cmux-w3dev-ios-"
         guard normalized.hasPrefix(prefix),
               MobileIOSAppNamespace(
                 bundleIdentifier: String(normalized.dropFirst(prefix.count))
@@ -72,23 +72,23 @@ public struct CmxPairingURLScheme {
     }
 
     /// Historical shared Release scheme. Parse-only in new iOS builds.
-    public static let release = "cmux-ios"
+    public static let release = "cmux-w3dev-ios"
 
     /// Historical shared development scheme. Parse-only in new iOS builds.
-    public static let development = "cmux-ios-dev"
+    public static let development = "cmux-w3dev-ios-dev"
 
     /// Historical schemes retained for source compatibility and old QR tests.
     public static let all: [String] = [release, development]
 
-    private static let untaggedDevelopmentScheme = "cmux-ios-dev.cmux.ios"
-    private static let developmentPrefix = "cmux-ios-dev.cmux.ios."
+    private static let untaggedDevelopmentScheme = "cmux-w3dev-ios-app.w3dev.cmux.ios.debug"
+    private static let developmentPrefix = "cmux-w3dev-ios-app.w3dev.cmux.ios.debug."
 
     private static let releaseSchemes: Set<String> = [
         release,
-        "cmux-ios-com.cmux.app",
-        "cmux-ios-dev.cmux.app.beta",
-        "cmux-ios-dev.cmux.app.internal",
-        "cmux-ios-dev.cmux.app.demo",
+        "cmux-w3dev-ios-app.w3dev.cmux.ios",
+        "cmux-w3dev-ios-app.w3dev.cmux.ios.beta",
+        "cmux-w3dev-ios-app.w3dev.cmux.ios.internal",
+        "cmux-w3dev-ios-app.w3dev.cmux.ios.demo",
     ]
 }
 

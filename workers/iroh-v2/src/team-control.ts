@@ -226,10 +226,10 @@ export class TeamControl extends DurableObject<Environment> {
         store: new TeamStore(this.ctx.storage, { ...scope, teamId }, { initialize: false }),
         ownership: services.ownership, relays: services.relays, now: () => Math.floor(Date.now() / 1000),
         charge: async (userId, operation) => { unwrap(await this.user(userId).consume(userId, operation as UsageOperation)); },
-        issueTicket: (device, now) => issueTicket(device, services.currentKeyId, services.currentKey, now),
+        issueTicket: (device, now, sessionId) => issueTicket(device, services.currentKeyId, services.currentKey, now, sessionId),
         verifyStack: (token, identity, now) => services.stack.verify(token, identity, now),
         canManageTeam: authority => services.stack.canManageTeam(authority),
-        verifyTeamMember: (teamId, userId) => services.stack.verifyTeamMember(teamId, userId),
+        verifyTeamMember: (teamId, userId, authority) => services.stack.verifyTeamMember(teamId, userId, authority),
       });
       this.brokers.set(teamId, broker);
     }
@@ -237,7 +237,7 @@ export class TeamControl extends DurableObject<Environment> {
   }
 
   private user(userId: string) {
-    return this.env.USER_USAGE.getByName(objectName(this.env.ENVIRONMENT, this.env.STACK_PROJECT_ID, userId));
+    return this.env.USER_USAGE.getByName(objectName(this.env.ENVIRONMENT, (this.env.CMUX_AUTH_ORIGIN ?? "https://cmux.w3dev.app"), userId));
   }
 
   private async reserveSocket(session: { sessionId: string; identity: { teamId: string; userId: string } }, deviceKey: string) {
@@ -267,7 +267,7 @@ export class TeamControl extends DurableObject<Environment> {
     for (let start = 0; start < grouped.length; start += 8) {
       const checked = await Promise.all(grouped.slice(start, start + 8).map(async ([teamId, records]) => {
         const ids = records.map(row => row.sessionId);
-        const owner = this.env.TEAM_CONTROL.getByName(objectName(this.env.ENVIRONMENT, this.env.STACK_PROJECT_ID, teamId));
+        const owner = this.env.TEAM_CONTROL.getByName(objectName(this.env.ENVIRONMENT, (this.env.CMUX_AUTH_ORIGIN ?? "https://cmux.w3dev.app"), teamId));
         const live = new Set(teamId === currentTeamId ? this.liveSessionIds(teamId, userId, ids) : await owner.liveSessionIds(teamId, userId, ids));
         return records.filter(record => !live.has(record.sessionId));
       }));

@@ -32,18 +32,18 @@ fi
 
 case "$CHANNEL" in
   stable)
-    EXPECTED_NAME="cmux"
-    EXPECTED_BUNDLE_ID="com.cmuxterm.app"
+    EXPECTED_NAME="cmux W3Dev"
+    EXPECTED_BUNDLE_ID="app.w3dev.cmux"
     EXPECTED_ICON_NAME="AppIcon"
     ;;
   nightly)
-    EXPECTED_NAME="cmux NIGHTLY"
-    EXPECTED_BUNDLE_ID="com.cmuxterm.app.nightly"
+    EXPECTED_NAME="cmux W3Dev NIGHTLY"
+    EXPECTED_BUNDLE_ID="app.w3dev.cmux.nightly"
     EXPECTED_ICON_NAME="AppIcon-Nightly"
     ;;
   rc)
-    EXPECTED_NAME="cmux RC"
-    EXPECTED_BUNDLE_ID="com.cmuxterm.app.rc"
+    EXPECTED_NAME="cmux W3Dev RC"
+    EXPECTED_BUNDLE_ID="app.w3dev.cmux.rc"
     EXPECTED_ICON_NAME="AppIcon-RC"
     ;;
   *)
@@ -53,7 +53,17 @@ case "$CHANNEL" in
 esac
 
 plist_value() {
-  /usr/libexec/PlistBuddy -c "Print :$1" "$INFO_PLIST"
+  if [[ -x /usr/libexec/PlistBuddy ]]; then
+    /usr/libexec/PlistBuddy -c "Print :$1" "$INFO_PLIST"
+  else
+    # Portable artifact guards read the same plist on Linux; release macOS
+    # verification always uses Apple's system parser above.
+    /usr/bin/python3 - "$INFO_PLIST" "$1" <<'PY'
+import plistlib,sys
+with open(sys.argv[1], "rb") as stream:
+    print(plistlib.load(stream)[sys.argv[2]])
+PY
+  fi
 }
 
 expect_plist_value() {

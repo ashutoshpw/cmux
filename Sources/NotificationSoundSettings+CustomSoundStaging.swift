@@ -147,7 +147,7 @@ struct NotificationSoundProcessRunner: NotificationSoundProcessRunning, Sendable
     // running them in Task.detached would consume Swift's cooperative workers
     // and starve the deadline task that is responsible for cancellation.
     private static let blockingIOQueue = DispatchQueue(
-        label: "com.cmuxterm.notification-sound.process-io",
+        label: "app.w3dev.cmux.notification-sound.process-io",
         qos: .utility,
         attributes: .concurrent
     )

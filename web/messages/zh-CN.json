@@ -287,7 +287,7 @@
     },
     "foundingDesigner": {
       "metaTitle": "cmux 创始设计师招聘",
-      "metaDescription": "加入 cmux，成为创始设计师，设计 macOS、TUI、Windows、Linux、iOS、Cloud、cmux.com 和 chatmux 上 AI 编程的未来。",
+      "metaDescription": "加入 cmux，成为创始设计师，设计 macOS、TUI、Windows、Linux、iOS、Cloud、cmux.w3dev.app 和 chatmux 上 AI 编程的未来。",
       "section": "招聘",
       "eyebrow": "关于这个职位",
       "title": "Founding Designer",
@@ -296,7 +296,7 @@
       "hiring": "我们正在招聘一位优秀的设计师，和我们一起设计 AI 编程的未来。",
       "whatYoullDo": "你将做什么",
       "whatYoullDoItems": [
-        "设计覆盖整个技术栈的前沿开发者工具：cmux macOS、cmux TUI、cmux Windows/Linux、cmux iOS、cmux Cloud、cmux.com、chatmux 等。",
+        "设计覆盖整个技术栈的前沿开发者工具：cmux macOS、cmux TUI、cmux Windows/Linux、cmux iOS、cmux Cloud、cmux.w3dev.app、chatmux 等。",
         "帮助设计最适合开发者借助 AI 开展工作的产品。",
         "从头到尾负责产品的视觉、感受和交互模型，包括用户反馈闭环。",
         "持续亲自使用、原型设计并交付。"
@@ -778,7 +778,8 @@
           "disableTitle": "停用多重身份验证",
           "disableBody": "登录时将不再要求输入身份验证器应用中的验证码。",
           "disableConfirm": "停用 MFA",
-          "disableError": "无法停用 MFA，请重试。"
+          "disableError": "无法停用 MFA，请重试。",
+          "password": "当前密码"
         },
         "connected": {
           "title": "关联账户",
@@ -1461,7 +1462,7 @@
       "p116": "通过 SessionStart hook 将每个 Claude Code session ID mapping 到其 surface UUID，然后在 cmux restart 后 resume 精确 session。hook-driven approach 避免 polling，并能承受 rapid restart",
       "p117": "为 tool-use approval 和 agent-stop alert emit OSC 777 notification，使 cmux-compatible terminal 能够 surface Copilot activity",
       "p118": "不同于 general status plugin，它专注于 context-window awareness，把 fill percentage、line count 和 rate limit 作为 color-coded progress bar 同时可视化到所有打开的 workspace",
-      "p119": "提供两个 skill：self-referential cmux docs lookup(live cmux -h + scraped cmux.com) 和用于其他 terminal 的 /pane reader。它是唯一在 runtime 动态 scrape upstream documentation 的 skill",
+      "p119": "提供两个 skill：self-referential cmux docs lookup(live cmux -h + scraped cmux.w3dev.app) 和用于其他 terminal 的 /pane reader。它是唯一在 runtime 动态 scrape upstream documentation 的 skill",
       "p120": "为 ticket 和 worktree 创建或复用 cmux workspace，使 task state 与可见 cmux session 保持一致",
       "p121": "通过 PreToolUse hook intercept Agent tool call，并 redirect 到可见 cmux split pane。hook-based approach 意味着无需修改 agent 自身的 prompt 或 skill",
       "p122": "从 GitHub 和 Linear issue 创建 worktree：wt gh 获取 title、创建 branch 并打开 cmux tab。带有从 open issue 中选择的 fzf picker",
@@ -2743,7 +2744,7 @@
       "agentPromptTitle": "让 agent 帮你设置",
       "agentPromptIntro": "当你希望编码 agent 创建 Dock 控件时使用此提示。它会要求 agent 运行 `cmux docs dock`、检查项目，并在猜测前先提问。",
       "agentPromptCodeTitle": "Agent prompt",
-      "agentPrompt": "Set up cmux Dock controls for the current context.\n\nFirst, learn the feature before editing:\n1. Run `cmux docs dock` if the cmux CLI is available. If it is not, read https://cmux.com/docs/dock.\n2. Inspect the repository or current directory to understand the project type, scripts, package manager, dev servers, logs, task runners, test commands, and any existing TUI tools.\n3. If the desired Dock is ambiguous, ask the user what they want monitored or controlled before writing files.\n\nDock is cmux's right-sidebar terminal and browser control area. A Dock config is JSON with a top-level `controls` array. Terminal controls run commands in Ghostty-backed sections using the user's login shell; browser controls embed URLs. Controls are useful for project dashboards, git/status views, dev server or build status, test watchers, log tails, queues, local services, or fixed web dashboards.\n\nChoose where to write the config:\n- In a repository or project directory, create or edit `.cmux/dock.json` so teammates can share it.\n- For a personal default outside a repo, create or edit `~/.config/cmux/dock.json`.\n- If both exist, project `.cmux/dock.json` is more specific for that project. Nested project configs apply to that directory tree; use the nearest relevant project config instead of writing unrelated controls globally.\n- If there is no repo and no clear project root, use the global config only after confirming the user wants a personal Dock.\n\nSchema:\n{\n  \"controls\": [\n    {\n      \"id\": \"short-stable-id\",\n      \"title\": \"Human label\",\n      \"command\": \"safe command to run\",\n      \"cwd\": \"optional/path\",\n      \"height\": 220,\n      \"env\": { \"NAME\": \"value\" }\n    },\n    {\n      \"id\": \"dashboard\",\n      \"title\": \"Dashboard\",\n      \"type\": \"browser\",\n      \"url\": \"http://127.0.0.1:3000\",\n      \"chrome\": false\n    }\n  ]\n}\n\nRules:\n- Keep ids stable, lowercase, and unique.\n- `type` is optional: `terminal` is the default, or use `browser`.\n- Terminal controls require `command`; browser controls require `url`.\n- Browser controls default to `chrome: true`. Set `chrome: false` to hide browser chrome, including the address bar and toolbar; Focus Address Bar then does nothing for that pane, while `cmux browser goto` and `cmux browser reload` remain available.\n- Use `cwd` for subdirectories; relative paths resolve from the config base.\n- Use `height` only when a control needs a fixed amount of vertical space.\n- Use `env` only for non-secret values needed by one control.\n- Do not put secrets, tokens, or machine-specific private paths in a shared project config.\n- Prefer commands that are safe to start repeatedly and make sense in a terminal.\n- Do not invent unavailable scripts. Read package files, Makefiles, Procfiles, README docs, config files, and existing tooling first.\n- Keep shared project Docks portable for teammates. Put personal or machine-specific controls in the global Dock.\n\nDeliverable:\n- Create or update the appropriate dock.json.\n- Preserve existing useful controls unless the user asked to replace them.\n- Validate that the JSON parses.\n- Summarize what each control does and any commands the user should review before trusting the Dock config."
+      "agentPrompt": "Set up cmux Dock controls for the current context.\n\nFirst, learn the feature before editing:\n1. Run `cmux docs dock` if the cmux CLI is available. If it is not, read https://cmux.w3dev.app/docs/dock.\n2. Inspect the repository or current directory to understand the project type, scripts, package manager, dev servers, logs, task runners, test commands, and any existing TUI tools.\n3. If the desired Dock is ambiguous, ask the user what they want monitored or controlled before writing files.\n\nDock is cmux's right-sidebar terminal and browser control area. A Dock config is JSON with a top-level `controls` array. Terminal controls run commands in Ghostty-backed sections using the user's login shell; browser controls embed URLs. Controls are useful for project dashboards, git/status views, dev server or build status, test watchers, log tails, queues, local services, or fixed web dashboards.\n\nChoose where to write the config:\n- In a repository or project directory, create or edit `.cmux/dock.json` so teammates can share it.\n- For a personal default outside a repo, create or edit `~/.config/cmux/dock.json`.\n- If both exist, project `.cmux/dock.json` is more specific for that project. Nested project configs apply to that directory tree; use the nearest relevant project config instead of writing unrelated controls globally.\n- If there is no repo and no clear project root, use the global config only after confirming the user wants a personal Dock.\n\nSchema:\n{\n  \"controls\": [\n    {\n      \"id\": \"short-stable-id\",\n      \"title\": \"Human label\",\n      \"command\": \"safe command to run\",\n      \"cwd\": \"optional/path\",\n      \"height\": 220,\n      \"env\": { \"NAME\": \"value\" }\n    },\n    {\n      \"id\": \"dashboard\",\n      \"title\": \"Dashboard\",\n      \"type\": \"browser\",\n      \"url\": \"http://127.0.0.1:3000\",\n      \"chrome\": false\n    }\n  ]\n}\n\nRules:\n- Keep ids stable, lowercase, and unique.\n- `type` is optional: `terminal` is the default, or use `browser`.\n- Terminal controls require `command`; browser controls require `url`.\n- Browser controls default to `chrome: true`. Set `chrome: false` to hide browser chrome, including the address bar and toolbar; Focus Address Bar then does nothing for that pane, while `cmux browser goto` and `cmux browser reload` remain available.\n- Use `cwd` for subdirectories; relative paths resolve from the config base.\n- Use `height` only when a control needs a fixed amount of vertical space.\n- Use `env` only for non-secret values needed by one control.\n- Do not put secrets, tokens, or machine-specific private paths in a shared project config.\n- Prefer commands that are safe to start repeatedly and make sense in a terminal.\n- Do not invent unavailable scripts. Read package files, Makefiles, Procfiles, README docs, config files, and existing tooling first.\n- Keep shared project Docks portable for teammates. Put personal or machine-specific controls in the global Dock.\n\nDeliverable:\n- Create or update the appropriate dock.json.\n- Preserve existing useful controls unless the user asked to replace them.\n- Validate that the JSON parses.\n- Summarize what each control does and any commands the user should review before trusting the Dock config."
     },
     "sessionRestore": {
       "title": "会话恢复",
@@ -2813,7 +2814,7 @@
       "moshTmux": "创建一个 Mosh 工作区，用于创建或附加命名的 tmux 会话（默认：main）。tmux 配置会在重连和应用会话恢复后保留。这是可漫游的 tmux 终端，而不是 cmux ssh-tmux 的原生镜像。--session <name> 选择会话；其他选项与 cmux mosh 相同。没有 Mosh 时，同一配置会通过 SSH 运行。",
       "deepLinksTitle": "SSH 深层链接",
       "deepLinksDesc": "当网站或工具想要提供“在 cmux 中打开”按钮时，请使用 cmux SSH 深层链接。该链接将打开 cmux，显示确认提示，然后在用户确认后运行等效的 cmux ssh 命令。",
-      "deepLinksWebFallbackDesc": "使用网站按钮的 cmux.com 后备 URL。如果未安装 cmux，它将打开本机链接并显示下载。",
+      "deepLinksWebFallbackDesc": "使用网站按钮的 cmux.w3dev.app 后备 URL。如果未安装 cmux，它将打开本机链接并显示下载。",
       "deepLinksPromptRulesDesc": "提示和规则按钮使用相同的后备形状。逗号、冒号和文字加号在进行 URL 编码时会被保留：",
       "deepLinksIconDesc": "使用 SVG 图标作为仪表板按钮，或在需要光栅图像时使用 PNG 徽标：",
       "deepLinksButtonDesc": "使用 URLSearchParams 构建后备 URL，以便安全地编码标题、主机别名和用户名：",
@@ -2907,7 +2908,7 @@
       "data3": "配对和设备元数据，用于将你的手机连接到你的 Mac。",
       "dataNot": "你的交互式终端会话、其内容和击键，通过你自己的网络在手机和 Mac 之间直接传输，不会经由 cmux 服务器中继或存储在其上。唯一的例外是转发的通知文本，它会经过 cmux 和 Apple 的推送服务到达你的手机，除非你启用 Hide content（参见上方的通知）。",
       "enterpriseTitle": "企业与自托管",
-      "enterpriseDesc": "如需自托管或气隙隔离部署，请联系 <link>founders@cmux.com</link>。"
+      "enterpriseDesc": "如需自托管或气隙隔离部署，请联系 <link>cmux.w3dev.app/support</link>。"
     },
     "cloudOverview": {
       "title": "cmux Cloud",
@@ -3061,11 +3062,11 @@
       "networkTitle": "私有网络",
       "networkDesc": "你的机器没有公开的入站端口。cmux 为每个账户提供一个私有网络，每台 Mac 都使用自己的 WireGuard 密钥连接，该密钥永远不会离开这台 Mac。连接在 cmux 应用内部建立，无需任何批准。",
       "networkPeers": "你的机器之间可以在同一个私有网络中互相访问。",
-      "networkMacs": "cmux.com 上的 Cloud Mac access 页面列出了可以访问你机器的 Mac。你可以在那里重命名或撤销某台 Mac。撤销某台 Mac 会使其退出登录，并移除它对所有机器的访问权限。",
+      "networkMacs": "cmux.w3dev.app 上的 Cloud Mac access 页面列出了可以访问你机器的 Mac。你可以在那里重命名或撤销某台 Mac。撤销某台 Mac 会使其退出登录，并移除它对所有机器的访问权限。",
       "vpnTitle": "系统 VPN（可选）",
       "vpnDesc": "cmux vpn up 会添加一条系统路由，让 Mac 上的其他应用（例如单独的浏览器或数据库客户端）也能访问你的机器。cmux 本身不需要它。首次使用时，请在 系统设置 › 通用 › 登录项与扩展 中批准 cmux 网络扩展。cmux vpn down 可将其关闭。",
       "publishTitle": "公开 URL",
-      "publishDesc": "cmux cloud domains publish 为机器上的某个端口分配一个 HTTPS URL。生成的主机名以 .cmux.sh 结尾。",
+      "publishDesc": "cmux cloud domains publish 为机器上的某个端口分配一个 HTTPS URL。生成的主机名以 .vm.cmux.w3dev.app 结尾。",
       "accessModes": "每个 URL 都有一种访问模式。默认为机器的所有者：你本人，或在团队拥有该机器时为你的团队。",
       "accessPersonal": "personal：只有你可以打开。",
       "accessTeam": "team：拥有该机器的团队的现有成员可以打开。",
@@ -3259,7 +3260,7 @@
       "opencodeDesc": "cr opencode 会加载团队 OpenCode Go 账户的模型，除非传入 --model，否则使用第一个模型。--model 的值必须是这些模型之一；如需使用其他提供商，请运行普通的 opencode。",
       "piDesc": "cr pi 会为 Pi 添加一个 coderouter 提供商，其模型与 Codex 相同，除非传入 --model，否则使用第一个模型。提供商是固定的，因此 --provider 会被拒绝。Pi 支持仍处于实验阶段。",
       "claudeTitle": "Claude Code 和其他 API 客户端",
-      "claudeDesc": "cr 没有 Claude Code 启动器。要在 Mac 上路由 Claude Code，或任何使用 Anthropic Messages API 或 OpenAI Responses API 的工具，请创建一个 CodeRouter API 密钥，并让该工具指向 coderouter.dev。",
+      "claudeDesc": "cr 没有 Claude Code 启动器。要在 Mac 上路由 Claude Code，或任何使用 Anthropic Messages API 或 OpenAI Responses API 的工具，请创建一个 CodeRouter API 密钥，并让该工具指向 cmux.w3dev.app。",
       "apiKeyCreate": "在 CodeRouter 控制台的 API 密钥部分创建密钥。密钥以 crk_ 开头，只显示一次。创建或吊销密钥需要该团队的 API 密钥管理权限，在你的个人团队中你始终拥有此权限：",
       "apiKeyScope": "组织的 API 密钥只使用团队的共享账户。个人团队中的密钥还可以使用你的私有账户。CodeRouter 提供的是 OpenAI Responses API，而不是 Chat Completions。",
       "apiKeyLogin": "在无法打开浏览器的机器上，cr login --api-key 使用密钥登录 cr，CODEROUTER_API_KEY 可为单条命令提供密钥。要吊销密钥，请在控制台中操作，或在使用该密钥的机器上运行 cr logout。",
@@ -3387,7 +3388,7 @@
     "afruth": "很喜欢，过去一天在三个并行项目上用了，每个都有多个 worktree。配合 lazygit 和 yazi/nvim，比以前高效多了，不用在多个 Ghostty/iTerm 实例之间切换。比 tmux 也更自然。",
     "northprint": "试了 cmux，确实不错",
     "indykish": "cmux 挺好用的。",
-    "kataring": "换到 cmux.dev 了",
+    "kataring": "换到 cmux.w3dev.app 了",
     "scottw": "非常有用的发现。强烈推荐。",
     "johnblythe": "周末用了，很喜欢。一直在等这样的工具。",
     "bchris91": "这正是我想要的。做得太好了，谢谢！",
@@ -5359,7 +5360,7 @@
         "description": "公开报告 bug 和提出功能请求。"
       },
       "email": {
-        "label": "founders@cmux.com",
+        "label": "cmux.w3dev.app/support",
         "description": "更喜欢用邮件？直接写信给我们。"
       }
     },
@@ -5381,8 +5382,8 @@
       "privacy": "我们只会使用你的邮箱地址回复你的支持请求，不会出售联系信息。",
       "submit": "发送消息",
       "submitting": "正在发送…",
-      "success": "谢谢。我们已收到你的消息，会从 founders@cmux.com 回复到你的邮箱。",
-      "error": "出了点问题。请重试，或发邮件到 founders@cmux.com。"
+      "success": "谢谢。我们已收到您的消息。",
+      "error": "出现了问题。请重试。"
     }
   },
   "emails": {
@@ -5478,7 +5479,12 @@
     "errorInvalidTotp": "双重验证码无效。",
     "errorSignUpNotAllowed": "目前无法创建新账号。",
     "errorPasskey": "通行密钥登录未完成。请重试或改用其他方式。",
-    "errorGeneric": "出了点问题，请重试。"
+    "errorGeneric": "出了点问题，请重试。",
+    "consentTitle": "允许访问账户",
+    "consentDescription": "{application} 正在请求访问你的 cmux 账户。",
+    "consentScopes": "请求的权限",
+    "consentAllow": "允许",
+    "consentCancel": "取消"
   },
   "MobileRelease106": {
     "title": "1.0.6 更新内容",
@@ -5514,5 +5520,17 @@
     "unavailableTitle": "无法确认你的登录",
     "unavailableBody": "我们的登录服务繁忙。请等待几秒钟后再次打开邀请。你无需重新登录。",
     "retry": "重试"
+  },
+  "authMail": {
+    "resetSubject": "重置 cmux 密码",
+    "resetBody": "重置密码：{url}\n\n如果你未提出此请求，请忽略此邮件。",
+    "verifySubject": "验证 cmux 邮箱",
+    "verifyBody": "验证邮箱：{url}",
+    "otpSubject": "你的 cmux 验证码",
+    "otpBody": "你的验证码是 {otp}，10 分钟后失效。",
+    "inviteSubject": "加入 cmux 上的 {organization}",
+    "inviteBody": "接受邀请：{url}",
+    "magicSubject": "登录 cmux",
+    "magicBody": "登录：{url}\n\n此链接将在 15 分钟后失效。 如果你未提出此请求，请忽略此邮件。"
   }
 }

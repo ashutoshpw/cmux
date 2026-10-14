@@ -3,6 +3,10 @@ import { describe, expect, mock, test } from "bun:test";
 import { markPurchaseEmailVerified } from "../services/billing/stackVerification";
 import { findOrCreateBillingUser } from "../services/billing/purchase";
 
+const realStackFacade = await import("../app/lib/stack");
+const markOwnedEmail = mock(async (_id: string, _email: string) => { void _id; void _email; });
+mock.module("../app/lib/stack", () => ({ ...realStackFacade, markStackUserEmailVerifiedViaApi: markOwnedEmail }));
+
 describe("purchase email verification", () => {
   test("uses Stack's verified primary-email SDK field without rewriting spelling", async () => {
     const setPrimaryEmail = mock(async () => undefined);
@@ -114,58 +118,21 @@ describe("purchase email verification", () => {
     expect(update).not.toHaveBeenCalled();
   });
 
-  test("uses the centralized server API fallback when no verified SDK field exists", async () => {
-    const previousFetch = globalThis.fetch;
-    const fetchMock = mock(async (rawInput: unknown, rawInit?: unknown) => {
-      const input = rawInput as RequestInfo | URL;
-      const init = rawInit as RequestInit | undefined;
-      const request = new Request(input, init);
-      expect(request.method).toBe("PATCH");
-      expect(request.url).toContain("/api/v1/users/user-4");
-      expect(request.headers.get("x-hexclave-secret-server-key")).toBeTruthy();
-      expect(request.headers.get("x-hexclave-access-type")).toBe("server");
-      return new Response(null, { status: 200 });
-    });
-    globalThis.fetch = fetchMock as typeof globalThis.fetch;
-    try {
-      await markPurchaseEmailVerified(
-        {
-          id: "user-4",
-          primaryEmail: "billingfixture@example.com",
-          primaryEmailVerified: false,
-        },
-        "billingfixture@example.com",
-      );
-    } finally {
-      globalThis.fetch = previousFetch;
-    }
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+  test("uses the centralized owned update boundary when no user mutation capability exists", async () => {
+    markOwnedEmail.mockClear();
+    await markPurchaseEmailVerified({ id: "user-4", primaryEmail: "Billing.Fixture@Example.com", primaryEmailVerified: false }, "billing.fixture@example.com");
+    expect(markOwnedEmail).toHaveBeenCalledTimes(1);
+    expect(markOwnedEmail).toHaveBeenCalledWith("user-4", "Billing.Fixture@Example.com");
   });
 
-  test("refuses to send the Stack server key to a non-HTTPS endpoint", async () => {
-    const previousFetch = globalThis.fetch;
-    const previousBaseURL = process.env.STACK_API_BASE_URL;
-    const fetchMock = mock(async () => {
-      throw new Error("fetch must not run");
-    });
-    process.env.STACK_API_BASE_URL = "http://stack.test";
-    globalThis.fetch = fetchMock as typeof globalThis.fetch;
+  test("propagates an owned update failure without requesting the upstream provider", async () => {
+    const originalFetch = globalThis.fetch;
+    const fetchMock = mock(async () => { throw new Error("Unexpected provider request"); });
+    globalThis.fetch = Object.assign(fetchMock, { preconnect: Reflect.get(originalFetch, "preconnect") }) as typeof fetch;
+    markOwnedEmail.mockImplementation(async () => { throw new Error("Owned update unavailable"); });
     try {
-      await expect(
-        markPurchaseEmailVerified(
-          {
-            id: "user-5",
-            primaryEmail: "buyer@example.com",
-            primaryEmailVerified: false,
-          },
-          "buyer@example.com",
-        ),
-      ).rejects.toThrow("must use HTTPS");
-    } finally {
-      globalThis.fetch = previousFetch;
-      if (previousBaseURL === undefined) delete process.env.STACK_API_BASE_URL;
-      else process.env.STACK_API_BASE_URL = previousBaseURL;
-    }
-    expect(fetchMock).not.toHaveBeenCalled();
+      await expect(markPurchaseEmailVerified({ id: "user-5", primaryEmail: "buyer@example.com", primaryEmailVerified: false }, "buyer@example.com")).rejects.toThrow("Owned update unavailable");
+      expect(fetchMock).not.toHaveBeenCalled();
+    } finally { globalThis.fetch = originalFetch; }
   });
 });

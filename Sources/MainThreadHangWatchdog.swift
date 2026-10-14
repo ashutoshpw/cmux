@@ -12,7 +12,7 @@ final class MainThreadHangWatchdog: @unchecked Sendable {
     private let date: @Sendable () -> Date
     private let capture: @Sendable (Date, TimeInterval) -> Void
     private let monitorQueue = DispatchQueue(
-        label: "com.cmuxterm.main-thread-hang-watchdog",
+        label: "app.w3dev.cmux.main-thread-hang-watchdog",
         qos: .utility
     )
     private var state: MainThreadHangWatchdogState

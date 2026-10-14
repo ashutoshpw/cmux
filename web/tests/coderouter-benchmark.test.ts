@@ -27,12 +27,13 @@ describe("coderouter benchmark harness", () => {
   });
 
   test("normalizes safe origins and rejects credential-bearing origins", () => {
-    expect(normalizeOrigin("https://coderouter.dev/")).toBe(
-      "https://coderouter.dev",
+    expect(normalizeOrigin("https://cmux.w3dev.app/")).toBe(
+      "https://cmux.w3dev.app",
     );
     expect(normalizeOrigin("http://localhost:3000")).toBe(
       "http://localhost:3000",
     );
+    expect(() => normalizeOrigin("https://coderouter.dev")).toThrow("Upstream service origins");
     expect(() => normalizeOrigin("https://token@example.com")).toThrow();
     expect(() => normalizeOrigin("https://example.com/?token=secret")).toThrow();
   });

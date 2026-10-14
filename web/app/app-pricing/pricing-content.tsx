@@ -681,7 +681,7 @@ function appPricingRequestOrigin(headersList: Headers): string | null {
 
 function appPricingRequest(headersList: Headers): NextRequest {
   return new NextRequest(
-    appPricingRequestOrigin(headersList) ?? "https://cmux.com",
+    appPricingRequestOrigin(headersList) ?? "https://cmux.w3dev.app",
     {
       headers: headersList,
     },

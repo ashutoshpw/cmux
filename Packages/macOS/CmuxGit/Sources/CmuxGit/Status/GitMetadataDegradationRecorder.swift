@@ -3,7 +3,7 @@ import os
 
 /// Emits one safety-valve diagnostic per repository for a service lifetime.
 actor GitMetadataDegradationRecorder {
-    private static let logger = Logger(subsystem: "com.cmuxterm", category: "sidebar-git")
+    private static let logger = Logger(subsystem: "app.w3dev.cmux", category: "sidebar-git")
 
     private var loggedRepositoryRoots: Set<String> = []
     private let gitStatusWallTime: TimeInterval

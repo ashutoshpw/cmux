@@ -28,7 +28,7 @@ final class NotificationService: UNNotificationServiceExtension {
         }
         suppressOnExpiration = true
         guard let installation = try? PhonePushKeyMaterial.current(
-            bundleID: Bundle.main.object(forInfoDictionaryKey: "CMUXHostBundleIdentifier") as? String ?? "dev.cmux.ios",
+            bundleID: Bundle.main.object(forInfoDictionaryKey: "CMUXHostBundleIdentifier") as? String ?? "app.w3dev.cmux.ios.debug",
             accessGroup: Bundle.main.object(forInfoDictionaryKey: "CMUXKeychainAccessGroup") as? String
         ) else {
             finishSuppressed(content, reason: "key_material_unavailable")
@@ -39,7 +39,7 @@ final class NotificationService: UNNotificationServiceExtension {
         guard let envelope = candidates.first(where: {
             $0.installationID == installation.installationID
                 && $0.tuple.iosInstallationID == installation.installationID
-                && $0.tuple.iosBuildID == (Bundle.main.object(forInfoDictionaryKey: "CMUXHostBundleIdentifier") as? String ?? "dev.cmux.ios")
+                && $0.tuple.iosBuildID == (Bundle.main.object(forInfoDictionaryKey: "CMUXHostBundleIdentifier") as? String ?? "app.w3dev.cmux.ios.debug")
         }) else {
             finishSuppressed(content, reason: "no_envelope_for_installation")
             return

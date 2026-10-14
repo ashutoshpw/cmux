@@ -7,10 +7,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/manaflow-ai/cmux.git",
+    "url": "git+https://github.com/ashutoshpw/cmux.git",
     "directory": "cmux-tui/dist/npm/cmux"
   },
-  "homepage": "https://github.com/manaflow-ai/cmux/tree/main/cmux-tui",
+  "homepage": "https://github.com/ashutoshpw/cmux/tree/main/cmux-tui",
   "license": "MIT",
   "engines": {
     "node": ">=18"

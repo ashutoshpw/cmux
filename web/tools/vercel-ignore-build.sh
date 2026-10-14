@@ -43,6 +43,7 @@ build_inputs=(
   "../.vercelignore"
   "../CHANGELOG.md"
   "../config/iroh/managed-relay-catalog.json"
+  "../config/fork-deployment.json"
   "../workers/presence/src/generated/managedRelayCatalog.ts"
 )
 

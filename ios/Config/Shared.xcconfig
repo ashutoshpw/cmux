@@ -8,7 +8,7 @@
 // ==========================================
 PRODUCT_NAME = cmux
 PRODUCT_DISPLAY_NAME = cmux
-CMUX_APP_BUNDLE_IDENTIFIER = dev.cmux.ios
+CMUX_APP_BUNDLE_IDENTIFIER = app.w3dev.cmux.ios.debug
 PRODUCT_BUNDLE_IDENTIFIER = $(CMUX_APP_BUNDLE_IDENTIFIER)
 // The app whose extensions these are. Extension targets derive their ids from
 // it; the app reads the Cloud VPN provider's id from its Info.plist.
@@ -107,4 +107,8 @@ CODE_SIGN_ENTITLEMENTS = $(CMUX_APP_CODE_SIGN_ENTITLEMENTS)
 // Pairing URL scheme (exact bundle)
 // ==========================================
 // Every bundle registers only its full-bundle-derived scheme.
-CMUX_IOS_URL_SCHEME = cmux-ios-$(PRODUCT_BUNDLE_IDENTIFIER)
+CMUX_IOS_URL_SCHEME = cmux-w3dev-ios-$(PRODUCT_BUNDLE_IDENTIFIER)
+
+// Exact registered native public OAuth client for this installed build.
+CMUX_OAUTH_CALLBACK_SCHEME = cmux-w3dev-ios-dev
+CMUX_OAUTH_CLIENT_ID = cmux-w3dev-ios-dev

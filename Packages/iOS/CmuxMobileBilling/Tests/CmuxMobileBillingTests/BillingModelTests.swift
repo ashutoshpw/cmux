@@ -38,7 +38,7 @@ struct BillingRig {
         await rig.model.buy(offer, entryPoint: .settings)
 
         #expect(await rig.log.entries == [
-            "purchase:dev.cmux.ios.pro.monthly",
+            "purchase:app.w3dev.cmux.ios.debug.pro.monthly",
             "submit:jws-7",
             "finish:7",
         ])
@@ -68,7 +68,7 @@ struct BillingRig {
         #expect(await rig.store.finished == [8])
         #expect(rig.model.purchase == .completed(.pro))
         #expect(await rig.log.entries == [
-            "purchase:dev.cmux.ios.pro.monthly",
+            "purchase:app.w3dev.cmux.ios.debug.pro.monthly",
             "submit:jws-8",
             "submit:jws-8",
             "finish:8",

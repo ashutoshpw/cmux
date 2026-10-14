@@ -25,7 +25,7 @@ enum CoderouterCLIAccountReader {
         let scope: CoderouterTeamScope
     }
 
-    private static let logger = Logger(subsystem: "com.cmuxterm.app", category: "coderouter-accounts")
+    private static let logger = Logger(subsystem: "app.w3dev.cmux", category: "coderouter-accounts")
 
 #if compiler(>=6.2)
     @concurrent

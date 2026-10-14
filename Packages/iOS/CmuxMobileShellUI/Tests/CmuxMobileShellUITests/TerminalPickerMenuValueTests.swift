@@ -122,7 +122,7 @@ import Testing
     }
 
     @Test func browserSurfacesLeaveMacSurfacesWhenTheMacStreamsBrowsers() {
-        let browser = MobileSurfacePreview(id: "surface-web", kind: .browser, title: "cmux.com")
+        let browser = MobileSurfacePreview(id: "surface-web", kind: .browser, title: "cmux.w3dev.app")
         let markdown = MobileSurfacePreview(id: "surface-md", kind: .markdown, title: "README")
         func value(supportsBrowserStream: Bool) -> TerminalPickerMenuValue {
             TerminalPickerMenuValue(

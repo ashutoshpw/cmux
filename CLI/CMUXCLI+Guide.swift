@@ -77,7 +77,7 @@ extension CMUXCLI {
         agent-browser --help
         ```
 
-        [cmux browser](https://cmux.com/docs/browser-automation) · [agent-browser docs](https://agent-browser.dev/) · [agent-browser commands](https://agent-browser.dev/commands)
+        [cmux browser](https://cmux.w3dev.app/docs/browser-automation) · [agent-browser docs](https://agent-browser.dev/) · [agent-browser commands](https://agent-browser.dev/commands)
 
         \(CMUXDiffViewerLocalization.string("cli.guide.overview.computer", defaultValue: "## Use app windows\n\nUse computer-use tools for native apps or visual controls. cmux provides these tools to Claude Code and Codex sessions launched in cmux. Complete setup in Settings > Computer Use. Read the `cmux-cua` skill for your agent's methods: inspect app or window state, click or type, then inspect again."))
 

@@ -142,8 +142,8 @@ export function rateLimitResponse(
 }
 
 /**
- * Native authorization is the Stack access/refresh pair, not a user-agent or
- * an assertion header. A cookie-only request is intentionally not native.
+ * Native authorization requires a bounded OAuth bearer credential.
+ * A cookie-only request is intentionally not native.
  */
 export function hasNativeStackAuthHeaders(request: Request): boolean {
   return request.headers.get("authorization") !== null ||
@@ -155,12 +155,11 @@ export function isBoundedNativeStackRequest(request: Request): boolean {
   const refreshToken = request.headers.get("x-stack-refresh-token");
   if (
     authorization === null ||
-    refreshToken === null ||
     request.headers.get("cookie") !== null
   ) return false;
   if (
     byteLength(authorization) > CODEROUTER_HANDOFF_MAX_AUTH_HEADER_BYTES ||
-    byteLength(refreshToken) > CODEROUTER_HANDOFF_MAX_AUTH_HEADER_BYTES
+    (refreshToken !== null && byteLength(refreshToken) > CODEROUTER_HANDOFF_MAX_AUTH_HEADER_BYTES)
   ) {
     return false;
   }

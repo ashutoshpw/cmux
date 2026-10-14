@@ -24,6 +24,8 @@ export type TeamAccess = {
   readonly grants: ReadonlyMap<string, ReadonlySet<string>>;
   readonly role: TeamRole;
   readonly permissions: TeamViewerPermissions;
+  /** Set only by the current database view inside the team admin lock. */
+  readonly liveAdministratorIds?: ReadonlySet<string>;
 };
 
 export type TeamAccessRefusal =

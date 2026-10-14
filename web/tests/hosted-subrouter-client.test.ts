@@ -260,3 +260,29 @@ describe("hosted Subrouter client", () => {
     }
   });
 });
+
+
+test("stale explicit upstream hosted URLs fail before forwarding credentials", async () => {
+  const saved = process.env.SUBROUTER_HOSTED_URL;
+  try {
+    for (const origin of [
+      "https://sr.cmux.com", "https://staging.sr.cmux.com", "https://coderouter.dev", "https://SR.CMUX.COM./",
+      "https://subrouter.cmux.dev", "https://machine.cmux.sh", "https://cmux.run",
+    ]) {
+      process.env.SUBROUTER_HOSTED_URL = origin;
+      let requests = 0;
+      const attempt = async () => {
+        const client = createHostedSubrouterClient({ fetch: (async () => {
+          requests += 1;
+          return Response.json({ error: "unexpected_request" }, { status: 502 });
+        }) as typeof fetch });
+        await client.exchangeTeam("credential-must-not-leave", { teamId: "team-1", teamName: "Acme", use: true, manageAccounts: true });
+      };
+      await expect(attempt()).rejects.toThrow("Upstream service origins are not available in this fork");
+      expect(requests).toBe(0);
+    }
+  } finally {
+    if (saved === undefined) delete process.env.SUBROUTER_HOSTED_URL;
+    else process.env.SUBROUTER_HOSTED_URL = saved;
+  }
+});

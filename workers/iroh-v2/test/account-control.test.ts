@@ -27,7 +27,7 @@ async function world() {
   // Runs once, after a team lookup has read its records and before it returns
   // them: the window in which a revocation and its notice can land.
   let interleave: { teamId: string; action: () => Promise<void> } | null = null;
-  const account = (userId: string, store = new AccountStore(sqliteStorage())) => new AccountBroker({
+  const account = (userId: string, store = new AccountStore(sqliteStorage())) => new AccountBroker({ verifySession: async () => true,
     store, userId, now, relayURLs: [RELAY_URL],
     teamRecords: async (teamId, identities) => {
       calls.push(teamId);
@@ -58,7 +58,7 @@ async function call(broker: AccountBroker, key: DeviceKey, device: DeviceDescrip
   const request = { schemaId, requestId };
   const nonce = String(nonceCounter).padStart(22, "N");
   const setup = await accountSetup(key, device, requestId, at, request, nonce);
-  const authority = { environment: device.identity.environment, projectId: device.identity.projectId, teamId: device.identity.teamId, userId: device.identity.userId, verifiedAt: at - 10 };
+  const authority = { environment: device.identity.environment, projectId: device.identity.projectId, teamId: device.identity.teamId, userId: device.identity.userId,  sessionId: "auth-session", verifiedAt: at - 10 };
   const { session } = await broker.authorize(setup, request, authority, at + 3590);
   return { ...(await broker.execute(session, request)), session };
 }
@@ -121,7 +121,7 @@ test("scope comes only from the account object's user: another user's ticket can
   // A setup whose team differs from the verified authority is refused too.
   const request = { schemaId: "account.directory.v1", requestId: "cross-team" };
   const crossTeam = await accountSetup(aKey!, a, "cross-team", NOW, request, "X".repeat(22));
-  await expect(broker.authorize(crossTeam, request, { environment: a.identity.environment, projectId: a.identity.projectId, teamId: "team-y", userId: "user-u", verifiedAt: NOW }, NOW + 3600))
+  await expect(broker.authorize(crossTeam, request, { environment: a.identity.environment, projectId: a.identity.projectId, teamId: "team-y", userId: "user-u",  sessionId: "auth-session", verifiedAt: NOW }, NOW + 3600))
     .rejects.toMatchObject({ code: "identity_mismatch" });
   // Teammates never appear in each other's directory, even as same-team hosts.
   const mine = directoryOf((await call(broker, bKey!, b, "account.directory.v1")).response);
@@ -223,7 +223,7 @@ test("proofs: replayed nonces and team-purpose signatures are rejected", async (
   const a = descriptor(aKey, identity("team-x", "user-u", "mac-a"), "mac", HOST);
   w.x.enroll(a, NOW - 100);
   const broker = w.account("user-u");
-  const authority = { environment: a.identity.environment, projectId: a.identity.projectId, teamId: "team-x", userId: "user-u", verifiedAt: NOW };
+  const authority = { environment: a.identity.environment, projectId: a.identity.projectId, teamId: "team-x", userId: "user-u",  sessionId: "auth-session", verifiedAt: NOW };
   const request = { schemaId: "account.directory.v1", requestId: "replayed" };
   const setup = await accountSetup(aKey, a, "replayed", NOW, request, "R".repeat(22));
   await broker.authorize(setup, request, authority, NOW + 3600);
@@ -343,7 +343,7 @@ test("large team metadata pages within the frame bound; an oversized record is r
     const requestId = `page-${pages}`;
     const request = { schemaId: "account.directory.v1", requestId, ...(cursor ? { cursor, haveRevision: revision } : {}) };
     const setup = await accountSetup(hostKey, host, requestId, NOW, request, String(pages).padStart(22, "P"));
-    const { session } = await broker.authorize(setup, request, { environment: host.identity.environment, projectId: host.identity.projectId, teamId: "team-x", userId: "user-u", verifiedAt: NOW }, NOW + 3600);
+    const { session } = await broker.authorize(setup, request, { environment: host.identity.environment, projectId: host.identity.projectId, teamId: "team-x", userId: "user-u",  sessionId: "auth-session", verifiedAt: NOW }, NOW + 3600);
     const result = await broker.execute(session, request);
     expect(new TextEncoder().encode(JSON.stringify(result.response)).byteLength).toBeLessThanOrEqual(64 * 1024);
     const page = directoryOf(result.response);
@@ -358,7 +358,7 @@ test("large team metadata pages within the frame bound; an oversized record is r
   // A stale cursor must restart, not splice two revisions.
   const stale = { schemaId: "account.directory.v1", requestId: "stale", cursor: "x", haveRevision: 0 };
   const staleSetup = await accountSetup(hostKey, host, "stale", NOW, stale, "Q".repeat(22));
-  const { session } = await broker.authorize(staleSetup, stale, { environment: host.identity.environment, projectId: host.identity.projectId, teamId: "team-x", userId: "user-u", verifiedAt: NOW }, NOW + 3600);
+  const { session } = await broker.authorize(staleSetup, stale, { environment: host.identity.environment, projectId: host.identity.projectId, teamId: "team-x", userId: "user-u",  sessionId: "auth-session", verifiedAt: NOW }, NOW + 3600);
   await expect(broker.execute(session, stale)).rejects.toMatchObject({ code: "resync_required" });
 
   // A record over the per-record bound is refused at publish and dropped on read if it grows.
@@ -396,7 +396,7 @@ test("a stale-cursor page that revalidated rows still reports the committed revi
   w.x.store.revokeDevice(bRecord.deviceRecordId, NOW, "user-u");
   const request = { schemaId: "account.directory.v1", requestId: "stale-page", cursor: "0", haveRevision: before };
   const setup = await accountSetup(aKey!, a, "stale-page", NOW, request, "C".repeat(22));
-  const { session } = await broker.authorize(setup, request, { environment: a.identity.environment, projectId: a.identity.projectId, teamId: "team-x", userId: "user-u", verifiedAt: NOW }, NOW + 3600);
+  const { session } = await broker.authorize(setup, request, { environment: a.identity.environment, projectId: a.identity.projectId, teamId: "team-x", userId: "user-u",  sessionId: "auth-session", verifiedAt: NOW }, NOW + 3600);
   await expect(broker.execute(session, request)).rejects.toMatchObject({ code: "resync_required", changed: before + 1 });
   expect(broker.dependencies.store.readRevision()).toBe(before + 1);
 });
@@ -409,7 +409,7 @@ test("overlapping notices: an older metadata read cannot make a later revocation
   let gate: (() => void) | null = null;
   let mode: "normal" | "hold" = "normal";
   const store = new AccountStore(sqliteStorage());
-  const broker = new AccountBroker({
+  const broker = new AccountBroker({ verifySession: async () => true,
     store, userId: "user-u", now: w.now, relayURLs: [RELAY_URL],
     teamRecords: async (_teamId, identities) => {
       const records = identities.map(value => w.x.store.accountMacRecord(value));
@@ -449,7 +449,7 @@ test("a revocation landing while a socket's requester is checked refuses the soc
 test("a burst of 16 concurrent revocation notices deletes every revoked row", async () => {
   const w = await world();
   const store = new AccountStore(sqliteStorage());
-  const broker = new AccountBroker({
+  const broker = new AccountBroker({ verifySession: async () => true,
     store, userId: "user-u", now: w.now, relayURLs: [RELAY_URL],
     teamRecords: async (_teamId, identities) => {
       const records = identities.map(value => w.x.store.accountMacRecord(value));

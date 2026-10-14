@@ -59,7 +59,7 @@ final class ComputerUseToolOnboardingFixture {
         let contents = bundleURL.appendingPathComponent("Contents")
         try FileManager.default.createDirectory(at: contents, withIntermediateDirectories: true)
         let info = try PropertyListSerialization.data(
-            fromPropertyList: ["CFBundleIdentifier": "com.cmuxterm.tests.computer-use"],
+            fromPropertyList: ["CFBundleIdentifier": "app.w3dev.cmux.tests.computer-use"],
             format: .xml,
             options: 0
         )

@@ -8,7 +8,7 @@ final class DebugEventLogFileSafetyTests: XCTestCase {
 
     override func setUpWithError() throws {
         directory = FileManager.default.temporaryDirectory
-            .appendingPathComponent("cmux-debug-log-\(UUID().uuidString.prefix(8))", isDirectory: true)
+            .appendingPathComponent("cmux-w3dev-debug-log-\(UUID().uuidString.prefix(8))", isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
 

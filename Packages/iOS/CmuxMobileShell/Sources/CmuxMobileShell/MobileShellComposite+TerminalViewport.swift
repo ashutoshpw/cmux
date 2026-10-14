@@ -6,7 +6,7 @@ internal import Foundation
 internal import OSLog
 
 nonisolated private let terminalViewportLog = Logger(
-    subsystem: Bundle.main.bundleIdentifier ?? "dev.cmux.ios",
+    subsystem: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux.ios.debug",
     category: "mobile-shell"
 )
 

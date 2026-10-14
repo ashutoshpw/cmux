@@ -122,7 +122,7 @@ import UIKit
             canCreateWorkspace: generation == 0,
             hasActiveBrowser: false,
             browserStreamRows: [BrowserStreamPickerRow(MobileBrowserPanelDescriptor(
-                panelID: "browser-1", workspaceID: "workspace-1", url: "https://cmux.com",
+                panelID: "browser-1", workspaceID: "workspace-1", url: "https://cmux.w3dev.app",
                 title: "Browser \(generation)", pageWidth: 800, pageHeight: 600,
                 canGoBack: false, canGoForward: false, isLoading: false
             ))],

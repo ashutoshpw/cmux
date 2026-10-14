@@ -243,7 +243,7 @@ public struct NotificationFeedPreviewView: View {
         }
         guard !projection.sections.isEmpty else { return }
         let signposter = OSSignposter(
-            subsystem: "dev.cmux.ios",
+            subsystem: "app.w3dev.cmux.ios.debug",
             category: "NotificationFeedScrollStress"
         )
         signposter.emitEvent("scrollStressStart")
@@ -287,7 +287,7 @@ public struct NotificationFeedPreviewView: View {
         signposter.endInterval("scrollUp", upState)
         monitor.stop()
         signposter.emitEvent("scrollStressComplete")
-        Logger(subsystem: "dev.cmux.ios", category: "NotificationFeedScrollStress").notice(
+        Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "NotificationFeedScrollStress").notice(
             "NFSCROLLSTRESS result rows=\(mountedIDs.count) frames=\(monitor.frameCount) hitches=\(monitor.hitchCount) hitchTotalMs=\(Int(monitor.hitchTotal * 1000)) worstHitchMs=\(Int(monitor.worstHitch * 1000))"
         )
     }

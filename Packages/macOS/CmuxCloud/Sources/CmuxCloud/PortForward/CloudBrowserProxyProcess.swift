@@ -2,7 +2,7 @@ import Foundation
 import Darwin
 import os
 
-nonisolated private let browserProxyLog = Logger(subsystem: "com.cmuxterm.app", category: "CloudBrowserProxy")
+nonisolated private let browserProxyLog = Logger(subsystem: "app.w3dev.cmux", category: "CloudBrowserProxy")
 
 /// Owns one VM's browser carrier and its WireGuard claim until shutdown or child exit.
 public actor CloudBrowserProxyProcess {

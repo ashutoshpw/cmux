@@ -229,10 +229,8 @@ export function makeFoundersWelcomeHandler(
       // Only attach the personal display name to the default sender. If the
       // address is overridden to a shared/team inbox, send from the bare
       // address rather than a mismatched "Austin Wang" identity.
-      const fromAddress =
-        config.fromEmail === DEFAULT_FROM_EMAIL
-          ? `Austin Wang <${config.fromEmail}>`
-          : config.fromEmail;
+      if (!config.fromEmail.trim()) throw new Error("CMUX_FOUNDERS_FROM_EMAIL must use an owned verified sender");
+      const fromAddress = config.fromEmail;
       const resend = new Resend(config.resendApiKey);
       const emailPayload = trigger === "pro_plan"
         ? await buildProWelcomeEmail({

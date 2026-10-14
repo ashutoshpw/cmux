@@ -2,7 +2,7 @@ import Foundation
 import Network
 import os
 
-nonisolated private let logger = Logger(subsystem: "com.cmuxterm.app", category: "CloudPortForward")
+nonisolated private let logger = Logger(subsystem: "app.w3dev.cmux", category: "CloudPortForward")
 
 /// One loopback TCP listener that carries every accepted connection to one
 /// service inside the Cloud VM network through the user-space WireGuard hub.
@@ -46,7 +46,7 @@ public actor CloudLoopbackPortForward {
     public private(set) var isListening = false
     private let relay: CloudPortForwardRelay
     private let listener: NWListener
-    private let queue = DispatchQueue(label: "com.cmuxterm.app.cloud-port-forward", qos: .userInitiated)
+    private let queue = DispatchQueue(label: "app.w3dev.cmux.cloud-port-forward", qos: .userInitiated)
     private var connections: [UUID: NWConnection] = [:]
     /// Every connection the listener ever accepted, for diagnostics and tests.
     private(set) var acceptedConnectionCount = 0

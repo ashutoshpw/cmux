@@ -3,9 +3,9 @@ import Foundation
 
 /// The auth backend seam the ``AuthCoordinator`` drives.
 ///
-/// Abstracts every Stack Auth operation the coordinator needs so it can be
+/// Abstracts every session and organization operation the coordinator needs so it can be
 /// tested with an in-memory fake. The production conformer is
-/// ``StackAuthClient``, which wraps `StackClientApp`. Construct it once at the
+/// ``BetterAuthClient``, which uses a registered public OAuth client. Construct it once at the
 /// app composition root with injected config and inject it as `any AuthClient`.
 public protocol AuthClient: Sendable {
     /// The current Stack access token, or `nil` when there is no live session.
@@ -76,12 +76,22 @@ public protocol AuthClient: Sendable {
     /// Sign in with an email/password credential.
     func signInWithCredential(email: String, password: String) async throws
 
+    /// Invalidates earlier browser exchanges before a replacement attempt is issued.
+    /// - Returns: An optional ownership receipt for clients supporting guarded persistence.
+    func prepareBrowserSignIn() async throws -> UInt64?
+
+    /// Cancels only the pending authorization owning this receipt, preserving newer attempts.
+    func cancelBrowserSignIn(attemptGeneration: UInt64) async
+
     /// Sign in with an OAuth provider (e.g. `"apple"`, `"google"`), presenting
     /// from the supplied anchor.
     /// - Parameters:
     ///   - provider: The provider identifier.
     ///   - anchor: The presentation-anchor provider for the auth UI.
     func signInWithOAuth(provider: String, anchor: any AuthPresentationAnchoring) async throws
+
+    /// Runs the provider sign-in belonging to a previously prepared ownership receipt.
+    func signInWithOAuth(provider: String, anchor: any AuthPresentationAnchoring, attemptGeneration: UInt64?) async throws
 
     /// The access token exactly as stored, with no freshness check and no
     /// network refresh (unlike ``accessToken()``, which may mint a new token
@@ -137,6 +147,13 @@ public enum AuthClientError: Error, Equatable, Sendable {
 }
 
 public extension AuthClient {
+    func prepareBrowserSignIn() async throws -> UInt64? { nil }
+    func cancelBrowserSignIn(attemptGeneration: UInt64) async {}
+
+    func signInWithOAuth(provider: String, anchor: any AuthPresentationAnchoring, attemptGeneration: UInt64?) async throws {
+        try await signInWithOAuth(provider: provider, anchor: anchor)
+    }
+
     func selectedTeamID() async throws -> String? { nil }
 
     func setSelectedTeam(id: String?) async throws {

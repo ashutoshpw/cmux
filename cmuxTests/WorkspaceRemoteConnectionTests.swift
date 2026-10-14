@@ -996,7 +996,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64007,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
 
@@ -1022,7 +1022,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: nil,
             relayID: nil,
             relayToken: nil,
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "cmux vm-pty-attach --id issue-4509",
             daemonWebSocketEndpoint: WorkspaceRemoteWebSocketDaemonEndpoint(
                 url: "wss://vm.example.invalid/daemon",
@@ -1069,7 +1069,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: nil,
             relayID: nil,
             relayToken: nil,
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "cmux vm-pty-attach --id issue-4509-no-startup",
             daemonWebSocketEndpoint: WorkspaceRemoteWebSocketDaemonEndpoint(
                 url: "wss://vm.example.invalid/daemon",
@@ -1090,7 +1090,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: nil,
             relayID: nil,
             relayToken: nil,
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: nil,
             daemonWebSocketEndpoint: WorkspaceRemoteWebSocketDaemonEndpoint(
                 url: "wss://vm.example.invalid/daemon",
@@ -1131,7 +1131,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64007,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
 
@@ -1171,7 +1171,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64034,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
 
@@ -1200,7 +1200,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64029,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini",
             foregroundAuthToken: "token-a"
         )
@@ -1240,7 +1240,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64030,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini",
             foregroundAuthToken: "token-a"
         )
@@ -1269,7 +1269,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64031,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini",
             foregroundAuthToken: "token-b"
         )
@@ -1291,7 +1291,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64033,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
 
@@ -1318,7 +1318,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64032,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini",
             foregroundAuthToken: "token-a"
         )
@@ -1346,7 +1346,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64012,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -1395,7 +1395,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64035,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -1441,7 +1441,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64012,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini",
             preserveAfterTerminalExit: true,
             persistentDaemonSlot: "ssh-persist-end"
@@ -1492,7 +1492,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64014,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -1535,7 +1535,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64015,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -1577,7 +1577,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64018,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -1632,7 +1632,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64019,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -1664,7 +1664,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64016,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -1736,7 +1736,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64_016,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini",
             preserveAfterTerminalExit: true,
             persistentDaemonSlot: "pending-lease"
@@ -1778,7 +1778,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64_016,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini",
             preserveAfterTerminalExit: true,
             persistentDaemonSlot: "bounded-readiness-commit"
@@ -1823,7 +1823,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64016,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         workspace.configureRemoteConnection(config, autoConnect: false)
@@ -1895,7 +1895,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64017,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -1947,7 +1947,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64018,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -1999,7 +1999,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64019,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -2049,7 +2049,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64013,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -2087,7 +2087,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64020,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
         let cleanupRequested = expectation(description: "control master cleanup requested")
@@ -2230,7 +2230,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64_011,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh test@hpc.example"
         )
         defer { workspace.disconnectRemoteConnection(clearConfiguration: true) }
@@ -2269,7 +2269,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64007,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
 
@@ -2311,7 +2311,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64008,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh-pty-attach",
             preserveAfterTerminalExit: true
         )
@@ -2428,7 +2428,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64009,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: nil,
             preserveAfterTerminalExit: true
         )
@@ -2472,7 +2472,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64011,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: nil,
             preserveAfterTerminalExit: true
         )
@@ -2503,7 +2503,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64012,
             relayID: String(repeating: "c", count: 16),
             relayToken: String(repeating: "d", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh-pty-attach",
             preserveAfterTerminalExit: true
         )
@@ -2528,7 +2528,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64013,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: nil,
             preserveAfterTerminalExit: true
         )
@@ -2554,7 +2554,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64014,
             relayID: String(repeating: "c", count: 16),
             relayToken: String(repeating: "d", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh-pty-attach",
             preserveAfterTerminalExit: true
         )
@@ -2576,7 +2576,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64010,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: nil,
             preserveAfterTerminalExit: true
         )
@@ -2614,7 +2614,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64015,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh-pty-attach",
             preserveAfterTerminalExit: true,
             persistentDaemonSlot: "ssh-seeded-default"
@@ -3293,7 +3293,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64007,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
 
@@ -3425,7 +3425,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: 64015,
             relayID: String(repeating: "e", count: 16),
             relayToken: String(repeating: "f", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             managedCloudVMID: "71smiccrg35sw9pydt8k",
             terminalStartupCommand: "cmux vm ssh-attach --id 71smiccrg35sw9pydt8k --default-freestyle-sshd",
             preserveAfterTerminalExit: true,
@@ -3509,7 +3509,7 @@ final class WorkspaceRemoteConnectionTests: XCTestCase {
             relayPort: nil,
             relayID: nil,
             relayToken: nil,
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "cmux vm-pty-attach --id issue-4509",
             daemonWebSocketEndpoint: WorkspaceRemoteWebSocketDaemonEndpoint(
                 url: "wss://vm.example.invalid/daemon",

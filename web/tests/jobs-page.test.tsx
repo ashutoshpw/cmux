@@ -115,14 +115,10 @@ describe("jobs page", () => {
     expect(html.match(/>Email</g)).toHaveLength(3);
     expect(html).not.toContain("Email founders@cmux.com");
     expect(html).toContain(
-      `href="mailto:founders@cmux.com?subject=${encodeURIComponent(
-        enMessages.jobs.applyEmailSubject,
-      )}"`,
+      'href="/support"',
     );
     expect(html).toContain(
-      `href="mailto:founders@cmux.com?subject=${encodeURIComponent(
-        enMessages.jobs.foundingDesigner.applyEmailSubject,
-      )}"`,
+      'href="/support"',
     );
     expect(html).toContain(
       'href="https://www.ycombinator.com/companies/cmux/jobs/RcX3bDA-founding-engineer"',
@@ -169,12 +165,10 @@ describe("jobs page", () => {
     expect(html.match(/>メールする</g)).toHaveLength(3);
     expect(html).not.toContain("founders@cmux.com にメールする");
     expect(html).toContain(
-      `subject=${encodeURIComponent(jaMessages.jobs.applyEmailSubject)}`,
+      'href="/support"',
     );
     expect(html).toContain(
-      `subject=${encodeURIComponent(
-        jaMessages.jobs.foundingDesigner.applyEmailSubject,
-      )}`,
+      'href="/support"',
     );
     expect(html).not.toContain("cmux について");
     expect(html).not.toContain("募集中のポジション");
@@ -194,14 +188,10 @@ describe("jobs page", () => {
     expect(simplified).toContain("设计覆盖整个技术栈的前沿开发者工具");
     expect(simplified.match(/>发送邮件</g)).toHaveLength(3);
     expect(simplified).toContain(
-      `href="mailto:founders@cmux.com?subject=${encodeURIComponent(
-        messagesByLocale["zh-CN"].jobs.applyEmailSubject,
-      )}"`,
+      'href="/support"',
     );
     expect(simplified).toContain(
-      `href="mailto:founders@cmux.com?subject=${encodeURIComponent(
-        messagesByLocale["zh-CN"].jobs.foundingDesigner.applyEmailSubject,
-      )}"`,
+      'href="/support"',
     );
 
     activeLocale = "zh-TW";
@@ -211,14 +201,10 @@ describe("jobs page", () => {
     expect(traditional).toContain("打造橫跨整個技術堆疊的前沿開發者工具");
     expect(traditional.match(/>寄送電子郵件</g)).toHaveLength(3);
     expect(traditional).toContain(
-      `href="mailto:founders@cmux.com?subject=${encodeURIComponent(
-        messagesByLocale["zh-TW"].jobs.applyEmailSubject,
-      )}"`,
+      'href="/support"',
     );
     expect(traditional).toContain(
-      `href="mailto:founders@cmux.com?subject=${encodeURIComponent(
-        messagesByLocale["zh-TW"].jobs.foundingDesigner.applyEmailSubject,
-      )}"`,
+      'href="/support"',
     );
   });
 
@@ -256,14 +242,10 @@ describe("jobs page", () => {
       );
       expect(html).toContain(`aria-label="${catalog.jobs.details}"`);
       expect(html).toContain(
-        `mailto:founders@cmux.com?subject=${encodeURIComponent(
-          catalog.jobs.applyEmailSubject,
-        )}`,
+        '/support',
       );
       expect(html).toContain(
-        `mailto:founders@cmux.com?subject=${encodeURIComponent(
-          catalog.jobs.foundingDesigner.applyEmailSubject,
-        )}`,
+        '/support',
       );
       expect(html.match(/>YC Work at a Startup</g)).toHaveLength(3);
       expect(catalog.jobs).not.toHaveProperty("aboutTitle");
@@ -291,7 +273,7 @@ describe("jobs page", () => {
       absolute: "Founding Engineer / Founding Designer / Founding Chromium Engineer — 採用情報",
     });
     expect(japanese.alternates).toMatchObject({
-      canonical: "https://cmux.com/ja/jobs",
+      canonical: "https://cmux.w3dev.app/ja/jobs",
     });
     expect(japanese.description).toContain("AI とコーディングの未来をつくる。");
 
@@ -302,10 +284,10 @@ describe("jobs page", () => {
       absolute: "Founding Engineer / Founding Designer / Founding Chromium Engineer — 招聘",
     });
     expect(chinese.alternates).toMatchObject({
-      canonical: "https://cmux.com/zh-CN/jobs",
+      canonical: "https://cmux.w3dev.app/zh-CN/jobs",
       languages: {
-        "zh-CN": "https://cmux.com/zh-CN/jobs",
-        "zh-TW": "https://cmux.com/zh-TW/jobs",
+        "zh-CN": "https://cmux.w3dev.app/zh-CN/jobs",
+        "zh-TW": "https://cmux.w3dev.app/zh-TW/jobs",
       },
     });
     expect(chinese.description).toContain("AI 编程的未来");
@@ -318,7 +300,7 @@ describe("jobs page", () => {
     expect(html).toContain("Founding Engineer");
     expect(html).toContain("Founding Designer");
     expect(html).toContain(
-      "Design frontier devtools across the stack: cmux macOS, cmux TUI, cmux Windows/Linux, cmux iOS, cmux Cloud, cmux.com, chatmux, and more.",
+      "Design frontier devtools across the stack: cmux macOS, cmux TUI, cmux Windows/Linux, cmux iOS, cmux Cloud, cmux.w3dev.app, chatmux, and more.",
     );
     expect(html).toContain(
       "You are a walking encyclopedia of design components from all sorts of apps.",
@@ -328,9 +310,7 @@ describe("jobs page", () => {
     expect(html.match(/>Email</g)).toHaveLength(3);
     expect(html).not.toContain("Email founders@cmux.com");
     expect(html).toContain(
-      `subject=${encodeURIComponent(
-        enMessages.jobs.foundingDesigner.applyEmailSubject,
-      )}`,
+      'href="/support"',
     );
     expect(html).not.toContain("About cmux");
     expect(html).not.toContain("Interested?");
@@ -347,9 +327,7 @@ describe("jobs page", () => {
     expect(html.match(/>メールする</g)).toHaveLength(3);
     expect(html).not.toContain("founders@cmux.com にメールする");
     expect(html).toContain(
-      `subject=${encodeURIComponent(
-        jaMessages.jobs.foundingDesigner.applyEmailSubject,
-      )}`,
+      'href="/support"',
     );
     expect(html).not.toContain("cmux について");
     expect(html).not.toContain("興味がありますか？");
@@ -379,7 +357,7 @@ describe("jobs page", () => {
       absolute: "Founding Designer の採用情報 — cmux",
     });
     expect(japanese.alternates).toMatchObject({
-      canonical: "https://cmux.com/ja/jobs/founding-designer",
+      canonical: "https://cmux.w3dev.app/ja/jobs/founding-designer",
     });
     expect(japanese.description).toContain("AI とコーディングの未来");
   });
@@ -388,36 +366,36 @@ describe("jobs page", () => {
 describe("jobs route integration", () => {
   test("negotiates the unprefixed route without redirect loops", () => {
     const english = middleware(
-      new NextRequest("https://cmux.com/jobs", {
+      new NextRequest("https://cmux.w3dev.app/jobs", {
         headers: { "accept-language": "en" },
       }),
     );
     expect(english.status).toBe(200);
     expect(english.headers.get("x-middleware-rewrite")).toBe(
-      "https://cmux.com/en/jobs",
+      "https://cmux.w3dev.app/en/jobs",
     );
     expect(english.headers.get("link")).toContain('hreflang="zh-CN"');
 
     const japanese = middleware(
-      new NextRequest("https://cmux.com/jobs", {
+      new NextRequest("https://cmux.w3dev.app/jobs", {
         headers: { "accept-language": "ja,en;q=0.8" },
       }),
     );
     expect(japanese.status).toBe(307);
-    expect(japanese.headers.get("location")).toBe("https://cmux.com/ja/jobs");
+    expect(japanese.headers.get("location")).toBe("https://cmux.w3dev.app/ja/jobs");
 
     const simplifiedChinese = middleware(
-      new NextRequest("https://cmux.com/jobs", {
+      new NextRequest("https://cmux.w3dev.app/jobs", {
         headers: { "accept-language": "zh-CN,zh;q=0.8" },
       }),
     );
     expect(simplifiedChinese.status).toBe(307);
     expect(simplifiedChinese.headers.get("location")).toBe(
-      "https://cmux.com/zh-CN/jobs",
+      "https://cmux.w3dev.app/zh-CN/jobs",
     );
 
     const localized = middleware(
-      new NextRequest("https://cmux.com/de/jobs", {
+      new NextRequest("https://cmux.w3dev.app/de/jobs", {
         headers: { "accept-language": "de" },
       }),
     );
@@ -425,14 +403,14 @@ describe("jobs route integration", () => {
 
     for (const locale of jobsContentLocales) {
       const localizedRoute = middleware(
-        new NextRequest(`https://cmux.com/${locale}/jobs`, {
+        new NextRequest(`https://cmux.w3dev.app/${locale}/jobs`, {
           headers: { "accept-language": locale },
         }),
       );
       expect(localizedRoute.status).toBe(locale === "en" ? 307 : 200);
       if (locale === "en") {
         expect(localizedRoute.headers.get("location")).toBe(
-          "https://cmux.com/jobs",
+          "https://cmux.w3dev.app/jobs",
         );
       }
     }
@@ -440,27 +418,27 @@ describe("jobs route integration", () => {
 
   test("negotiates the unprefixed founding designer route", () => {
     const english = middleware(
-      new NextRequest("https://cmux.com/jobs/founding-designer", {
+      new NextRequest("https://cmux.w3dev.app/jobs/founding-designer", {
         headers: { "accept-language": "en" },
       }),
     );
     expect(english.status).toBe(200);
     expect(english.headers.get("x-middleware-rewrite")).toBe(
-      "https://cmux.com/en/jobs/founding-designer",
+      "https://cmux.w3dev.app/en/jobs/founding-designer",
     );
 
     const japanese = middleware(
-      new NextRequest("https://cmux.com/jobs/founding-designer", {
+      new NextRequest("https://cmux.w3dev.app/jobs/founding-designer", {
         headers: { "accept-language": "ja,en;q=0.8" },
       }),
     );
     expect(japanese.status).toBe(307);
     expect(japanese.headers.get("location")).toBe(
-      "https://cmux.com/ja/jobs/founding-designer",
+      "https://cmux.w3dev.app/ja/jobs/founding-designer",
     );
 
     const localized = middleware(
-      new NextRequest("https://cmux.com/de/jobs/founding-designer", {
+      new NextRequest("https://cmux.w3dev.app/de/jobs/founding-designer", {
         headers: { "accept-language": "de" },
       }),
     );
@@ -468,14 +446,14 @@ describe("jobs route integration", () => {
 
     for (const locale of jobsContentLocales) {
       const localizedRoute = middleware(
-        new NextRequest(`https://cmux.com/${locale}/jobs/founding-designer`, {
+        new NextRequest(`https://cmux.w3dev.app/${locale}/jobs/founding-designer`, {
           headers: { "accept-language": locale },
         }),
       );
       expect(localizedRoute.status).toBe(locale === "en" ? 307 : 200);
       if (locale === "en") {
         expect(localizedRoute.headers.get("location")).toBe(
-          "https://cmux.com/jobs/founding-designer",
+          "https://cmux.w3dev.app/jobs/founding-designer",
         );
       }
     }
@@ -483,7 +461,7 @@ describe("jobs route integration", () => {
 
   test("includes jobs in discovery and agent-readable variants", () => {
     const jobsEntry = sitemap().find(
-      (entry) => entry.url === "https://cmux.com/jobs",
+      (entry) => entry.url === "https://cmux.w3dev.app/jobs",
     );
     expect(jobsEntry?.alternates?.languages).toEqual(
       expectedAlternates("/jobs", "en").languages,
@@ -494,7 +472,7 @@ describe("jobs route integration", () => {
       ),
     ).toHaveLength(jobsContentLocales.length);
     const designerEntry = sitemap().find(
-      (entry) => entry.url === "https://cmux.com/jobs/founding-designer",
+      (entry) => entry.url === "https://cmux.w3dev.app/jobs/founding-designer",
     );
     expect(designerEntry?.alternates?.languages).toEqual(
       expectedAlternates("/jobs/founding-designer", "en").languages,
@@ -535,16 +513,16 @@ function expectedAlternates(path: string, locale: Locale) {
     jobsContentLocales.map((contentLocale) => [
       contentLocale,
       contentLocale === "en"
-        ? `https://cmux.com${path}`
-        : `https://cmux.com/${contentLocale}${path}`,
+        ? `https://cmux.w3dev.app${path}`
+        : `https://cmux.w3dev.app/${contentLocale}${path}`,
     ]),
   );
-  languages["x-default"] = `https://cmux.com${path}`;
+  languages["x-default"] = `https://cmux.w3dev.app${path}`;
   return {
     canonical:
       locale === "en"
-        ? `https://cmux.com${path}`
-        : `https://cmux.com/${locale}${path}`,
+        ? `https://cmux.w3dev.app${path}`
+        : `https://cmux.w3dev.app/${locale}${path}`,
     languages,
   };
 }

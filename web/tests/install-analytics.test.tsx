@@ -5,17 +5,20 @@ import {
   captureInstallEvent,
   validInstallEventBody,
 } from "../services/analytics/install";
-import CoderouterLandingPage from "../app/coderouter/page";
+import CoderouterLandingPage, { metadata } from "../app/coderouter/page";
 import { GET as coderouterInstall } from "../app/coderouter/install.sh/route";
 import { GET as tuiInstall } from "../app/tui/install.sh/route";
 import { GET as tuiPowerShellInstall } from "../app/tui/install.ps1/route";
 
 describe("website install analytics", () => {
+  test("the CodeRouter landing canonical is its path on the fork site", () => {
+    expect(metadata.alternates?.canonical).toBe("https://cmux.w3dev.app/coderouter");
+  });
   test("renders the clean coderouter curl-install landing page", () => {
     const html = renderToStaticMarkup(<CoderouterLandingPage />);
     const expectedCommand = [
       "curl -fsSL",
-      "https://cmux.com/coderouter/install.sh",
+      "https://cmux.w3dev.app/coderouter/install.sh",
       "| sh",
     ].join(" ");
     expect(html).toContain("keep coding when one account runs out");
@@ -94,23 +97,23 @@ describe("website install analytics", () => {
 
   test("tracks then redirects to immutable static script bodies", () => {
     const coderouter = coderouterInstall(
-      new Request("https://cmux.com/coderouter/install.sh"),
+      new Request("https://cmux.w3dev.app/coderouter/install.sh"),
     );
-    const tui = tuiInstall(new Request("https://cmux.com/tui/install.sh"));
+    const tui = tuiInstall(new Request("https://cmux.w3dev.app/tui/install.sh"));
     const tuiPowerShell = tuiPowerShellInstall(
-      new Request("https://cmux.com/tui/install.ps1"),
+      new Request("https://cmux.w3dev.app/tui/install.ps1"),
     );
     expect(coderouter.status).toBe(307);
     expect(coderouter.headers.get("location")).toBe(
-      "https://cmux.com/coderouter/install-static.sh",
+      "https://cmux.w3dev.app/coderouter/install-static.sh",
     );
     expect(tui.status).toBe(307);
     expect(tui.headers.get("location")).toBe(
-      "https://cmux.com/tui/install-static.sh",
+      "https://cmux.w3dev.app/tui/install-static.sh",
     );
     expect(tuiPowerShell.status).toBe(307);
     expect(tuiPowerShell.headers.get("location")).toBe(
-      "https://cmux.com/tui/install-static.ps1",
+      "https://cmux.w3dev.app/tui/install-static.ps1",
     );
   });
 });

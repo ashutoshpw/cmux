@@ -7,7 +7,7 @@ import Darwin
 final class AutomationSocketUITests: XCTestCase {
     private var socketPath = ""
     private var diagnosticsPath = ""
-    private let defaultsDomain = "com.cmuxterm.app.debug"
+    private let defaultsDomain = "app.w3dev.cmux.debug"
     private let modeKey = "socketControlMode"
     private let legacyKey = "socketControlEnabled"
     private var launchTag = ""
@@ -16,7 +16,7 @@ final class AutomationSocketUITests: XCTestCase {
     override func setUp() {
         super.setUp()
         continueAfterFailure = false
-        socketPath = "/tmp/cmux-debug-\(UUID().uuidString).sock"
+        socketPath = "/tmp/cmux-w3dev-debug-\(UUID().uuidString).sock"
         diagnosticsPath = "/tmp/cmux-ui-test-automation-socket-\(UUID().uuidString).json"
         launchTag = "ui-tests-automation-\(UUID().uuidString.prefix(8))"
         temporaryRoots = []
@@ -719,7 +719,7 @@ final class AutomationSocketUITests: XCTestCase {
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty }
             .joined(separator: "-")
-        return "/tmp/cmux-debug-\(slug).sock"
+        return "/tmp/cmux-w3dev-debug-\(slug).sock"
     }
 
     private func loadDiagnostics() -> [String: String] {

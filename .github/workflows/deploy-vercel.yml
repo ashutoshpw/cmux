@@ -1,0 +1,82 @@
+name: Deploy fork web to Vercel
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'config/**'
+      - 'CHANGELOG.md'
+      - '.vercelignore'
+      - 'scripts/generate-fork-deployment.py'
+      - '.github/workflows/deploy-vercel.yml'
+      - 'workers/presence/src/generated/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fork-vercel-production
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    if: github.repository == 'ashutoshpw/cmux' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6
+        with:
+          bun-version: '1.4.2'
+      - name: Validate generated deployment inputs
+        working-directory: .
+        run: |
+          python3 scripts/generate-fork-deployment.py --check
+          python3 tests/test_fork_deployment.py
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck
+      - run: bun run lint:complexity
+      - run: bun run test
+
+  deploy:
+    needs: validate
+    if: github.repository == 'ashutoshpw/cmux' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: vercel-production
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - name: Check deployment credential
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo '::error::VERCEL_TOKEN is required for the configured fork team/project.'
+            exit 1
+          fi
+      # The project Root Directory is web; run the CLI from the repository root.
+      - name: Deploy cmux web
+        id: deploy
+        uses: W3Dev/vercel-deploy@c07189acacfbd8e9416ee8e9e98f8925de13a718
+        with:
+          vercel_token: ${{ secrets.VERCEL_TOKEN }}
+          vercel_org_id: team_bhbVYR6BqVYMXKwAp7F1k5ib
+          vercel_project_id: prj_3z4VuRVvSvlm5LYNnEuqHa4FKKtn
+          working_directory: .
+          package_manager: bun
+          package_manager_version: '1.4.2'
+          node_version: '22'
+          vercel_cli_version: '54.6.1'
+          install_command: cd web && bun install --frozen-lockfile
+          prebuild_script: python3 scripts/generate-fork-deployment.py --check
+          environment: production
+          deploy_args: --meta githubCommitSha=${{ github.sha }}

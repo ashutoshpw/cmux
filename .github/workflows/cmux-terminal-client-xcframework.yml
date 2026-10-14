@@ -197,7 +197,7 @@ jobs:
           <plist version="1.0"><dict>
             <key>CFBundleDevelopmentRegion</key><string>en</string>
             <key>CFBundleExecutable</key><string>CmuxTerminalClientFFI</string>
-            <key>CFBundleIdentifier</key><string>com.cmuxterm.CmuxTerminalClientFFI</string>
+            <key>CFBundleIdentifier</key><string>app.w3dev.cmux.CmuxTerminalClientFFI</string>
             <key>CFBundleInfoDictionaryVersion</key><string>6.0</string>
             <key>CFBundleName</key><string>CmuxTerminalClientFFI</string>
             <key>CFBundlePackageType</key><string>FMWK</string>

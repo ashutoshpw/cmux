@@ -1097,7 +1097,7 @@ final class PiVaultAgentPersistenceTests: XCTestCase {
         let snapshotURL = tempDir.appendingPathComponent("session.json", isDirectory: false)
         let store = SessionSnapshotRepository<AppSessionSnapshot>(
             schemaVersion: SessionSnapshotSchema.currentVersion,
-            bundleIdentifier: "com.cmuxterm.tests"
+            bundleIdentifier: "app.w3dev.cmux.tests"
         )
         XCTAssertTrue(store.save(snapshot, fileURL: snapshotURL))
         let loadedAgent = try XCTUnwrap(

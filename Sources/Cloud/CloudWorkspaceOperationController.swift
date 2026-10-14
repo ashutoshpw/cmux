@@ -57,7 +57,7 @@ final class CloudWorkspaceOperationController {
             } catch is CancellationError {
                 // Cancellation is the expected result of sign-out or disabling Cloud Machines.
             } catch {
-                Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.cmuxterm.app", category: "CloudWorkspace")
+                Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux", category: "CloudWorkspace")
                     .error("Cloud workspace operation failed: \(String(describing: error), privacy: .private)")
             }
         }
@@ -82,7 +82,7 @@ final class CloudWorkspaceOperationController {
             } catch is CancellationError {
                 // Cancellation is the expected result of sign-out or disabling Cloud Machines.
             } catch {
-                Logger(subsystem: Bundle.main.bundleIdentifier ?? "com.cmuxterm.app", category: "CloudWorkspace")
+                Logger(subsystem: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux", category: "CloudWorkspace")
                     .error("Keyed Cloud workspace operation failed: \(String(describing: error), privacy: .private)")
             }
         }

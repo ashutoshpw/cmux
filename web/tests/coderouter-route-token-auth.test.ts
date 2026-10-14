@@ -8,7 +8,7 @@ import {
 } from "../services/coderouter/routeTokenAuth";
 
 function request(headers: Record<string, string>): Request {
-  return new Request("https://coderouter.dev/v1/responses", { headers });
+  return new Request("https://cmux.w3dev.app/v1/responses", { headers });
 }
 
 const principals: Record<string, { teamId: string; stackUserId: string; vmId: string | null }> = {

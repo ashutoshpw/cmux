@@ -3,7 +3,7 @@ import CmuxTerminal
 import Foundation
 import os
 
-private let replayFidelityLogger = Logger(subsystem: "com.cmuxterm.app", category: "CloudManualMirror")
+private let replayFidelityLogger = Logger(subsystem: "app.w3dev.cmux", category: "CloudManualMirror")
 
 /// Refetches a replacement replay that the local terminal parsed at the wrong
 /// grid. See ``CloudTuiReplayFidelity`` for why growing the pane cannot repair

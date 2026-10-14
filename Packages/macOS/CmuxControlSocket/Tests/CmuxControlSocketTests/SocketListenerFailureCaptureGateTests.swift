@@ -80,14 +80,14 @@ import Testing
         #expect(!gate.shouldCapture(
             message: SocketListenerFailureCaptureGate.pathMissingMessage,
             stage: "path_monitor",
-            path: "/tmp/cmux-debug-main.sock",
+            path: "/tmp/cmux-w3dev-debug-main.sock",
             errnoCode: nil
         ))
         // Other failures still capture on debug builds.
         #expect(gate.shouldCapture(
             message: "socket.listener.start.failed",
             stage: "bind",
-            path: "/tmp/cmux-debug-main.sock",
+            path: "/tmp/cmux-w3dev-debug-main.sock",
             errnoCode: EADDRINUSE
         ))
     }

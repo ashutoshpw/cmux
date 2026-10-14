@@ -143,38 +143,38 @@ import Testing
     /// never be pointed at a stable download as the fix for a nightly install failure.
     @Test func manualDownloadRoutesToTheActiveChannel() throws {
         let didNotStart = NSError(domain: UpdateStateModel.updateErrorDomain, code: UpdateStateModel.installDidNotStartCode)
-        let nightlyFeed = "https://github.com/manaflow-ai/cmux/releases/download/nightly/appcast.xml"
+        let nightlyFeed = "https://github.com/ashutoshpw/cmux/releases/download/nightly/appcast.xml"
         let recovery = UpdateManualDownloadRecovery(hostArchitecture: .arm64)
 
         let nightlyURL = try #require(recovery.url(for: didNotStart, feedURLString: nightlyFeed))
-        #expect(nightlyURL.absoluteString.hasSuffix("/releases/download/nightly/cmux-nightly-macos-arm64.dmg"))
+        #expect(nightlyURL.absoluteString.hasSuffix("/releases/download/nightly/cmux-w3dev-nightly-macos-arm64.dmg"))
         #expect(!nightlyURL.absoluteString.contains("latest/download"))
 
-        let stableURL = try #require(recovery.url(for: didNotStart, feedURLString: "https://cmux.com/appcast.xml"))
+        let stableURL = try #require(recovery.url(for: didNotStart, feedURLString: "https://cmux.w3dev.app/appcast.xml"))
         #expect(stableURL.absoluteString.contains("latest/download"))
 
         // Sparkle's own install failures route by channel the same way.
         let sparkleInstallFailure = NSError(domain: SUSparkleErrorDomain, code: 4005)
         let sparkleNightlyURL = try #require(recovery.url(for: sparkleInstallFailure, feedURLString: nightlyFeed))
-        #expect(sparkleNightlyURL.absoluteString.hasSuffix("/releases/download/nightly/cmux-nightly-macos-arm64.dmg"))
+        #expect(sparkleNightlyURL.absoluteString.hasSuffix("/releases/download/nightly/cmux-w3dev-nightly-macos-arm64.dmg"))
 
         // An Intel Mac is offered the Intel nightly DMG.
         let intelRecovery = UpdateManualDownloadRecovery(hostArchitecture: .x86_64)
         let intelURL = try #require(intelRecovery.url(for: didNotStart, feedURLString: nightlyFeed))
-        #expect(intelURL.absoluteString.hasSuffix("/releases/download/nightly/cmux-nightly-macos-x86_64.dmg"))
+        #expect(intelURL.absoluteString.hasSuffix("/releases/download/nightly/cmux-w3dev-nightly-macos-x86_64.dmg"))
     }
 
     /// An RC build recovers to the RC DMG for its architecture, never the stable one.
     @Test func manualDownloadRoutesRCFeedToTheRCDMG() throws {
         let didNotStart = NSError(domain: UpdateStateModel.updateErrorDomain, code: UpdateStateModel.installDidNotStartCode)
-        let rcFeed = "https://files.cmux.com/rc/appcast-arm64.xml"
+        let rcFeed = "https://files.cmux.w3dev.app/rc/appcast-arm64.xml"
 
         let armURL = try #require(UpdateManualDownloadRecovery(hostArchitecture: .arm64).url(for: didNotStart, feedURLString: rcFeed))
-        #expect(armURL.absoluteString == "https://github.com/manaflow-ai/cmux/releases/download/rc/cmux-rc-macos-arm64.dmg")
+        #expect(armURL.absoluteString == "https://github.com/ashutoshpw/cmux/releases/download/rc/cmux-w3dev-rc-macos-arm64.dmg")
 
         let sparkleInstallFailure = NSError(domain: SUSparkleErrorDomain, code: 4005)
         let intelURL = try #require(UpdateManualDownloadRecovery(hostArchitecture: .x86_64).url(for: sparkleInstallFailure, feedURLString: rcFeed))
-        #expect(intelURL.absoluteString == "https://github.com/manaflow-ai/cmux/releases/download/rc/cmux-rc-macos-x86_64.dmg")
+        #expect(intelURL.absoluteString == "https://github.com/ashutoshpw/cmux/releases/download/rc/cmux-w3dev-rc-macos-x86_64.dmg")
         #expect(!intelURL.absoluteString.contains("latest/download"))
         #expect(!intelURL.absoluteString.contains("/nightly/"))
     }
@@ -183,7 +183,7 @@ import Testing
     /// the driver still needs to recover the build's appcast channel so NIGHTLY installs offer the
     /// nightly DMG instead of downgrading to stable.
     @Test func unresolvedDelegateFeedStillRoutesWatchdogRecoveryToNightly() throws {
-        let nightlyFeed = "https://github.com/manaflow-ai/cmux/releases/download/nightly/appcast.xml"
+        let nightlyFeed = "https://github.com/ashutoshpw/cmux/releases/download/nightly/appcast.xml"
         let driver = UpdateDriver(
             model: UpdateStateModel(),
             log: NoopUpdateLog(),
@@ -194,7 +194,7 @@ import Testing
 
         // The passive path resolves the build's own nightly channel, for this machine's architecture.
         let resolvedFeed = try #require(driver.resolvedFeedURLString())
-        #expect(resolvedFeed.hasPrefix("https://github.com/manaflow-ai/cmux/releases/download/nightly/appcast-"))
+        #expect(resolvedFeed.hasPrefix("https://github.com/ashutoshpw/cmux/releases/download/nightly/appcast-"))
         #expect(resolvedFeed.hasSuffix("\(UpdateHostArchitecture.current.rawValue).xml"))
 
         let didNotStart = NSError(domain: UpdateStateModel.updateErrorDomain, code: UpdateStateModel.installDidNotStartCode)
@@ -202,7 +202,7 @@ import Testing
             for: didNotStart,
             feedURLString: driver.resolvedFeedURLString()
         ))
-        #expect(recoveryURL.absoluteString == "https://github.com/manaflow-ai/cmux/releases/download/nightly/cmux-nightly-macos-arm64.dmg")
+        #expect(recoveryURL.absoluteString == "https://github.com/ashutoshpw/cmux/releases/download/nightly/cmux-w3dev-nightly-macos-arm64.dmg")
 
         let recordedFeed = "https://example.com/other/appcast.xml"
         driver.recordFeedURLString(recordedFeed, usedFallback: false)

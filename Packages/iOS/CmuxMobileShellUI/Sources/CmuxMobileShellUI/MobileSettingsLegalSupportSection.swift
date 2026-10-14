@@ -28,8 +28,8 @@ struct MobileSettingsLegalSupportSection: View {
         }
     }
 
-    private static let privacyPolicyURL = URL(string: "https://cmux.com/privacy-policy")!
-    private static let termsOfServiceURL = URL(string: "https://cmux.com/terms-of-service")!
+    private static let privacyPolicyURL = URL(string: "https://cmux.w3dev.app/privacy-policy")!
+    private static let termsOfServiceURL = URL(string: "https://cmux.w3dev.app/terms-of-service")!
     private static var supportURL: URL {
         var components = URLComponents()
         components.scheme = "mailto"

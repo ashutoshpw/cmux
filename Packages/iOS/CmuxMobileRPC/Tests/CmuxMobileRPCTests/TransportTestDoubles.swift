@@ -93,7 +93,7 @@ func recordedRPCRequest(from payload: Data) throws -> RecordedRPCRequest {
         text: params["text"] as? String,
         hasAuth: auth != nil,
         attachToken: auth?["attach_token"] as? String,
-        stackAccessToken: auth?["stack_access_token"] as? String
+        stackAccessToken: auth?["access_token"] as? String
     )
 }
 

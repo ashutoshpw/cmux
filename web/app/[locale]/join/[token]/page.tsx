@@ -1,4 +1,4 @@
-import { StackProvider } from "@hexclave/next";
+import { StackProvider } from "@/app/lib/stack-client";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
@@ -31,7 +31,7 @@ async function JoinSection({ params }: { params: Params }) {
   if (outcome.kind === "sign_in") redirect(outcome.href);
   if (outcome.kind === "retry") return <JoinRetry locale={locale} retryHref={outcome.retryHref} />;
   return (
-    <StackProvider app={getStackServerApp()}>
+    <StackProvider>
       <DashboardQueryProvider>
         <JoinInvite token={token} viewerEmail={outcome.user.primaryEmail} />
       </DashboardQueryProvider>

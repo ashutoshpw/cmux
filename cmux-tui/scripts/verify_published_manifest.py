@@ -30,7 +30,7 @@ GITHUB_ATTESTATION_RE = re.compile(
 GITHUB_RELEASE_RE = re.compile(
     r"^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/releases/tag/[^/?#]+$"
 )
-MACHINE_SOURCE_REPOSITORY = "https://github.com/manaflow-ai/cmux"
+MACHINE_SOURCE_REPOSITORY = "https://github.com/ashutoshpw/cmux"
 MACHINE_TARGETS = (
     "aarch64-apple-darwin",
     "x86_64-apple-darwin",
@@ -128,7 +128,7 @@ def _validate_machine_manifest(
                 raise ManifestError(
                     f"{source} machine manifest name mismatch for {target}/{artifact_kind}"
                 )
-            expected_url = f"https://files.cmux.com/chatmux-relay/{expected_commit}/{expected_name}"
+            expected_url = f"https://files.cmux.w3dev.app/chatmux-relay/{expected_commit}/{expected_name}"
             if record["url"] != expected_url:
                 raise ManifestError(
                     f"{source} machine manifest URL mismatch for {target}/{artifact_kind}"
@@ -293,7 +293,7 @@ def _validate_manifest(
     manifest_url = cmux_tui.get("manifest")
     if (
         not isinstance(manifest_url, str)
-        or not manifest_url.startswith("https://files.cmux.com/")
+        or not manifest_url.startswith("https://files.cmux.w3dev.app/")
         or not manifest_url.endswith(f"/cmux-tui/{expected_commit}/manifest.json")
     ):
         raise ManifestError(f"{source} has an invalid cmux-tui dependency manifest URL")
@@ -321,7 +321,7 @@ def _validate_manifest(
         digest = reference.get("sha256")
         if (
             not isinstance(url, str)
-            or not url.startswith("https://files.cmux.com/")
+            or not url.startswith("https://files.cmux.w3dev.app/")
             or not url.endswith(f"/cmux-tui/{expected_commit}/{artifact}")
         ):
             raise ManifestError(f"{source} has an invalid cmux-tui dependency URL for {artifact}")
@@ -335,7 +335,7 @@ def _read_url(url: str, *, max_bytes: int = MAX_MANIFEST_BYTES) -> bytes:
         headers={
             "Accept": "application/json",
             "Cache-Control": "no-cache",
-            "User-Agent": "cmux-tui-manifest-verifier/1 (https://github.com/manaflow-ai/cmux)",
+            "User-Agent": "cmux-tui-manifest-verifier/1 (https://github.com/ashutoshpw/cmux)",
         },
     )
     try:

@@ -12,16 +12,15 @@
 # code and its storage classes can never drift the way lagging SQL migrations
 # can. Never hand-edit past migration tags; append a new one.
 #
-# Stack Auth configuration is intentionally NOT in [vars]: values set here
-# overwrite dashboard-set values on every deploy. They are provisioned once as
-# Worker secrets (see README.md) and survive deploys:
-#   wrangler secret put STACK_PROJECT_ID
-#   wrangler secret put STACK_PUBLISHABLE_CLIENT_KEY
-# Optional plain var STACK_API_URL defaults to https://api.stack-auth.com.
+# Public auth and API origins stay aligned for each owned deployment.
 
-name = "cmux-presence"
+name = "w3dev-cmux-presence"
 main = "src/index.ts"
 compatibility_date = "2026-05-01"
+
+[vars]
+CMUX_AUTH_ORIGIN = "https://cmux.w3dev.app"
+CMUX_WEB_BASE_URL = "https://cmux.w3dev.app"
 
 [observability]
 enabled = true
@@ -33,8 +32,7 @@ class_name = "TeamPresence"
 # Account control plane: one DO per verified Stack user id serving the
 # /v1/control/socket WebSocket (directory + hint + relay-pass facts, proxied
 # from the Vercel broker with the connecting client's own bearer token). The
-# Vercel base URL is the optional plain var CMUX_WEB_BASE_URL (defaults to
-# https://cmux.com in code, same pattern as STACK_API_URL).
+# Vercel base URL must match the configured owned authentication origin.
 [[durable_objects.bindings]]
 name = "ACCOUNT_CONTROL_PLANE"
 class_name = "AccountControlPlane"
@@ -51,7 +49,7 @@ new_sqlite_classes = ["AccountControlPlane"]
 # `custom_domain = true` provisions the DNS record + TLS cert with the deploy;
 # the workers.dev URL stays as the dev/staging entrypoint.
 [[routes]]
-pattern = "presence.cmux.dev"
+pattern = "presence.cmux.w3dev.app"
 custom_domain = true
 
 [[durable_objects.bindings]]

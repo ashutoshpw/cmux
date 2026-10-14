@@ -44,18 +44,23 @@
 	<string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
+	<key>CMUXOAuthCallbackScheme</key>
+	<string>$(CMUX_OAUTH_CALLBACK_SCHEME)</string>
+	<key>CMUXOAuthClientID</key>
+	<string>$(CMUX_OAUTH_CLIENT_ID)</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>CFBundleURLName</key>
-			<string>dev.cmux.ios.attach</string>
+			<string>app.w3dev.cmux.ios.debug.attach</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<!-- Exact-bundle pairing scheme. No two installed cmux apps
 				     register the same route with iOS. -->
 				<string>$(CMUX_IOS_URL_SCHEME)</string>
+				<string>$(CMUX_OAUTH_CALLBACK_SCHEME)</string>
 			</array>
 		</dict>
 	</array>

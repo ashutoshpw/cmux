@@ -65,7 +65,7 @@ public final class MobileNotificationCleanupUITestFixture {
                     trigger: UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
                 ))
             } catch {
-                Logger(subsystem: "dev.cmux.ios", category: "notification-cleanup-test")
+                Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "notification-cleanup-test")
                     .error("Failed to seed notification: \(error, privacy: .public)")
             }
         }

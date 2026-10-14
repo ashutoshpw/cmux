@@ -18,20 +18,21 @@ describe("trusted invite origin", () => {
     expect(trustedTeamInviteOrigin(spoofed, {
       CMUX_TEAM_INVITE_ORIGIN: "https://team.cmux.test/some/path",
       CMUX_APP_ORIGIN: "https://app.cmux.test",
-      NODE_ENV: "production",
+      NODE_ENV: "development",
     })).toBe("https://team.cmux.test");
-    expect(trustedTeamInviteOrigin(spoofed, { CMUX_APP_ORIGIN: "https://app.cmux.test", NODE_ENV: "production" }))
+    expect(trustedTeamInviteOrigin(spoofed, { CMUX_APP_ORIGIN: "https://app.cmux.test", NODE_ENV: "development" }))
       .toBe("https://app.cmux.test");
   });
 
   test("never trusts the request host in production", () => {
     expect(trustedTeamInviteOrigin(spoofed, { NODE_ENV: "production" })).toBe(DEFAULT_TEAM_INVITE_ORIGIN);
-    expect(trustedTeamInviteOrigin(spoofed, { VERCEL_ENV: "production", NODE_ENV: "development" })).toBe("https://cmux.com");
+    expect(trustedTeamInviteOrigin(spoofed, { VERCEL_ENV: "production", NODE_ENV: "development" })).toBe("https://cmux.w3dev.app");
   });
 
-  test("falls back to the default for an unusable configured origin", () => {
-    expect(trustedTeamInviteOrigin(spoofed, { CMUX_TEAM_INVITE_ORIGIN: "javascript:alert(1)" })).toBe(DEFAULT_TEAM_INVITE_ORIGIN);
-    expect(trustedTeamInviteOrigin(spoofed, { CMUX_APP_ORIGIN: "not a url" })).toBe(DEFAULT_TEAM_INVITE_ORIGIN);
+  test("rejects unusable configuration and upstream production destinations", () => {
+    for (const value of ["javascript:alert(1)", "not a url", "https://cmux.com", "https://www.cmux.com", "https://cmux.w3dev.app.evil.example"]) {
+      expect(() => trustedTeamInviteOrigin(spoofed, { CMUX_APP_ORIGIN: value, NODE_ENV: "production" })).toThrow();
+    }
   });
 
   test("uses the request origin only in development", () => {
@@ -41,7 +42,7 @@ describe("trusted invite origin", () => {
 });
 
 describe("invite URLs", () => {
-  const environment = { CMUX_APP_ORIGIN: "https://cmux.com", NODE_ENV: "production" };
+  const environment = { CMUX_APP_ORIGIN: "https://cmux.w3dev.app", NODE_ENV: "production" };
 
   test("allow-lists the locale so request data cannot change the host or path", () => {
     expect(safeTeamLocale("ja")).toBe("ja");
@@ -54,17 +55,17 @@ describe("invite URLs", () => {
       cookie: "NEXT_LOCALE=//evil.com",
     });
     const url = new URL(teamInviteAcceptUrl(hostile, environment));
-    expect(url.origin).toBe("https://cmux.com");
+    expect(url.origin).toBe("https://cmux.w3dev.app");
     expect(url.pathname).toBe("/en/dashboard/team/accept");
   });
 
   test("uses the caller's supported locale", () => {
     const japanese = request("https://app.cmux.test/api/teams", { referer: "https://app.cmux.test/ja/dashboard/teams/x" });
-    expect(teamInviteAcceptUrl(japanese, environment)).toBe("https://cmux.com/ja/dashboard/team/accept");
+    expect(teamInviteAcceptUrl(japanese, environment)).toBe("https://cmux.w3dev.app/ja/dashboard/team/accept");
   });
 
   test("builds the join URL on the trusted origin", () => {
     const token = "A".repeat(43);
-    expect(teamInviteLinkUrl(request("https://evil.example/x"), token, environment)).toBe(`https://cmux.com/en/join/${token}`);
+    expect(teamInviteLinkUrl(request("https://evil.example/x"), token, environment)).toBe(`https://cmux.w3dev.app/en/join/${token}`);
   });
 });

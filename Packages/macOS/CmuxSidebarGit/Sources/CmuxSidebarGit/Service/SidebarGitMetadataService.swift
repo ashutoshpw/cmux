@@ -25,7 +25,7 @@ internal import os
 @MainActor
 public final class SidebarGitMetadataService: SidebarGitMetadataServing {
     nonisolated static let gitWatchDiagnosticsLogger = Logger(
-        subsystem: "com.cmuxterm",
+        subsystem: "app.w3dev.cmux",
         category: "sidebar-git"
     )
     // MARK: Tuning constants (legacy TabManager values, preserved exactly)

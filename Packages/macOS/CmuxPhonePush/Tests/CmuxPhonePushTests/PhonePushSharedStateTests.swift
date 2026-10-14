@@ -31,14 +31,14 @@ struct PhonePushSharedStateTests {
     }
 
     private var hostBundle: Bundle {
-        get throws { try bundle(["CFBundleIdentifier": "dev.cmux.app.internal"]) }
+        get throws { try bundle(["CFBundleIdentifier": "app.w3dev.cmux.ios.internal"]) }
     }
 
     private var extensionBundle: Bundle {
         get throws {
             try bundle([
-                "CFBundleIdentifier": "dev.cmux.app.internal.NotificationService",
-                "CMUXHostBundleIdentifier": "dev.cmux.app.internal",
+                "CFBundleIdentifier": "app.w3dev.cmux.ios.internal.NotificationService",
+                "CMUXHostBundleIdentifier": "app.w3dev.cmux.ios.internal",
             ])
         }
     }
@@ -47,11 +47,11 @@ struct PhonePushSharedStateTests {
         PhonePushDeviceTuple(
             accountID: "account-1",
             teamID: nil,
-            iosBuildID: "dev.cmux.app.internal",
+            iosBuildID: "app.w3dev.cmux.ios.internal",
             iosInstallationID: "ios-install-1",
             macDeviceID: "mac-1",
             macInstanceTag: macInstanceTag,
-            macBuildID: "com.cmuxterm.app.nightly"
+            macBuildID: "app.w3dev.cmux.nightly"
         )
     }
 
@@ -210,10 +210,10 @@ struct PhonePushSharedStateTests {
 
     @Test("the keychain group needs a resolved team prefix")
     func keychainAccessGroupResolution() {
-        #expect(PhonePushKeychainStateStorage.accessGroup(from: "7WLXT3NR37.dev.cmux.app.internal")
-            == "7WLXT3NR37.dev.cmux.app.internal")
+        #expect(PhonePushKeychainStateStorage.accessGroup(from: "7WLXT3NR37.app.w3dev.cmux.ios.internal")
+            == "7WLXT3NR37.app.w3dev.cmux.ios.internal")
         #expect(PhonePushKeychainStateStorage.accessGroup(from: "$(AppIdentifierPrefix)dev.cmux.app") == nil)
-        #expect(PhonePushKeychainStateStorage.accessGroup(from: ".dev.cmux.app.internal") == nil)
+        #expect(PhonePushKeychainStateStorage.accessGroup(from: ".app.w3dev.cmux.ios.internal") == nil)
         #expect(PhonePushKeychainStateStorage.accessGroup(from: "7WLXT3NR37.") == nil)
         #expect(PhonePushKeychainStateStorage.accessGroup(from: nil) == nil)
     }

@@ -188,7 +188,7 @@ import Testing
     @Test func nonStableSocketBindFailureDoesNotFallback() {
         #expect(
             policy.fallbackSocketPathAfterBindFailure(
-                requestedPath: "/tmp/cmux-debug.sock",
+                requestedPath: "/tmp/cmux-w3dev-debug.sock",
                 stage: "bind",
                 errnoCode: EACCES,
                 currentUserID: 501
@@ -257,7 +257,7 @@ import Testing
     // the user-scoped path directly, before any bind attempt, so the fallback
     // must also fire when the user-scoped path itself is the requested path
     // (CMUXTERM-MACOS-2MHE: wake-driven create_lock_directory loop at
-    // ~/.local/state/cmux/cmux-501.sock with no fallback breadcrumb).
+    // ~/.local/state/cmux-w3dev/cmux-501.sock with no fallback breadcrumb).
     @Test(arguments: [
         ("create_directory", EIO),
         ("create_directory", EACCES),

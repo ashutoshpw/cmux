@@ -8,17 +8,17 @@ struct CmxIrohMacBundleNamespaceTests {
     @Test func exactBundlesRemainDistinctEvenWhenTheirTagsMatch() throws {
         let stable = try #require(
             CmxIrohMacBundleNamespace(
-                bundleIdentifier: "com.cmuxterm.app"
+                bundleIdentifier: "app.w3dev.cmux"
             )
         )
         let staging = try #require(
             CmxIrohMacBundleNamespace(
-                bundleIdentifier: "com.cmuxterm.app.staging"
+                bundleIdentifier: "app.w3dev.cmux.staging"
             )
         )
 
-        #expect(stable.rawValue == "mac:com.cmuxterm.app")
-        #expect(staging.rawValue == "mac:com.cmuxterm.app.staging")
+        #expect(stable.rawValue == "mac:app.w3dev.cmux")
+        #expect(staging.rawValue == "mac:app.w3dev.cmux.staging")
         #expect(stable != staging)
     }
 
@@ -40,13 +40,13 @@ struct CmxIrohMacBundleNamespaceTests {
                 macBuildID: macBuildID
             )
         }
-        for bundle in ["com.cmuxterm.app", "com.cmuxterm.app.nightly", "com.cmuxterm.app.debug.Push-Tag"] {
+        for bundle in ["app.w3dev.cmux", "app.w3dev.cmux.nightly", "app.w3dev.cmux.debug.Push-Tag"] {
             let namespace = try #require(CmxIrohMacBundleNamespace(bundleIdentifier: bundle))
             #expect(reply(macBuildID: bundle).matchesMacClientNamespace(namespace.rawValue))
             #expect(!reply(macBuildID: bundle).matchesMacClientNamespace(bundle))
         }
-        let stable = try #require(CmxIrohMacBundleNamespace(bundleIdentifier: "com.cmuxterm.app"))
-        #expect(!reply(macBuildID: "com.cmuxterm.app.nightly").matchesMacClientNamespace(stable.rawValue))
+        let stable = try #require(CmxIrohMacBundleNamespace(bundleIdentifier: "app.w3dev.cmux"))
+        #expect(!reply(macBuildID: "app.w3dev.cmux.nightly").matchesMacClientNamespace(stable.rawValue))
     }
 
     @Test func invalidOrMissingBundleIdentityFailsClosed() {
@@ -54,7 +54,7 @@ struct CmxIrohMacBundleNamespaceTests {
         #expect(CmxIrohMacBundleNamespace(bundleIdentifier: "") == nil)
         #expect(
             CmxIrohMacBundleNamespace(
-                bundleIdentifier: "com.cmuxterm.app:other"
+                bundleIdentifier: "app.w3dev.cmux:other"
             ) == nil
         )
     }

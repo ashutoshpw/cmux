@@ -9,7 +9,7 @@
  * desktop apt packages, the Ghostty .deb) are read from the Dockerfile's ARG
  * and ENV lines here, never kept as a second copy. No daemon binary is baked
  * into the container image: cmux-tui is installed by the drivers at create
- * time from the pinned files.cmux.com manifest
+ * time from the pinned files.cmux.w3dev.app manifest
  * (web/services/vms/drivers/cmuxTuiDaemon.ts); the image only ships the
  * cmux-devbox-boot supervisor.
  */
@@ -963,7 +963,7 @@ export type DevboxManifestEntry = {
   /** The shape this snapshot boots at (Freestyle ladder). Size-less entries are pre-ladder bakes. */
   size?: DevboxImageSize;
   cmuxdRemoteCommit: string;
-  /** The cmux-tui build baked in the daemon user's home (files.cmux.com manifest pin at bake time). Absent on images that installed it at create time. */
+  /** The cmux-tui build baked in the daemon user's home (files.cmux.w3dev.app manifest pin at bake time). Absent on images that installed it at create time. */
   cmuxTuiCommit?: string;
   cmuxTuiSha256?: string;
   /** The cmux commit whose devbox definition produced this image. */
@@ -1047,6 +1047,7 @@ export const imageManifestPath = path.join(webRoot, "services/vms/images/manifes
 
 export type DevboxImageManifest = {
   schemaVersion: number;
+  provisioningStatus?: "unprovisioned";
   images: DevboxManifestEntry[];
 };
 
@@ -1267,6 +1268,7 @@ export function promoteImageManifestEntry(
  */
 export function imageManifestProblems(manifest: DevboxImageManifest): string[] {
   const problems: string[] = [];
+  if (manifest.provisioningStatus === "unprovisioned" && manifest.images.length > 0) problems.push("unprovisioned manifest must not contain image records");
   const defaults = new Map<string, DevboxManifestEntry[]>();
   const restrictedById = new Map<string, boolean>();
   for (const entry of manifest.images) {
@@ -1331,6 +1333,7 @@ export function devboxImageLadderProblems(
   manifest: DevboxImageManifest,
   provider: DevboxProvider = "freestyle",
 ): string[] {
+  if (manifest.provisioningStatus === "unprovisioned" && manifest.images.length === 0) return [];
   const problems: string[] = devboxUnifiedSnapshotProblems(manifest, provider);
   for (const kind of ["base", "desktop"] as const) {
     const defaults = manifest.images.filter(

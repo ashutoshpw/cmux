@@ -38,7 +38,7 @@ export default function IosPage() {
         {t.rich("accessDesc", {
           foundersLink: (chunks) => (
             <a
-              href="https://github.com/manaflow-ai/cmux#founders-edition"
+              href="https://github.com/ashutoshpw/cmux#founders-edition"
               className={linkClass}
             >
               {chunks}
@@ -145,7 +145,7 @@ export default function IosPage() {
         {t.rich("enterpriseDesc", {
           link: (chunks) => (
             <a
-              href="mailto:founders@cmux.com?subject=cmux%20enterprise"
+              href="https://cmux.w3dev.app/support"
               className={linkClass}
             >
               {chunks}

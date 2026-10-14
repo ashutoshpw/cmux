@@ -16,7 +16,7 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 
-ORIGIN = "https://cmux.com"
+ORIGIN = "https://cmux.w3dev.app"
 NAMESPACE = "{http://www.sitemaps.org/schemas/sitemap/0.9}"
 
 
@@ -51,7 +51,7 @@ def select_urls(xml: bytes, lookback_hours: int, now: datetime | None = None) ->
     for element in root.findall(NAMESPACE + "url"):
         url = element.findtext(NAMESPACE + "loc", "").strip()
         parsed = urllib.parse.urlsplit(url)
-        if parsed.scheme != "https" or parsed.netloc != "cmux.com":
+        if parsed.scheme != "https" or parsed.netloc != "cmux.w3dev.app":
             raise ValueError(f"Sitemap URL does not belong to {ORIGIN}: {url}")
         modified = element.findtext(NAMESPACE + "lastmod", "").strip()
         try:
@@ -79,7 +79,7 @@ def submit_batches(config: dict, urls: list[str]) -> dict:
     statuses: list[int] = []
     for index in range(batch_count):
         batch = urls[index * 10_000 : (index + 1) * 10_000]
-        payload = {"host": "cmux.com", "key": key, "keyLocation": key_location, "urlList": batch}
+        payload = {"host": "cmux.w3dev.app", "key": key, "keyLocation": key_location, "urlList": batch}
         try:
             status, _ = request(endpoint, data=json.dumps(payload).encode("utf-8"))
         except Exception as error:

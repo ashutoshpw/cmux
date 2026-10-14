@@ -19,9 +19,10 @@
  */
 import { HealthSchema } from "../src/health";
 import { CONTROL_PLANE_RULES } from "../src/rules";
+import { deployment } from "../src/generated/forkDeployment";
 
-const PRODUCTION_HEALTH_URL = "https://cmux-v2.debussy.workers.dev/v2/health";
-const DEPLOY_COMMAND = "cd workers/iroh-v2 && bun install --frozen-lockfile && CLOUDFLARE_ACCOUNT_ID=<account> bun run deploy:production";
+const PRODUCTION_HEALTH_URL = `${deployment.irohV2Origin}/v2/health`;
+const DEPLOY_COMMAND = "cd workers/iroh-v2 && bun install --frozen-lockfile && CMUX_FORK_CLOUDFLARE_ACCOUNT_ID=<owned-account> CLOUDFLARE_ACCOUNT_ID=<owned-account> bun run deploy:production";
 
 function argument(flag: string): string | undefined {
   const index = process.argv.indexOf(flag);

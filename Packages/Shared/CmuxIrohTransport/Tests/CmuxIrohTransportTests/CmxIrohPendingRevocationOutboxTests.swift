@@ -5,7 +5,7 @@ import Testing
 @Suite("Iroh pending revocation outbox")
 struct CmxIrohPendingRevocationOutboxTests {
     private let accountID = "account-a"
-    private let tag = "cmux-ios-v0"
+    private let tag = "cmux-w3dev-ios-v0"
     private let bindingID = "123e4567-e89b-42d3-a456-426614174020"
 
     @Test("pending revocations survive recreation in device-only storage without auth tokens")
@@ -63,7 +63,7 @@ struct CmxIrohPendingRevocationOutboxTests {
         let current = try revocation()
         let oldTag = try CmxIrohPendingRevocation(
             accountID: accountID,
-            tag: "cmux-ios-v0-old",
+            tag: "cmux-w3dev-ios-v0-old",
             bindingID: "123e4567-e89b-42d3-a456-426614174021"
         )
         let otherAccount = try CmxIrohPendingRevocation(

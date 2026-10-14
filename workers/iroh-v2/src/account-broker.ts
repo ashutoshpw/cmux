@@ -22,6 +22,7 @@ export interface AccountSession {
   readonly endpointId: string;
   readonly identityGeneration: number;
   readonly expiresAt: number;
+  readonly authSessionId?: string | undefined;
 }
 
 export interface AccountDependencies {
@@ -29,6 +30,7 @@ export interface AccountDependencies {
   readonly userId: string;
   readonly now: () => number;
   readonly relayURLs: readonly string[];
+  readonly verifySession?: (session: AccountSession) => Promise<boolean>;
   /** Read-only team RPC, batched per team. Failures surface as a retryable outage, never as an empty directory. */
   readonly teamRecords: (teamId: string, identities: Identity[]) => Promise<(AccountMacRecord | null)[]>;
 }
@@ -106,13 +108,14 @@ export class AccountBroker {
     this.dependencies.store.consumeProof(installationKey(identity), proof.nonce, proof.issuedAt, this.dependencies.now());
     const session: AccountSession = {
       sessionId: crypto.randomUUID(), userId: authority.userId, identity, endpointId: setup.device.endpointId,
-      identityGeneration: setup.device.identityGeneration, expiresAt,
+      identityGeneration: setup.device.identityGeneration, expiresAt, authSessionId: authority.sessionId,
     };
     return { session, ...(parsed ? { request: parsed } : {}) };
   }
 
   /** A socket is admitted only for a Mac its team currently holds as an account peer. */
   async requireRequester(session: AccountSession): Promise<AccountMacRecord> {
+    if (!session.authSessionId || !this.dependencies.verifySession || !await this.dependencies.verifySession(session)) throw new OperationError("team_access_revoked", 403);
     // Inside `consistent`: a revocation notice that lands while the team is
     // consulted forces a re-read, and the caller accepts the socket in the same
     // synchronous turn, after which later notices can find it by tag.

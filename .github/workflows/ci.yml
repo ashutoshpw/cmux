@@ -41,7 +41,7 @@ permissions:
 env:
   # Fork pull requests do not receive repository variables; the public read
   # URL is not a secret, so default it rather than run every fork build cold.
-  CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+  CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
   # Exact trusted head repositories may use the owned minis. Keep this as one
   # list so adding another team account changes one value and nothing else.
   CI_OWNED_HEAD_REPOS: '["manaflow-ai/cmux", "teamleaderleo/cmux"]'

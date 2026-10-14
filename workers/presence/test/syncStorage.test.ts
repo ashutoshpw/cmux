@@ -614,7 +614,6 @@ describe("deriveDeviceRecord edge cases", () => {
         endpoint: {
           type: "peer",
           id: "a".repeat(64),
-          relay_url: "https://use4.relay.cmux.dev/",
         },
       },
     ]);

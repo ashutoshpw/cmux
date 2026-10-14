@@ -6,10 +6,10 @@ import Testing
     @Test func debugLogPathsIncludeTaggedDebugLogWhenConfigured() {
         #if DEBUG && os(macOS)
         let paths = AuthDebugLog.debugLogPaths(environment: [
-            "CMUX_DEBUG_LOG": "/tmp/cmux-debug-safari.log",
+            "CMUX_DEBUG_LOG": "/tmp/cmux-w3dev-debug-safari.log",
         ])
 
-        #expect(paths == ["/tmp/cmux-auth-debug.log", "/tmp/cmux-debug-safari.log"])
+        #expect(paths == ["/tmp/cmux-auth-debug.log", "/tmp/cmux-w3dev-debug-safari.log"])
         #endif
     }
 

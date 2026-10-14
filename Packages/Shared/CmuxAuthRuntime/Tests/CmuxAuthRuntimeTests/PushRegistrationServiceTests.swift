@@ -183,7 +183,7 @@ actor RetryDelayRecorder {
         let service = PushRegistrationService(
             tokenProvider: tokenProvider,
             apiBaseURL: "https://example.test",
-            bundleID: "dev.cmux.ios",
+            bundleID: "app.w3dev.cmux.ios.debug",
             apnsEnvironment: "sandbox",
             suiteName: suite,
             pendingUnregisterStoreURL: testPendingUnregisterStoreURL(
@@ -226,7 +226,7 @@ actor RetryDelayRecorder {
         let service = PushRegistrationService(
             tokenProvider: provider,
             apiBaseURL: "https://example.test",
-            bundleID: "dev.cmux.ios.push1",
+            bundleID: "app.w3dev.cmux.ios.debug.push1",
             apnsEnvironment: "sandbox",
             suiteName: suite,
             pendingUnregisterStoreURL: pendingUnregisterStoreURL
@@ -311,10 +311,10 @@ actor RetryDelayRecorder {
             await Task.yield()
         }
         #expect(request?.httpMethod == "DELETE")
-        #expect(request?.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == "captured-refresh")
+        #expect(request?.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == nil)
         #expect(
             request?.value(forHTTPHeaderField: "X-Cmux-App-Namespace")
-                == "dev.cmux.ios"
+                == "app.w3dev.cmux.ios.debug"
         )
     }
 
@@ -1761,7 +1761,7 @@ actor RetryDelayRecorder {
         return PushRegistrationService(
             tokenProvider: FakeTokenProvider(),
             apiBaseURL: "https://\(PushRedirectURLProtocol.startHost)",
-            bundleID: "dev.cmux.ios.push1",
+            bundleID: "app.w3dev.cmux.ios.debug.push1",
             apnsEnvironment: "sandbox",
             suiteName: suite,
             session: URLSession(configuration: configuration),
@@ -1786,7 +1786,7 @@ actor RetryDelayRecorder {
         #expect(target.httpMethod == "POST")
         #expect(target.httpBody != nil || target.httpBodyStream != nil)
         #expect(target.value(forHTTPHeaderField: "Authorization") == "Bearer access")
-        #expect(target.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == "refresh")
+        #expect(target.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == nil)
     }
 
     @Test func sameOrigin303FailsVisiblyWithoutSendingAFalseAcknowledgement() async {

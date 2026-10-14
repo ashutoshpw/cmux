@@ -24,7 +24,7 @@ import SwiftUI
 import CmuxMobileTerminal
 #endif
 
-private let mobileRootSceneLog = Logger(subsystem: "dev.cmux.ios", category: "mobile-root-scene")
+private let mobileRootSceneLog = Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "mobile-root-scene")
 
 /// Top-level mobile scene root.
 ///
@@ -91,7 +91,6 @@ public struct CMUXMobileRootScene: View {
     /// in-app webviews (What's New web pages) render as the signed-in user.
     /// Injected as a plain environment value through
     /// `\.mobileWebAppSession`.
-    private let webAppSession: MobileWebAppSessionBroker
     /// The Cloud section's tunnel and link owner, built once per scene and
     /// injected through `\.cloudSessionController`. Nil when the build has
     /// no API origin, which hides the Cloud entry.
@@ -219,11 +218,6 @@ public struct CMUXMobileRootScene: View {
         )
         _macCompatCenter = State(
             initialValue: MobileMacCompatCenter(apiBaseURL: auth.config.apiBaseURL)
-        )
-        webAppSession = MobileWebAppSessionBroker(
-            tokens: auth.coordinator,
-            apiBaseURL: auth.config.apiBaseURL,
-            projectID: auth.config.stack.projectId
         )
         let cloudComposition = MobileCloudComposition(auth: auth, deviceID: cloudDeviceID)
         let controller = cloudComposition.makeController()
@@ -429,7 +423,6 @@ public struct CMUXMobileRootScene: View {
             .environment(autoConnectMigrationStore)
             .environment(whatsNewCenter)
             .environment(macCompatCenter)
-            .environment(\.mobileWebAppSession, webAppSession)
             .environment(\.cloudSessionController, cloudSessionController)
             .environment(\.cloudSystemVPNController, cloudSystemVPNController)
             .environment(billing)
@@ -650,7 +643,7 @@ public struct CMUXMobileRootScene: View {
 
     @MainActor
     private func makePhonePushKeyExchangeHooks() -> MobilePhonePushKeyExchangeHooks {
-        let bundleID = Bundle.main.bundleIdentifier ?? "dev.cmux.ios"
+        let bundleID = Bundle.main.bundleIdentifier ?? "app.w3dev.cmux.ios.debug"
         let accessGroup = auth.keychainAccessGroup
         return MobilePhonePushKeyExchangeHooks(
             makeDescriptor: {

@@ -70,12 +70,14 @@ describe("sign-in method sections", () => {
     expect(renderToStaticMarkup(<PasskeySection user={fakeUser({})} channels={signInEmails()} />)).toContain(">add<");
   });
 
-  test("OTP cannot be disabled when it is the only sign-in method", () => {
+  test("owned email OTP remains enabled with or without another sign-in method", () => {
     const html = renderToStaticMarkup(<OtpSection user={fakeUser({ otpAuthEnabled: true })} channels={signInEmails()} />);
-    expect(html).toContain("onlyMethod");
+    expect(html).toContain("enabledDescription");
+    expect(html).not.toContain(">disable<");
     const withOAuth = renderToStaticMarkup(
       <OtpSection user={fakeUser({ otpAuthEnabled: true, oauthProviders: [{ id: "github" }] })} channels={signInEmails()} />,
     );
-    expect(withOAuth).toContain(">disable<");
+    expect(withOAuth).toContain("enabledDescription");
+    expect(withOAuth).not.toContain(">disable<");
   });
 });

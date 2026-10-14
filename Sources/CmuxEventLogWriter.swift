@@ -1,14 +1,14 @@
 import Foundation
 import os
 
-nonisolated private let cmuxEventLogLogger = Logger(subsystem: "com.cmuxterm.app", category: "event-log")
+nonisolated private let cmuxEventLogLogger = Logger(subsystem: "app.w3dev.cmux", category: "event-log")
 
 // Sendable safety: pending state is protected by `lock`; file IO and
 // `openLogHandle` are confined to `queue`.
 final class CmuxEventLogWriter: @unchecked Sendable {
     static let defaultMaxPendingLines = 1_024
 
-    private static let queue = DispatchQueue(label: "com.cmuxterm.event-log", qos: .utility)
+    private static let queue = DispatchQueue(label: "app.w3dev.cmux.event-log", qos: .utility)
 
     private let eventLogURL: URL
     private let maxEventLogBytes: UInt64

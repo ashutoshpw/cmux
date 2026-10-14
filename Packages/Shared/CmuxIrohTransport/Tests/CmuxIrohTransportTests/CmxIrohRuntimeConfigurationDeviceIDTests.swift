@@ -27,7 +27,7 @@ struct CmxIrohRuntimeConfigurationDeviceIDTests {
     ) throws -> CmxIrohHostRuntimeConfiguration {
         let clientNamespace = try #require(
             CmxIrohMacBundleNamespace(
-                bundleIdentifier: "com.cmuxterm.tests"
+                bundleIdentifier: "app.w3dev.cmux.tests"
             )
         )
         return CmxIrohHostRuntimeConfiguration(

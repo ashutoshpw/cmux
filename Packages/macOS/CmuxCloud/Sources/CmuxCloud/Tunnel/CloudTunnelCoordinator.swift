@@ -2,7 +2,7 @@ import CmuxCloudBannerCore
 import Foundation
 import os
 
-nonisolated private let logger = Logger(subsystem: "com.cmuxterm.app", category: "CloudTunnel")
+nonisolated private let logger = Logger(subsystem: "app.w3dev.cmux", category: "CloudTunnel")
 
 /// Owns *when* this Mac's WireGuard tunnel into the Cloud VM network runs, on
 /// builds where the app manages it (``CloudTunnelBackend/networkExtension``).

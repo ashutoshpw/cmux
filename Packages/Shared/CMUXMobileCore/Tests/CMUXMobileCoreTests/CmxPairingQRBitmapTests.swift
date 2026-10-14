@@ -9,7 +9,7 @@ import Testing
     private let twoRoutePayload =
         "cmux-ios://attach?v=2&r=my-mac.tail1234.ts.net:52341&r=100.64.0.5:52341"
     private let irohPayload =
-        "cmux-ios-dev://attach?v=3&i=\(String(repeating: "c", count: 64))"
+        "cmux-w3dev-ios-dev://attach?v=3&i=\(String(repeating: "c", count: 64))"
 
     /// The full 4-module quiet zone is part of the bitmap itself, so it
     /// scales with the code and cannot be cropped away by view layout. Also
@@ -103,7 +103,7 @@ import Testing
             authToken: "minted-but-never-in-the-qr"
         )
         let pairingURLScheme = try #require(
-            CmxPairingURLScheme(rawValue: "cmux-ios-dev.cmux.ios.longtag")
+            CmxPairingURLScheme(rawValue: "cmux-w3dev-ios-app.w3dev.cmux.ios.debug.longtag")
         )
         let payload = try #require(CmxPairingQRCode().encode(
             ticket,

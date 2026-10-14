@@ -11,7 +11,7 @@ import CmuxSettings
 import CmuxNotifications
 
 nonisolated private let terminalNotificationLogger = Logger(
-    subsystem: "com.cmuxterm.app",
+    subsystem: "app.w3dev.cmux",
     category: "notification"
 )
 
@@ -57,9 +57,9 @@ final class TerminalNotificationStore: ObservableObject {
     let notificationHookCache = CmuxNotificationHookCache()
 
     static let authorizationStatusDidChangeNotification = Notification.Name("cmux.terminalNotificationAuthorizationStatusDidChange")
-    static let categoryIdentifier = "com.cmuxterm.app.userNotification"
-    static let textReplyCategoryIdentifier = "com.cmuxterm.app.userNotification.textReply"
-    static let actionShowIdentifier = "com.cmuxterm.app.userNotification.show"
+    static let categoryIdentifier = "app.w3dev.cmux.userNotification"
+    static let textReplyCategoryIdentifier = "app.w3dev.cmux.userNotification.textReply"
+    static let actionShowIdentifier = "app.w3dev.cmux.userNotification.show"
     static let actionReplyIdentifier = "terminal.reply"
     nonisolated static let retargetsToLiveSurfaceOwnerUserInfoKey = "retargetsToLiveSurfaceOwner"
     /// Mobile-host event topic the Mac emits when one or more delivered

@@ -610,7 +610,7 @@ function PricingContent({
               ),
               github: (chunks) => (
                 <a
-                  href="https://github.com/manaflow-ai/cmux"
+                  href="https://github.com/ashutoshpw/cmux"
                   target="_blank"
                   rel="noopener noreferrer"
                   className={linkClass}
@@ -619,7 +619,7 @@ function PricingContent({
                 </a>
               ),
               email: (chunks) => (
-                <a href="mailto:founders@cmux.com" className={linkClass}>
+                <a href="https://cmux.w3dev.app/support" className={linkClass}>
                   {chunks}
                 </a>
               ),

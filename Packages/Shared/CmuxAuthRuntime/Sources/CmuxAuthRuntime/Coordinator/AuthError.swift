@@ -57,7 +57,10 @@ public enum AuthError: Error, LocalizedError, Equatable, Sendable {
                 defaultValue: "Sign-in timed out. Check your connection and try again.",
                 bundle: .main
             )
-        case .serverError:
+        case .serverError(_, let reason):
+            if reason == "oauth_client_not_registered" {
+                return String(localized: "auth.error.client_not_registered", defaultValue: "This build is not registered for sign-in. Register its OAuth client and callback URL on the cmux server.", bundle: .main)
+            }
             return String(
                 localized: "auth.error.server_error",
                 defaultValue: "Something went wrong. Please try again.",

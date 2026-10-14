@@ -50,19 +50,19 @@ import Testing
 
         #expect(policy.allows(
             instanceTag: "sibling",
-            clientNamespace: "mac:com.cmuxterm.app.debug.sibling"
+            clientNamespace: "mac:app.w3dev.cmux.debug.sibling"
         ))
         #expect(policy.allows(
             instanceTag: "granted",
-            clientNamespace: "mac:com.cmuxterm.app.debug.granted"
+            clientNamespace: "mac:app.w3dev.cmux.debug.granted"
         ))
         #expect(!policy.allows(
             instanceTag: "sibling",
-            clientNamespace: "mac:com.cmuxterm.app.staging.sibling"
+            clientNamespace: "mac:app.w3dev.cmux.staging.sibling"
         ))
         #expect(!policy.allows(
             instanceTag: "granted",
-            clientNamespace: "mac:com.cmuxterm.app"
+            clientNamespace: "mac:app.w3dev.cmux"
         ))
     }
 
@@ -127,13 +127,13 @@ import Testing
     @Test func officialAcceptsRCMacNamespaces() {
         let policy = MobileMacBuildCompatibilityPolicy.official
 
-        #expect(policy.allows(instanceTag: "rc", clientNamespace: "mac:com.cmuxterm.app.rc"))
+        #expect(policy.allows(instanceTag: "rc", clientNamespace: "mac:app.w3dev.cmux.rc"))
         // A tagged RC Mac advertises its slug as the instance tag, so distributed
         // builds treat it like a tagged nightly Mac: recognized namespace, but not a
         // release-lane tag, so no pairing.
-        #expect(!policy.allows(instanceTag: "candidate1", clientNamespace: "mac:com.cmuxterm.app.rc.candidate1"))
-        #expect(!policy.allows(instanceTag: "rc", clientNamespace: "mac:com.cmuxterm.app.debug.rc"))
-        #expect(!policy.allows(instanceTag: "rc", clientNamespace: "mac:com.cmuxterm.app.staging"))
+        #expect(!policy.allows(instanceTag: "candidate1", clientNamespace: "mac:app.w3dev.cmux.rc.candidate1"))
+        #expect(!policy.allows(instanceTag: "rc", clientNamespace: "mac:app.w3dev.cmux.debug.rc"))
+        #expect(!policy.allows(instanceTag: "rc", clientNamespace: "mac:app.w3dev.cmux.staging"))
     }
 
     @Test func officialAllowsOnlyAuthorizedLegacy06417WithoutAnInstanceTag() {
@@ -196,19 +196,19 @@ import Testing
         ))
         #expect(development.allowsAuthenticatedHost(
             instanceTag: "sibling",
-            clientNamespace: "mac:com.cmuxterm.app.debug.sibling",
+            clientNamespace: "mac:app.w3dev.cmux.debug.sibling",
             macAppVersion: nil,
             usesLocallyAuthorizedTailscaleRoute: false
         ))
         #expect(!development.allowsAuthenticatedHost(
             instanceTag: "ungranted",
-            clientNamespace: "mac:com.cmuxterm.app.debug.ungranted",
+            clientNamespace: "mac:app.w3dev.cmux.debug.ungranted",
             macAppVersion: nil,
             usesLocallyAuthorizedTailscaleRoute: false
         ))
         #expect(!development.allowsAuthenticatedHost(
             instanceTag: "sibling",
-            clientNamespace: "mac:com.cmuxterm.app.staging.sibling",
+            clientNamespace: "mac:app.w3dev.cmux.staging.sibling",
             macAppVersion: nil,
             usesLocallyAuthorizedTailscaleRoute: false
         ))

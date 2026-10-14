@@ -193,7 +193,7 @@ final class CmuxAppDelegate: NSObject, @preconcurrency UIApplicationDelegate, UN
         }
         guard
               let installation = try? PhonePushKeyMaterial.current(
-                  bundleID: Bundle.main.bundleIdentifier ?? "dev.cmux.ios",
+                  bundleID: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux.ios.debug",
                   accessGroup: configuredKeychainAccessGroup()
               ) else { return nil }
         let candidates = raw.compactMap { try? JSONSerialization.data(withJSONObject: $0) }
@@ -201,7 +201,7 @@ final class CmuxAppDelegate: NSObject, @preconcurrency UIApplicationDelegate, UN
         guard let envelope = candidates.first(where: {
             $0.installationID == installation.installationID
                 && $0.tuple.iosInstallationID == installation.installationID
-                && $0.tuple.iosBuildID == (Bundle.main.bundleIdentifier ?? "dev.cmux.ios")
+                && $0.tuple.iosBuildID == (Bundle.main.bundleIdentifier ?? "app.w3dev.cmux.ios.debug")
         }),
               PhonePushActiveAccountStore().current() == envelope.tuple.accountID,
               let sender = PhonePushPeerKeyStore().pinnedDescriptor(for: envelope.tuple),

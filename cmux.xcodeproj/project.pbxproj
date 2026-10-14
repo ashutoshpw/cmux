@@ -19092,7 +19092,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.65.1;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.clitests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmux.clitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_VERSION = 5.0;
@@ -19108,7 +19108,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.65.1;
 				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.clitests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmux.clitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
@@ -19123,7 +19123,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.65.1;
 				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.appuitests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmuxuitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_TARGET_NAME = cmux;
@@ -19200,12 +19200,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon-Debug";
-				CMUX_AUTH_CALLBACK_SCHEME = "cmux-dev";
-				CMUX_IROH_RELAY_POLICY_KEY_ID = "cmux-staging-relay-policy-2026-07";
-				CMUX_IROH_RELAY_POLICY_NEXT_KEY_ID = "cmux-staging-relay-policy-2026-08";
-				CMUX_IROH_RELAY_POLICY_NEXT_PUBLIC_KEY_BASE64 = "KnOZ6gKmH05Mrfan2tXgwRygBKxcSUue4bp34udiQFA=";
-				CMUX_IROH_RELAY_POLICY_PUBLIC_KEY_BASE64 = "Otx9S0B4d/tlwIKYRf5evJaqhjCltFLPjMfXrLFd6lk=";
-				CMUX_SIDEBAR_EXTENSION_POINT_ID = com.cmuxterm.app.cmux.sidebar;
+				CMUX_AUTH_CALLBACK_SCHEME = "cmux-w3dev-dev";
+				CMUX_IROH_RELAY_POLICY_KEY_ID = "";
+				CMUX_IROH_RELAY_POLICY_NEXT_KEY_ID = "";
+				CMUX_IROH_RELAY_POLICY_NEXT_PUBLIC_KEY_BASE64 = "";
+				CMUX_IROH_RELAY_POLICY_PUBLIC_KEY_BASE64 = "";
+				CMUX_SIDEBAR_EXTENSION_POINT_ID = app.w3dev.cmux.cmux.sidebar;
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -19232,13 +19232,13 @@
 					"-framework",
 					Carbon,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.app.debug;
-				PRODUCT_NAME = "cmux DEV";
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmux.debug;
+				PRODUCT_NAME = "cmux W3Dev DEV";
 				OTHER_SWIFT_FLAGS = (
 					"-Xllvm",
 					"-global-isel=0",
 				);
-				SPARKLE_PUBLIC_KEY = "avjcgKibf1FTvhIjLBxhd+0HSpsXU4D0IGlVk8cgqRc=";
+				SPARKLE_PUBLIC_KEY = "$(CMUX_SPARKLE_PUBLIC_KEY)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_ENABLE_BATCH_MODE = NO;
 				SWIFT_OBJC_BRIDGING_HEADER = "cmux-Bridging-Header.h";
@@ -19251,12 +19251,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CMUX_AUTH_CALLBACK_SCHEME = cmux;
-				CMUX_IROH_RELAY_POLICY_KEY_ID = "cmux-production-relay-policy-2026-07";
-				CMUX_IROH_RELAY_POLICY_NEXT_KEY_ID = "cmux-production-relay-policy-2026-08";
-				CMUX_IROH_RELAY_POLICY_NEXT_PUBLIC_KEY_BASE64 = "k+FND+WlELCkHs9QnWg1TfTuHXBwyv2907umX+mUOOU=";
-				CMUX_IROH_RELAY_POLICY_PUBLIC_KEY_BASE64 = "qoBinRqX4TI1Ro6xAuOQxKUkeZT3pkFJuERP/+R+9aw=";
-				CMUX_SIDEBAR_EXTENSION_POINT_ID = com.cmuxterm.app.cmux.sidebar;
+				CMUX_AUTH_CALLBACK_SCHEME = "cmux-w3dev";
+				CMUX_IROH_RELAY_POLICY_KEY_ID = "";
+				CMUX_IROH_RELAY_POLICY_NEXT_KEY_ID = "";
+				CMUX_IROH_RELAY_POLICY_NEXT_PUBLIC_KEY_BASE64 = "";
+				CMUX_IROH_RELAY_POLICY_PUBLIC_KEY_BASE64 = "";
+				CMUX_SIDEBAR_EXTENSION_POINT_ID = app.w3dev.cmux.cmux.sidebar;
 				CODE_SIGN_ENTITLEMENTS = Resources/cmux.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -19284,9 +19284,9 @@
 					"-framework",
 					Carbon,
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.app;
-				PRODUCT_NAME = cmux;
-				SPARKLE_PUBLIC_KEY = "avjcgKibf1FTvhIjLBxhd+0HSpsXU4D0IGlVk8cgqRc=";
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmux;
+				PRODUCT_NAME = "cmux W3Dev";
+				SPARKLE_PUBLIC_KEY = "$(CMUX_SPARKLE_PUBLIC_KEY)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_OBJC_BRIDGING_HEADER = "cmux-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -19305,7 +19305,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				PRODUCT_MODULE_NAME = cmux_cli;
-				PRODUCT_NAME = cmux;
+				PRODUCT_NAME = "cmux W3Dev";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -19325,7 +19325,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_MODULE_NAME = cmux_cli;
-				PRODUCT_NAME = cmux;
+				PRODUCT_NAME = "cmux W3Dev";
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -19341,7 +19341,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.65.1;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.appuitests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmuxuitests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_VERSION = 5.0;
@@ -19364,7 +19364,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.65.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.app.docktileplugin.debug;
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmux.docktileplugin.debug;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -19389,7 +19389,7 @@
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Bundles";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.65.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.app.docktileplugin;
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmux.docktileplugin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SKIP_INSTALL = YES;
@@ -19409,12 +19409,12 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.65.1;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.apptests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmuxtests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/cmux DEV.app/Contents/MacOS/cmux DEV";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/cmux W3Dev DEV.app/Contents/MacOS/cmux W3Dev DEV";
 				TEST_TARGET_NAME = cmux;
 			};
 			name = Debug;
@@ -19430,11 +19430,11 @@
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.65.1;
 				ONLY_ACTIVE_ARCH = NO;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.apptests;
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmuxtests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_INTERFACE_HEADER_NAME = "";
 				SWIFT_VERSION = 5.0;
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/cmux.app/Contents/MacOS/cmux";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/cmux W3Dev.app/Contents/MacOS/cmux W3Dev";
 				TEST_TARGET_NAME = cmux;
 			};
 			name = Release;
@@ -19442,7 +19442,7 @@
 		7A0CE1000000000000000063 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CMUX_TEAM_ID_PREFIX = "7WLXT3NR37.";
+				CMUX_TEAM_ID_PREFIX = "$(DEVELOPMENT_TEAM).";
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -19461,7 +19461,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.65.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.app.debug.tunnel;
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmux.debug.tunnel;
 				PRODUCT_MODULE_NAME = cmuxTunnel;
 				PRODUCT_NAME = cmuxTunnel;
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -19475,7 +19475,7 @@
 		7A0CE1000000000000000064 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CMUX_TEAM_ID_PREFIX = "7WLXT3NR37.";
+				CMUX_TEAM_ID_PREFIX = "$(DEVELOPMENT_TEAM).";
 				CODE_SIGN_ENTITLEMENTS = "";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -19494,7 +19494,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.65.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.cmuxterm.app.tunnel;
+				PRODUCT_BUNDLE_IDENTIFIER = app.w3dev.cmux.tunnel;
 				PRODUCT_MODULE_NAME = cmuxTunnel;
 				PRODUCT_NAME = cmuxTunnel;
 				PROVISIONING_PROFILE_SPECIFIER = "";

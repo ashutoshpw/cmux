@@ -10,9 +10,9 @@ function fixture() {
   const calls = { stack: 0, open: 0, team: 0 };
   const dependencies: RoutingDependencies = {
     environment: device.identity.environment, projectId: device.identity.projectId, ticketKeys: { test: key }, now: () => 100,
-    stack: { verify: async () => {
+    stack: { verifyTeamMember: async () => true, verify: async () => {
       calls.stack++;
-      return { environment: device.identity.environment, projectId: device.identity.projectId, teamId: device.identity.teamId, userId: device.identity.userId, verifiedAt: 100 };
+      return { environment: device.identity.environment, projectId: device.identity.projectId, teamId: device.identity.teamId, userId: device.identity.userId,  sessionId: "auth-session", verifiedAt: 100 };
     } },
     chargeOpen: async userId => { expect(userId).toBe(device.identity.userId); calls.open++; },
     dispatchTeam: async (teamId, request) => {
@@ -45,7 +45,7 @@ test("forged private headers and cookies cannot become trusted DO authority", as
 
 test("valid bound HMAC tickets bypass Stack and cannot authorize another endpoint", async () => {
   const { calls, dependencies } = fixture();
-  const ticket = await issueTicket(device, "test", key, 99);
+  const ticket = await issueTicket(device, "test", key, 99, "auth-session");
   const request = (encoded: string) => new Request("https://api.example/v2/requests", {
     method: "POST", headers: { "content-type": "application/json", authorization: "IrohTicket " + ticket.token, [SETUP_HEADER]: encoded },
     body: JSON.stringify({ schemaId: "relay.request.v1", requestId: "request" }),
@@ -99,7 +99,7 @@ test("cross-environment setup never reaches Stack or a team object", async () =>
 test("control failures record the route, stage, operation and an unclassified cause", async () => {
   const { dependencies } = fixture();
   const events: Record<string, unknown>[] = [];
-  const ticket = await issueTicket(device, "test", key, 99);
+  const ticket = await issueTicket(device, "test", key, 99, "auth-session");
   const reset = Object.assign(new Error("Durable Object reset because its code was updated."), { retryable: true });
   const result = await routeControl(new Request("https://api.example/v2/requests", {
     method: "POST", headers: { "content-type": "application/json", authorization: "IrohTicket " + ticket.token, [SETUP_HEADER]: encodedSetup },
@@ -115,7 +115,7 @@ test("control failures record the route, stage, operation and an unclassified ca
   events.length = 0;
   await routeControl(new Request("https://api.example/v2/control/session", {
     method: "POST", headers: { "content-type": "application/json", authorization: "Bearer stack-token" }, body: JSON.stringify(setup),
-  }), { ...dependencies, observe: event => events.push(event), stack: { verify: async () => { throw new Error("private upstream detail"); } } });
+  }), { ...dependencies, observe: event => events.push(event), stack: { verifyTeamMember: async () => true, verify: async () => { throw new Error("private upstream detail"); } } });
   expect(events).toEqual([expect.objectContaining({ route: "session", stage: "authenticate", operation: "none", cause: "Error" })]);
   expect(events[0]).not.toHaveProperty("endpoint");
   expect(events[0]).not.toHaveProperty("deviceId");

@@ -6,11 +6,12 @@ RELOAD_ORIGINAL_ARGS=("$@")
 # shellcheck source=scripts/lib/mobile-attach.sh
 source "$SCRIPT_DIR/lib/mobile-attach.sh"
 # shellcheck source=scripts/lib/dev-secrets.sh
-source "$SCRIPT_DIR/lib/dev-secrets.sh"
+source "$SCRIPT_DIR/lib/fork-deployment.env"
+export CMUX_DEV_BACKEND_MODE="${CMUX_DEV_BACKEND_MODE:-local}"
 
-APP_NAME="cmux DEV"
-BUNDLE_ID="com.cmuxterm.app.debug"
-BASE_APP_NAME="cmux DEV"
+APP_NAME="cmux W3Dev DEV"
+BUNDLE_ID="app.w3dev.cmux.debug"
+BASE_APP_NAME="cmux W3Dev DEV"
 # The configuration xcodebuild builds and the app it produces (Release: cmux.app).
 BUILD_CONFIGURATION="Debug"
 PRODUCT_APP_NAME="$BASE_APP_NAME"
@@ -40,7 +41,7 @@ AUTH_EXPECTED_ACCOUNT=""
 CMUX_TUI_CLIENT_MANIFEST_URL_VALUE=""
 CLI_PATH=""
 NO_GLOBAL_CLI_LINKS="${CMUX_RELOAD_NO_GLOBAL_CLI_LINKS:-0}"
-# Matches CmuxStateDirectory (non-TCC ~/.local/state/cmux) where the app/CLI now
+# Matches CmuxStateDirectory (non-TCC ~/.local/state/cmux-w3dev) where the app/CLI now
 # read the last-socket-path markers (https://github.com/manaflow-ai/cmux/issues/5146).
 # Resolve the real account home via getpwuid (the same syscall
 # homeDirectoryForCurrentUser uses) rather than $HOME, which a shell can override.
@@ -49,8 +50,8 @@ NO_GLOBAL_CLI_LINKS="${CMUX_RELOAD_NO_GLOBAL_CLI_LINKS:-0}"
 # a second line. `|| true` keeps the lookup from aborting the script under
 # `set -euo pipefail`; an empty result falls back to $HOME.
 _cmux_account_home="$(perl -e 'print((getpwuid($<))[7])' 2>/dev/null || true)"
-LAST_SOCKET_PATH_DIR="${_cmux_account_home:-$HOME}/.local/state/cmux"
-LEGACY_SOCKET_PATH_DIR="${_cmux_account_home:-$HOME}/Library/Application Support/cmux"
+LAST_SOCKET_PATH_DIR="${_cmux_account_home:-$HOME}/.local/state/cmux-w3dev"
+LEGACY_SOCKET_PATH_DIR="${_cmux_account_home:-$HOME}/Library/Application Support/cmux-w3dev"
 SWIFT_FRONTEND_WORKAROUND=0
 XCODEBUILD_STARTED=0
 XCODEBUILD_OUTPUT_VALID=0
@@ -361,7 +362,7 @@ reload_cleanup_tag_state_with_lock() {
       close($fh);
       exit 1;
     }
-    my $cli_suffix = "/cmux DEV ${slug}.app/Contents/Resources/bin/cmux";
+    my $cli_suffix = "/cmux W3Dev DEV ${slug}.app/Contents/Resources/bin/cmux";
     my $pointer_ok = length($publish_cli_path)
       ? write_discovery_file($pointer_path, $publish_cli_path)
       : clear_matching_discovery_file($pointer_path, $cli_suffix, 1);
@@ -403,68 +404,68 @@ derive_socket_marker_names() {
   # uses the unscoped nightly/rc/staging/dev marker name.
   bundle_id="$(printf '%s' "$bundle_id" | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
   CMUX_RELOAD_MARKER_NAME="last-socket-path"
-  CMUX_RELOAD_TMP_MARKER="/tmp/cmux-last-socket-path"
+  CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-last-socket-path"
   case "$bundle_id" in
-    com.cmuxterm.app.nightly)
+    app.w3dev.cmux.nightly)
       CMUX_RELOAD_MARKER_NAME="nightly-last-socket-path"
-      CMUX_RELOAD_TMP_MARKER="/tmp/cmux-nightly-last-socket-path"
+      CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-nightly-last-socket-path"
       ;;
-    com.cmuxterm.app.nightly.*)
-      variant_slug="$(sanitize_path "${bundle_id#com.cmuxterm.app.nightly.}")"
+    app.w3dev.cmux.nightly.*)
+      variant_slug="$(sanitize_path "${bundle_id#app.w3dev.cmux.nightly.}")"
       if [[ -n "$variant_slug" ]]; then
         CMUX_RELOAD_MARKER_NAME="nightly-${variant_slug}-last-socket-path"
-        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-nightly-${variant_slug}-last-socket-path"
+        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-nightly-${variant_slug}-last-socket-path"
       else
         CMUX_RELOAD_MARKER_NAME="nightly-last-socket-path"
-        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-nightly-last-socket-path"
+        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-nightly-last-socket-path"
       fi
       ;;
-    com.cmuxterm.app.rc)
+    app.w3dev.cmux.rc)
       CMUX_RELOAD_MARKER_NAME="rc-last-socket-path"
-      CMUX_RELOAD_TMP_MARKER="/tmp/cmux-rc-last-socket-path"
+      CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-rc-last-socket-path"
       ;;
-    com.cmuxterm.app.rc.*)
-      variant_slug="$(sanitize_path "${bundle_id#com.cmuxterm.app.rc.}")"
+    app.w3dev.cmux.rc.*)
+      variant_slug="$(sanitize_path "${bundle_id#app.w3dev.cmux.rc.}")"
       if [[ -n "$variant_slug" ]]; then
         CMUX_RELOAD_MARKER_NAME="rc-${variant_slug}-last-socket-path"
-        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-rc-${variant_slug}-last-socket-path"
+        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-rc-${variant_slug}-last-socket-path"
       else
         CMUX_RELOAD_MARKER_NAME="rc-last-socket-path"
-        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-rc-last-socket-path"
+        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-rc-last-socket-path"
       fi
       ;;
-    com.cmuxterm.app.staging)
+    app.w3dev.cmux.staging)
       CMUX_RELOAD_MARKER_NAME="staging-last-socket-path"
-      CMUX_RELOAD_TMP_MARKER="/tmp/cmux-staging-last-socket-path"
+      CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-staging-last-socket-path"
       ;;
-    com.cmuxterm.app.staging.*)
-      variant_slug="$(sanitize_path "${bundle_id#com.cmuxterm.app.staging.}")"
+    app.w3dev.cmux.staging.*)
+      variant_slug="$(sanitize_path "${bundle_id#app.w3dev.cmux.staging.}")"
       if [[ -n "$variant_slug" ]]; then
         CMUX_RELOAD_MARKER_NAME="staging-${variant_slug}-last-socket-path"
-        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-staging-${variant_slug}-last-socket-path"
+        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-staging-${variant_slug}-last-socket-path"
       else
         CMUX_RELOAD_MARKER_NAME="staging-last-socket-path"
-        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-staging-last-socket-path"
+        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-staging-last-socket-path"
       fi
       ;;
-    com.cmuxterm.app.debug)
+    app.w3dev.cmux.debug)
       variant_slug="$(sanitize_path "$tag_slug")"
       if [[ -n "$variant_slug" ]]; then
         CMUX_RELOAD_MARKER_NAME="dev-${variant_slug}-last-socket-path"
-        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-dev-${variant_slug}-last-socket-path"
+        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-dev-${variant_slug}-last-socket-path"
       else
         CMUX_RELOAD_MARKER_NAME="dev-last-socket-path"
-        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-dev-last-socket-path"
+        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-dev-last-socket-path"
       fi
       ;;
-    com.cmuxterm.app.debug.*)
-      variant_slug="$(sanitize_path "${bundle_id#com.cmuxterm.app.debug.}")"
+    app.w3dev.cmux.debug.*)
+      variant_slug="$(sanitize_path "${bundle_id#app.w3dev.cmux.debug.}")"
       if [[ -n "$variant_slug" ]]; then
         CMUX_RELOAD_MARKER_NAME="dev-${variant_slug}-last-socket-path"
-        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-dev-${variant_slug}-last-socket-path"
+        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-dev-${variant_slug}-last-socket-path"
       else
         CMUX_RELOAD_MARKER_NAME="dev-last-socket-path"
-        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-dev-last-socket-path"
+        CMUX_RELOAD_TMP_MARKER="/tmp/cmux-w3dev-dev-last-socket-path"
       fi
       ;;
   esac
@@ -472,7 +473,7 @@ derive_socket_marker_names() {
 
 cleanup_stale_tag_state() {
   local slug="$1"
-  local socket_path="${2:-/tmp/cmux-debug-${slug}.sock}"
+  local socket_path="${2:-/tmp/cmux-w3dev-debug-${slug}.sock}"
   local publish_socket_path="${3:-}"
   local publish_cli_path="${4:-}"
   derive_socket_marker_names "${BUNDLE_ID:-}" "$slug"
@@ -483,7 +484,7 @@ cleanup_stale_tag_state() {
 
   # The Perl transaction performs the liveness probe after acquiring the tag
   # lock, so validation, stale-node removal, and publication share one owner.
-  local pointer_path="/tmp/cmux-last-cli-path"
+  local pointer_path="/tmp/cmux-w3dev-last-cli-path"
   if [[ -n "$publish_socket_path" ]]; then
     mkdir -p "$LAST_SOCKET_PATH_DIR" || return 1
   fi
@@ -499,7 +500,7 @@ cleanup_stale_tag_state() {
 }
 
 cleanup_stale_cli_pointer_target() {
-  local pointer_path="/tmp/cmux-last-cli-path"
+  local pointer_path="/tmp/cmux-w3dev-last-cli-path"
   [[ -f "$pointer_path" && ! -L "$pointer_path" ]] || return 0
   local cli_path=""
   cli_path="$(LC_ALL=C /usr/bin/head -c 4097 "$pointer_path" 2>/dev/null | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' || true)"
@@ -516,15 +517,15 @@ cleanup_stale_cli_pointer_target() {
   esac
   local app_name="${bundle_path##*/}"
   app_name="${app_name%.app}"
-  [[ "$app_name" == "cmux DEV "* ]] || return 0
-  local slug="${app_name#cmux DEV }"
+  [[ "$app_name" == "cmux W3Dev DEV "* ]] || return 0
+  local slug="${app_name#cmux W3Dev DEV }"
   [[ "$slug" =~ ^[A-Za-z0-9_-]+$ ]] || return 0
   local socket_path=""
   if [[ -x /usr/libexec/PlistBuddy && -f "$bundle_path/Contents/Info.plist" ]]; then
     socket_path="$(/usr/libexec/PlistBuddy -c 'Print :LSEnvironment:CMUX_SOCKET_PATH' "$bundle_path/Contents/Info.plist" 2>/dev/null || true)"
   fi
   socket_path="$(printf '%s' "$socket_path" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')"
-  cleanup_stale_tag_state "$slug" "${socket_path:-/tmp/cmux-debug-${slug}.sock}"
+  cleanup_stale_tag_state "$slug" "${socket_path:-/tmp/cmux-w3dev-debug-${slug}.sock}"
 }
 
 wait_for_tag_socket_lock_release() {
@@ -576,7 +577,7 @@ should_skip_ghostty_cli_helper_zig_build() {
 write_dev_cli_shim() {
   local target="$1"
   local fallback_bin="$2"
-  local cli_path_file="${3:-/tmp/cmux-last-cli-path}"
+  local cli_path_file="${3:-/tmp/cmux-w3dev-last-cli-path}"
   local cli_path_file_literal=""
   local fallback_bin_literal=""
   local socket_probe_function=""
@@ -587,7 +588,7 @@ write_dev_cli_shim() {
   mkdir -p "$(dirname "$target")"
   cat > "$target" <<EOF
 #!/usr/bin/env bash
-# cmux dev shim (managed by scripts/reload.sh)
+# cmux W3Dev dev shim (managed by scripts/reload.sh)
 set -euo pipefail
 
 CLI_PATH_FILE=${cli_path_file_literal}
@@ -636,10 +637,10 @@ bundle_socket_path() {
 
   local app_name="\${bundle_path##*/}"
   app_name="\${app_name%.app}"
-  if [[ "\$app_name" == "cmux DEV "* ]]; then
-    local tag="\${app_name#cmux DEV }"
+  if [[ "\$app_name" == "cmux W3Dev DEV "* ]]; then
+    local tag="\${app_name#cmux W3Dev DEV }"
     [[ "\$tag" =~ ^[A-Za-z0-9_-]+\$ ]] || return 1
-    printf '/tmp/cmux-debug-%s.sock\\n' "\$tag"
+    printf '/tmp/cmux-w3dev-debug-%s.sock\\n' "\$tag"
     return 0
   fi
   return 1
@@ -661,15 +662,15 @@ if [[ -n "\${CMUX_SOCKET_PATH:-}" || -n "\${CMUX_SOCKET:-}" ]]; then
 fi
 if [[ -n "\$SOCKET_ARG" ]]; then
   SOCKET_NAME="\$(basename "\$SOCKET_ARG")"
-  if [[ "\$SOCKET_NAME" == cmux-debug-*.sock ]]; then
-    TAG="\${SOCKET_NAME#cmux-debug-}"
+  if [[ "\$SOCKET_NAME" == cmux-w3dev-debug-*.sock ]]; then
+    TAG="\${SOCKET_NAME#cmux-w3dev-debug-}"
     TAG="\${TAG%.sock}"
     if [[ "\$TAG" =~ ^[A-Za-z0-9_-]+$ ]]; then
       # reload.sh links /tmp/cmux-<tag> to the DerivedData it built the tag into,
       # which is not the per-tag default when tags share one.
-      TAG_CLI_SUFFIX="cmux DEV \$TAG.app/Contents/Resources/bin/cmux"
-      for TAG_CLI in "/tmp/cmux-\$TAG"/Build/Products/{Debug,Release}/"\$TAG_CLI_SUFFIX" \
-        "\$HOME/Library/Developer/Xcode/DerivedData/cmux-\$TAG"/Build/Products/{Debug,Release}/"\$TAG_CLI_SUFFIX"; do
+      TAG_CLI_SUFFIX="cmux W3Dev DEV \$TAG.app/Contents/Resources/bin/cmux"
+      for TAG_CLI in "/tmp/cmux-w3dev-\$TAG"/Build/Products/{Debug,Release}/"\$TAG_CLI_SUFFIX" \
+        "\$HOME/Library/Developer/Xcode/DerivedData/cmux-w3dev-\$TAG"/Build/Products/{Debug,Release}/"\$TAG_CLI_SUFFIX"; do
         # /tmp is shared, so only trust a CLI this user owns.
         [[ -O "\$TAG_CLI" ]] || continue
         if live_cli_bundle "\$TAG_CLI" >/dev/null; then
@@ -702,7 +703,7 @@ if [[ -n "\${CMUX_BUNDLED_CLI_PATH:-}" ]] && [[ -f "\$CMUX_BUNDLED_CLI_PATH" ]] 
   fi
 fi
 
-CLI_PATH_OWNER="\$(stat -f '%u' "\$CLI_PATH_FILE" 2>/dev/null || stat -c '%u' "\$CLI_PATH_FILE" 2>/dev/null || echo -1)"
+CLI_PATH_OWNER="\$(stat -c '%u' "\$CLI_PATH_FILE" 2>/dev/null || stat -f '%u' "\$CLI_PATH_FILE" 2>/dev/null || echo -1)"
 if [[ "\$HAS_EXPLICIT_SOCKET" == "0" && -r "\$CLI_PATH_FILE" ]] && [[ ! -L "\$CLI_PATH_FILE" ]] && [[ "\$CLI_PATH_OWNER" == "\$(id -u)" ]]; then
   CLI_PATH="\$(cat "\$CLI_PATH_FILE" 2>/dev/null || true)"
   if live_cli_bundle "\$CLI_PATH" >/dev/null; then
@@ -721,8 +722,8 @@ EOF
 }
 
 select_cmux_shim_target() {
-  local app_cli_dir="/Applications/cmux.app/Contents/Resources/bin"
-  local marker="cmux dev shim (managed by scripts/reload.sh)"
+  local app_cli_dir="/Applications/cmux W3Dev.app/Contents/Resources/bin"
+  local marker="cmux W3Dev dev shim (managed by scripts/reload.sh)"
   local target=""
   local path_entry=""
   local candidate=""
@@ -739,7 +740,7 @@ select_cmux_shim_target() {
       break
     fi
     [[ -d "$path_entry" && -w "$path_entry" ]] || continue
-    candidate="$path_entry/cmux"
+    candidate="$path_entry/cmux-w3dev"
     if [[ ! -e "$candidate" ]]; then
       target="$candidate"
       break
@@ -758,7 +759,7 @@ select_cmux_shim_target() {
   # Fallback for PATH layouts where app CLI isn't listed or no earlier entries were writable.
   for path_entry in /opt/homebrew/bin /usr/local/bin "$HOME/.local/bin" "$HOME/bin"; do
     [[ -d "$path_entry" && -w "$path_entry" ]] || continue
-    candidate="$path_entry/cmux"
+    candidate="$path_entry/cmux-w3dev"
     if [[ ! -e "$candidate" ]]; then
       echo "$candidate"
       return 0
@@ -781,15 +782,15 @@ publish_reload_cli_links() {
     return 0
   fi
 
-  ln -sfn "$cli_path" /tmp/cmux-cli || true
+  ln -sfn "$cli_path" /tmp/cmux-w3dev-cli || true
 
   # Stable shim that always follows the last reload-selected dev CLI.
-  DEV_CLI_SHIM="$HOME/.local/bin/cmux-dev"
-  write_dev_cli_shim "$DEV_CLI_SHIM" "/Applications/cmux.app/Contents/Resources/bin/cmux"
+  DEV_CLI_SHIM="$HOME/.local/bin/cmux-w3dev-dev"
+  write_dev_cli_shim "$DEV_CLI_SHIM" "/Applications/cmux W3Dev.app/Contents/Resources/bin/cmux"
 
   CMUX_SHIM_TARGET="$(select_cmux_shim_target || true)"
   if [[ -n "${CMUX_SHIM_TARGET:-}" ]]; then
-    write_dev_cli_shim "$CMUX_SHIM_TARGET" "/Applications/cmux.app/Contents/Resources/bin/cmux"
+    write_dev_cli_shim "$CMUX_SHIM_TARGET" "/Applications/cmux W3Dev.app/Contents/Resources/bin/cmux"
   fi
 }
 
@@ -802,7 +803,7 @@ publish_reload_cli_path() {
     return 0
   fi
 
-  reload_write_cli_pointer "/tmp/cmux-last-cli-path" "$cli_path" || return 1
+  reload_write_cli_pointer "/tmp/cmux-w3dev-last-cli-path" "$cli_path" || return 1
   publish_reload_cli_links "$cli_path"
 }
 
@@ -908,25 +909,18 @@ Options:
   --build-only           Build and validate a tagged app without replacing or
                          stopping the running tagged app, daemon, or tag state.
                          Cannot be combined with --launch.
-  --prod-auth            Point this tagged Debug build at production Stack auth,
-                         cmux APIs, and the production Iroh broker.
-                         Without it, tagged builds use the shared dev backend, which
-                         needs a cmuxterm-hq checkout. Outside one, set
-                         CMUX_DEV_BACKEND_MODE=local to use http://localhost:<port>.
+  --prod-auth            Use Better Auth and Cloud APIs on cmux.w3dev.app.
+                         The tag needs an exactly registered OAuth client/callback.
+                         Ordinary tagged builds default to local backend mode;
+                         set an explicit fork-owned URL for remote development.
   --release              Build the Release configuration (optimized, no DEBUG) of
                          this tagged app, for dogfooding real performance. The
                          debug.* socket commands are compiled out.
   --credentials-file <path>
-                         Bake only the path to a current-user-owned 0600 auth file.
-                         The credential values never enter argv, Info.plist, or
-                         the long-lived Mac process environment.
   --auth-profile <personal|agent>
-                         Select one identity class and replace any stale tagged
-                         session on launch. Without --credentials-file, resolve
-                         the selected profile from the standard secret files.
   --expected-account <email>
-                         Fail before building unless the selected profile/file
-                         resolves to this normalized account.
+                         Retired password auto-login flags; rejected before build.
+                         Complete hosted system-browser PKCE sign-in in the app.
   --cmux-tui-manifest-url <url>
                          Install the cmux-tui client from this immutable manifest.
   --name <app name>      Override app display/bundle name.
@@ -935,8 +929,8 @@ Options:
                          Defaults to CMUX_DERIVED_DATA when set (an absolute
                          path to a DerivedData kept warm for this checkout and
                          shared by its tags), else one directory per tag.
-  --no-global-cli-links  Do not update /tmp/cmux-cli, /tmp/cmux-last-cli-path,
-                         or PATH cmux-dev shims. Useful for isolated dogfood.
+  --no-global-cli-links  Do not update /tmp/cmux-w3dev-cli, /tmp/cmux-w3dev-last-cli-path,
+                         or PATH cmux-w3dev shims. Useful for isolated dogfood.
   --swift-frontend-workaround
                          Work around Swift arm64 frontend spins for this reload
                          only by disabling batch mode, debug symbol emission,
@@ -1046,7 +1040,7 @@ reload_skips_app_module_emission() {
 
 tagged_derived_data_path() {
   local slug="$1"
-  echo "$HOME/Library/Developer/Xcode/DerivedData/cmux-${slug}"
+  echo "$HOME/Library/Developer/Xcode/DerivedData/cmux-w3dev-${slug}"
 }
 
 # Print the cmux-tui commit whose published client the bundle will carry. A branch
@@ -1156,13 +1150,13 @@ validate_app_bundle() {
 # that is not the tag's own may hold other tags, so only the tag's app is removed from it.
 tag_build_cleanup_paths() {
   local tag="$1" derived="${2:-}"
-  local own="" link="/tmp/cmux-${tag}"
+  local own="" link="/tmp/cmux-w3dev-${tag}"
   own="$(tagged_derived_data_path "$tag")"
   if [[ -z "$derived" && -L "$link" ]]; then
     derived="$(readlink "$link" 2>/dev/null || true)"
   fi
   if [[ -n "$derived" && "$derived" != "$own" && "$derived" != "$link" ]]; then
-    printf '%q ' "${derived%/}/Build/Products/Debug/cmux DEV ${tag}.app" "${derived%/}/Build/Products/Release/cmux DEV ${tag}.app"
+    printf '%q ' "${derived%/}/Build/Products/Debug/cmux W3Dev DEV ${tag}.app" "${derived%/}/Build/Products/Release/cmux W3Dev DEV ${tag}.app"
     [[ -d "$own" ]] || return 0
   fi
   printf '%q ' "$own"
@@ -1173,10 +1167,10 @@ tag_build_cleanup_paths() {
 # argument is escaped with %q instead of being wrapped in quotes.
 print_tag_cleanup_commands() {
   local tag="$1" derived="${2:-}"
-  printf '  pkill -f %q\n' "cmux DEV ${tag}.app/Contents/MacOS/cmux DEV"
-  printf '  rm -rf %s%q %q\n' "$(tag_build_cleanup_paths "$tag" "$derived")" "/tmp/cmux-${tag}" "/tmp/cmux-debug-${tag}.sock"
-  printf '  rm -f %q\n' "/tmp/cmux-debug-${tag}.log"
-  printf '  rm -f %q\n' "$HOME/Library/Application Support/cmux/cmuxd-dev-${tag}.sock"
+  printf '  pkill -f %q\n' "cmux W3Dev DEV ${tag}.app/Contents/MacOS/cmux W3Dev DEV"
+  printf '  rm -rf %s%q %q\n' "$(tag_build_cleanup_paths "$tag" "$derived")" "/tmp/cmux-w3dev-${tag}" "/tmp/cmux-w3dev-debug-${tag}.sock"
+  printf '  rm -f %q\n' "/tmp/cmux-w3dev-debug-${tag}.log"
+  printf '  rm -f %q\n' "$HOME/Library/Application Support/cmux-w3dev/cmuxd-dev-${tag}.sock"
 }
 
 print_tag_cleanup_reminder() {
@@ -1188,10 +1182,10 @@ print_tag_cleanup_reminder() {
   local -a stale_tags=()
 
   while IFS= read -r -d '' path; do
-    if [[ "$path" == /tmp/cmux-* ]]; then
-      tag="${path#/tmp/cmux-}"
-    elif [[ "$path" == "$HOME/Library/Developer/Xcode/DerivedData/cmux-"* ]]; then
-      tag="${path#"$HOME"/Library/Developer/Xcode/DerivedData/cmux-}"
+    if [[ "$path" == /tmp/cmux-w3dev-* ]]; then
+      tag="${path#/tmp/cmux-w3dev-}"
+    elif [[ "$path" == "$HOME/Library/Developer/Xcode/DerivedData/cmux-w3dev-"* ]]; then
+      tag="${path#"$HOME"/Library/Developer/Xcode/DerivedData/cmux-w3dev-}"
     else
       continue
     fi
@@ -1213,8 +1207,8 @@ print_tag_cleanup_reminder() {
     stale_tags+=("$tag")
   done < <(
     # The trailing slash makes find descend when /tmp is itself a symlink.
-    find /tmp/ -maxdepth 1 -name 'cmux-*' -print0 2>/dev/null
-    find "$HOME/Library/Developer/Xcode/DerivedData" -maxdepth 1 -type d -name 'cmux-*' -print0 2>/dev/null
+    find /tmp/ -maxdepth 1 -name 'cmux-w3dev-*' -print0 2>/dev/null
+    find "$HOME/Library/Developer/Xcode/DerivedData" -maxdepth 1 -type d -name 'cmux-w3dev-*' -print0 2>/dev/null
   )
 
   echo
@@ -1263,8 +1257,8 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       BUNDLE_ID_LOWER="$(printf '%s' "$BUNDLE_ID" | tr '[:upper:]' '[:lower:]')"
-      if [[ "$BUNDLE_ID_LOWER" == "com.cmuxterm.app" || ( "$BUNDLE_ID_LOWER" == com.cmuxterm.app.* && "$BUNDLE_ID_LOWER" != com.cmuxterm.app.debug.* ) ]]; then
-        echo "error: --bundle-id $BUNDLE_ID is not a com.cmuxterm.app.debug.* id; reload.sh would quit a user's running cmux" >&2
+      if [[ "$BUNDLE_ID_LOWER" != app.w3dev.cmux.debug.* ]]; then
+        echo "error: --bundle-id must be app.w3dev.cmux.debug.<tag>; refusing to target an installed release or another app" >&2
         exit 1
       fi
       BUNDLE_SET=1
@@ -1364,7 +1358,7 @@ fi
 # bundles the pinned cmux-tui by default; dogfood the checkout's own instead. Its
 # entitlements need a signing team, and the tagged app is signed ad hoc.
 if [[ "$BUILD_CONFIGURATION" == Release ]]; then
-  PRODUCT_APP_NAME="cmux"
+  PRODUCT_APP_NAME="cmux W3Dev"
   export CMUX_NEXT_TUI_MODE=tree
 fi
 
@@ -1377,46 +1371,11 @@ if [[ "$BUILD_ONLY" -eq 1 && "$NAME_SET" -eq 1 && "$APP_NAME" == "$PRODUCT_APP_N
   exit 1
 fi
 
-# A tagged launch is a dogfood surface, so it must have an explicit identity
-# before the app is started.  Keeping this gate here covers agents that call
-# reload.sh directly instead of the higher-level dev-setup wrapper.
-if [[ "$LAUNCH" -eq 1 && -n "$TAG" && -z "$AUTH_PROFILE" ]]; then
-  AUTH_PROFILE="personal"
-  if [[ -z "$AUTH_CREDENTIALS_FILE" ]]; then
-    for candidate in "${HOME:-}/.secrets/cmuxterm-dev.env" "${HOME:-}/.secrets/cmux.env"; do
-      if [[ -f "$candidate" ]]; then
-        AUTH_CREDENTIALS_FILE="$candidate"
-        break
-      fi
-    done
-  fi
-  if [[ -z "$AUTH_CREDENTIALS_FILE" || ! -f "$AUTH_CREDENTIALS_FILE" ]]; then
-    echo "error: tagged launches require authenticated dev credentials" >&2
-    echo "error: configure ~/.secrets/cmuxterm-dev.env with scripts/setup-team-dev.sh" >&2
-    exit 2
-  fi
-fi
-
-if [[ -n "$AUTH_CREDENTIALS_FILE" ]]; then
-  cmux_dev_secrets_validate_file "$AUTH_CREDENTIALS_FILE"
-  AUTH_CREDENTIALS_FILE="$(cd "$(dirname "$AUTH_CREDENTIALS_FILE")" && pwd -P)/$(basename "$AUTH_CREDENTIALS_FILE")"
-fi
-if [[ -n "$AUTH_PROFILE" || -n "$AUTH_EXPECTED_ACCOUNT" ]]; then
-  [[ "$AUTH_PROFILE" == "personal" || "$AUTH_PROFILE" == "agent" ]] \
-    || { echo "error: --auth-profile must be personal or agent" >&2; exit 1; }
-  auth_loader_args=(--profile "$AUTH_PROFILE")
-  [[ -n "$AUTH_CREDENTIALS_FILE" ]] \
-    && auth_loader_args+=(--credentials-file "$AUTH_CREDENTIALS_FILE")
-  [[ -n "$AUTH_EXPECTED_ACCOUNT" ]] \
-    && auth_loader_args+=(--expected-account "$AUTH_EXPECTED_ACCOUNT")
-  # Resolve in a short-lived subshell. The loader exports the password for
-  # callers that need to launch an app, but reload itself only needs the
-  # normalized account; build tools and package plugins must never inherit the
-  # credential while Xcode is running.
-  AUTH_EXPECTED_ACCOUNT="$(
-    cmux_dev_secrets_load "${auth_loader_args[@]}" >/dev/null
-    printf '%s' "$CMUX_DEV_AUTH_ACCOUNT"
-  )" || exit $?
+# Better Auth uses hosted system-browser PKCE. Legacy password injection is
+# rejected before build, cleanup or launch rather than read from upstream stores.
+if [[ -n "$AUTH_CREDENTIALS_FILE" || -n "$AUTH_PROFILE" || -n "$AUTH_EXPECTED_ACCOUNT" ]]; then
+  echo "error: password auto-login is retired; register this tag's OAuth client and sign in in the hosted browser" >&2
+  exit 2
 fi
 
 if [[ -n "$TAG" ]]; then
@@ -1433,10 +1392,10 @@ if [[ -n "$TAG" ]]; then
       "$TAG_SLUG" "$0" "${RELOAD_ORIGINAL_ARGS[@]}"
   fi
   if [[ "$NAME_SET" -eq 0 ]]; then
-    APP_NAME="cmux DEV ${TAG_SLUG}"
+    APP_NAME="cmux W3Dev DEV ${TAG_SLUG}"
   fi
   if [[ "$BUNDLE_SET" -eq 0 ]]; then
-    BUNDLE_ID="com.cmuxterm.app.debug.${TAG_ID}"
+    BUNDLE_ID="app.w3dev.cmux.debug.${TAG_ID}"
   fi
   DERIVED_DATA="$(resolve_tagged_derived_data "$TAG_SLUG" "$DERIVED_SET" "${DERIVED_DATA:-}")"
   if [[ "$BUILD_ONLY" -ne 1 ]]; then
@@ -1478,30 +1437,30 @@ if [[ -n "$TAG" && "$PROD_AUTH" -eq 0 ]]; then
   source "$PWD/scripts/lib/dev-backend-origin.sh"
   CMUX_DEV_ORIGIN="$(cmux_resolve_tagged_backend "$TAG_SLUG" "$PWD" "$CMUX_DEV_ORIGIN")" || exit 1
   # Local mode has no shared backend to bake into the app or the Iroh broker default.
-  if [[ "${CMUX_DEV_BACKEND_MODE:-remote}" != "local" ]]; then
+  if [[ "${CMUX_DEV_BACKEND_MODE:-local}" != "local" ]]; then
     export CMUX_DEV_BACKEND_URL="$CMUX_DEV_ORIGIN"
   fi
 fi
 CMUX_DEV_API_BASE_URL_VALUE="$(cmux_attach_resolve_dev_api_base_url "$CMUX_DEV_ORIGIN")"
-CMUX_IROH_BROKER_BASE_URL_VALUE="${CMUX_DEV_BACKEND_URL:-${CMUX_IROH_BROKER_BASE_URL:-https://cmux-staging.vercel.app}}"
+CMUX_IROH_BROKER_BASE_URL_VALUE="${CMUX_DEV_BACKEND_URL:-${CMUX_IROH_BROKER_BASE_URL:-https://staging.cmux.w3dev.app}}"
 CMUX_IROH_V2_ENVIRONMENT_VALUE="${CMUX_IROH_V2_ENVIRONMENT:-development}"
-CMUX_IROH_V2_BASE_URL_VALUE="${CMUX_IROH_V2_BASE_URL:-https://cmux-v2-development.debussy.workers.dev}"
+CMUX_IROH_V2_BASE_URL_VALUE="${CMUX_IROH_V2_BASE_URL:-https://iroh.staging.cmux.w3dev.app}"
 CMUX_IROH_V2_FORCE_RELAY_VALUE="${CMUX_IROH_V2_FORCE_RELAY:-0}"
 CMUX_AUTH_WWW_ORIGIN_VALUE="$CMUX_DEV_ORIGIN"
 CMUX_WWW_ORIGIN_VALUE="$CMUX_DEV_ORIGIN"
 if [[ "$PROD_AUTH" -eq 1 ]]; then
-  if [[ -n "${CMUX_DEV_API_BASE_URL:-}" && "$CMUX_DEV_API_BASE_URL" != "https://cmux.com" ]]; then
-    echo "error: --prod-auth cannot use API origin '$CMUX_DEV_API_BASE_URL'; production builds must use https://cmux.com" >&2
+  if [[ -n "${CMUX_DEV_API_BASE_URL:-}" && "$CMUX_DEV_API_BASE_URL" != "https://cmux.w3dev.app" ]]; then
+    echo "error: --prod-auth cannot use API origin '$CMUX_DEV_API_BASE_URL'; production builds must use https://cmux.w3dev.app" >&2
     exit 1
   fi
-  if [[ -n "${CMUX_IROH_BROKER_BASE_URL:-}" && "$CMUX_IROH_BROKER_BASE_URL" != "https://cmux.com" ]]; then
-    echo "error: --prod-auth cannot use Iroh broker origin '$CMUX_IROH_BROKER_BASE_URL'; production builds must use https://cmux.com" >&2
+  if [[ -n "${CMUX_IROH_BROKER_BASE_URL:-}" && "$CMUX_IROH_BROKER_BASE_URL" != "https://cmux.w3dev.app" ]]; then
+    echo "error: --prod-auth cannot use Iroh broker origin '$CMUX_IROH_BROKER_BASE_URL'; production builds must use https://cmux.w3dev.app" >&2
     exit 1
   fi
-  CMUX_DEV_API_BASE_URL_VALUE="https://cmux.com"
-  CMUX_IROH_BROKER_BASE_URL_VALUE="https://cmux.com"
-  CMUX_AUTH_WWW_ORIGIN_VALUE="https://cmux.com"
-  CMUX_WWW_ORIGIN_VALUE="https://cmux.com"
+  CMUX_DEV_API_BASE_URL_VALUE="https://cmux.w3dev.app"
+  CMUX_IROH_BROKER_BASE_URL_VALUE="https://cmux.w3dev.app"
+  CMUX_AUTH_WWW_ORIGIN_VALUE="https://cmux.w3dev.app"
+  CMUX_WWW_ORIGIN_VALUE="https://cmux.w3dev.app"
 fi
 
 # Quiet logging: capture all noisy build output (xcodebuild, zig, codesign,
@@ -1574,7 +1533,7 @@ reload_finalize() {
     echo "  $CMUX_IROH_BROKER_BASE_URL_VALUE"
     if [[ -n "${TAG_SLUG:-}" ]]; then
       echo "Dev web command:"
-      echo "  cd web && CMUX_PORT=$CMUX_DEV_PORT CMUX_PORT_RANGE=$CMUX_DEV_PORT_RANGE CMUX_PORT_END=$CMUX_DEV_PORT_END CMUX_AUTH_CALLBACK_SCHEME=cmux-dev-$TAG_SLUG bun dev"
+      echo "  cd web && CMUX_PORT=$CMUX_DEV_PORT CMUX_PORT_RANGE=$CMUX_DEV_PORT_RANGE CMUX_PORT_END=$CMUX_DEV_PORT_END CMUX_AUTH_CALLBACK_SCHEME=cmux-w3dev-dev-$TAG_SLUG bun dev"
     fi
   fi
   if [[ "$BUILD_ONLY" -ne 1 && -x "${CLI_PATH:-}" ]]; then
@@ -1587,8 +1546,8 @@ reload_finalize() {
     elif [[ "${CAN_PUBLISH_RELOAD_STATE:-1}" -ne 1 ]]; then
       echo "  not published: ${RELOAD_PUBLICATION_SKIP_REASON:-tag discovery ownership could not be verified}"
     else
-      echo "  /tmp/cmux-cli ..."
-      echo "  $HOME/.local/bin/cmux-dev ..."
+      echo "  /tmp/cmux-w3dev-cli ..."
+      echo "  $HOME/.local/bin/cmux-w3dev-dev ..."
       if [[ -n "${CMUX_SHIM_TARGET:-}" ]]; then
         echo "  $CMUX_SHIM_TARGET ..."
       fi
@@ -1968,7 +1927,7 @@ if [[ "${SWIFT_INCREMENTAL_DIAGNOSTICS_EFFECTIVE:-0}" -eq 1 ]]; then
 fi
 
 if [[ "$BUILD_ONLY" -ne 1 && -n "${TAG_SLUG:-}" ]]; then
-  TMP_COMPAT_DERIVED_LINK="/tmp/cmux-${TAG_SLUG}"
+  TMP_COMPAT_DERIVED_LINK="/tmp/cmux-w3dev-${TAG_SLUG}"
   if [[ "$DERIVED_DATA" != "$TMP_COMPAT_DERIVED_LINK" ]]; then
     ABS_DERIVED_DATA="$(cd "$DERIVED_DATA" && pwd)"
     rm -rf "$TMP_COMPAT_DERIVED_LINK"
@@ -1990,13 +1949,13 @@ if [[ -n "$TAG" && "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
     /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_ID" "$INFO_PLIST" 2>/dev/null \
       || /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string $BUNDLE_ID" "$INFO_PLIST"
     if [[ -n "${TAG_SLUG:-}" ]]; then
-      APP_SUPPORT_DIR="$HOME/Library/Application Support/cmux"
+      APP_SUPPORT_DIR="$HOME/Library/Application Support/cmux-w3dev"
       CMUXD_SOCKET="${APP_SUPPORT_DIR}/cmuxd-dev-${TAG_SLUG}.sock"
-      CMUX_SOCKET_PATH_VALUE="/tmp/cmux-debug-${TAG_SLUG}.sock"
-      CMUX_DEBUG_LOG="/tmp/cmux-debug-${TAG_SLUG}.log"
-      CMUX_AUTH_CALLBACK_SCHEME_VALUE="cmux-dev-${TAG_SLUG}"
+      CMUX_SOCKET_PATH_VALUE="/tmp/cmux-w3dev-debug-${TAG_SLUG}.sock"
+      CMUX_DEBUG_LOG="/tmp/cmux-w3dev-debug-${TAG_SLUG}.log"
+      CMUX_AUTH_CALLBACK_SCHEME_VALUE="cmux-w3dev-dev-${TAG_SLUG}"
       if [[ "$BUILD_ONLY" -ne 1 ]]; then
-        echo "$CMUX_DEBUG_LOG" > /tmp/cmux-last-debug-log-path || true
+        echo "$CMUX_DEBUG_LOG" > /tmp/cmux-w3dev-last-debug-log-path || true
       fi
       /usr/libexec/PlistBuddy -c "Add :LSEnvironment dict" "$INFO_PLIST" 2>/dev/null || true
       set_plist_url_scheme "$INFO_PLIST" "$CMUX_AUTH_CALLBACK_SCHEME_VALUE"
@@ -2015,6 +1974,7 @@ if [[ -n "$TAG" && "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
       /usr/libexec/PlistBuddy -c 'Delete :CMUXCloudDogfoodEnabled' "$INFO_PLIST" 2>/dev/null || true
       /usr/libexec/PlistBuddy -c "Add :CMUXCloudDogfoodEnabled bool ${CMUX_DEV_CLOUD_ENABLED:-1}" "$INFO_PLIST"
       set_plist_env "$INFO_PLIST" CMUX_AUTH_CALLBACK_SCHEME "$CMUX_AUTH_CALLBACK_SCHEME_VALUE"
+      set_plist_env "$INFO_PLIST" CMUX_OAUTH_CLIENT_ID "${CMUX_OAUTH_CLIENT_ID:-cmux-w3dev-macos-dev-${TAG_SLUG}}"
       set_plist_env "$INFO_PLIST" CMUX_SOCKET_ENABLE "1"
       set_plist_env "$INFO_PLIST" CMUX_SOCKET_MODE "allowAll"
       set_plist_env "$INFO_PLIST" CMUX_REMOTE_DAEMON_ALLOW_LOCAL_BUILD "1"
@@ -2034,7 +1994,6 @@ if [[ -n "$TAG" && "$APP_NAME" != "$SEARCH_APP_NAME" ]]; then
       if [[ -n "${CMUX_DEV_BACKEND_URL:-}" ]]; then
         set_plist_env "$INFO_PLIST" CMUX_DEV_BACKEND_URL "$CMUX_DEV_BACKEND_URL"
         set_plist_env "$INFO_PLIST" CMUX_DEV_BACKEND_TRANSPORT direct
-        set_plist_env "$INFO_PLIST" CMUX_DEV_BACKEND_TAILSCALE_HOST cmux-dev-backend-1.tail137216.ts.net
       fi
       set_plist_env "$INFO_PLIST" CMUX_API_BASE_URL "$CMUX_DEV_API_BASE_URL_VALUE"
       set_plist_env "$INFO_PLIST" CMUX_VM_API_BASE_URL "$CMUX_DEV_API_BASE_URL_VALUE"
@@ -2119,7 +2078,7 @@ else
     if [[ -z "$CMUX_TUI_CLIENT_COMMIT" ]]; then
       CMUX_TUI_CLIENT_COMMIT="$(resolve_cmux_tui_client_commit)" || exit 1
     fi
-    cmux_tui_manifest_base="${CMUX_TUI_CLIENT_MANIFEST_BASE:-https://files.cmux.com/cmux-tui}"
+    cmux_tui_manifest_base="${CMUX_TUI_CLIENT_MANIFEST_BASE:-https://files.cmux.w3dev.app/cmux-tui}"
     cmux_tui_install_args+=(
       --manifest-url "${cmux_tui_manifest_base%/}/$CMUX_TUI_CLIENT_COMMIT/manifest.json"
       --expected-commit "$CMUX_TUI_CLIENT_COMMIT"
@@ -2193,7 +2152,7 @@ CLI_PATH="$APP_PATH/Contents/Resources/bin/cmux"
 if [[ "$BUILD_ONLY" -eq 1 ]]; then
   CAN_PUBLISH_RELOAD_STATE=0
   RELOAD_PUBLICATION_SKIP_REASON="build-only mode left the running tagged app and tag state unchanged"
-elif [[ -n "$TAG" ]] && ! wait_for_tag_socket_lock_release "/tmp/cmux-debug-${TAG_SLUG}.sock"; then
+elif [[ -n "$TAG" ]] && ! wait_for_tag_socket_lock_release "/tmp/cmux-w3dev-debug-${TAG_SLUG}.sock"; then
   CAN_PUBLISH_RELOAD_STATE=0
 fi
 if [[ "$CAN_PUBLISH_RELOAD_STATE" -eq 1 && -n "${TAG_SLUG:-}" ]]; then
@@ -2208,8 +2167,8 @@ if [[ "$CAN_PUBLISH_RELOAD_STATE" -eq 1 && -n "${TAG_SLUG:-}" ]]; then
   fi
   if ! cleanup_stale_tag_state \
       "$TAG_SLUG" \
-      "/tmp/cmux-debug-${TAG_SLUG}.sock" \
-      "/tmp/cmux-debug-${TAG_SLUG}.sock" \
+      "/tmp/cmux-w3dev-debug-${TAG_SLUG}.sock" \
+      "/tmp/cmux-w3dev-debug-${TAG_SLUG}.sock" \
       "$RELOAD_PUBLISH_CLI_PATH"; then
     # A replacement process may have reclaimed this tag while the old app was
     # terminating. Do not overwrite its discovery marker or ambient CLI pointer.
@@ -2278,21 +2237,16 @@ if [[ "$LAUNCH" -eq 1 ]]; then
     -u XDG_DATA_DIRS
   )
 
-  # DEBUG dogfood auto-sign-in needs no env injection here: the in-app resolver
-  # reads ~/.secrets/cmuxterm-dev.env (then ~/.secrets/cmux.env) directly on
-  # launch, which fires for every launch method including Finder / the CMUX Tag
-  # Opener that this script's TAG_LAUNCH_ENV never reaches. Exporting the Stack
-  # password into the long-lived GUI process environment would leak it to every
-  # child terminal/CLI it spawns, for zero added coverage, so we deliberately do
-  # not set CMUX_UITEST_STACK_* here.
-  LAUNCH_AUTH_CALLBACK_SCHEME="cmux-dev"
+  # System-browser sign-in uses this exact registered tagged callback.
+  LAUNCH_AUTH_CALLBACK_SCHEME="cmux-w3dev-dev"
   if [[ -n "${TAG_SLUG:-}" ]]; then
-    LAUNCH_AUTH_CALLBACK_SCHEME="cmux-dev-${TAG_SLUG}"
+    LAUNCH_AUTH_CALLBACK_SCHEME="cmux-w3dev-dev-${TAG_SLUG}"
   fi
   TAG_LAUNCH_ENV=(
     CMUX_TAG="${TAG_SLUG:-}"
     CMUX_BUNDLE_ID="$BUNDLE_ID"
     CMUX_AUTH_CALLBACK_SCHEME="$LAUNCH_AUTH_CALLBACK_SCHEME"
+    CMUX_OAUTH_CLIENT_ID="${CMUX_OAUTH_CLIENT_ID:-cmux-w3dev-macos-dev-${TAG_SLUG}}"
     CMUX_SOCKET_ENABLE=1
     CMUX_SOCKET_MODE=allowAll
     CMUX_DEBUG_LOG="$CMUX_DEBUG_LOG"
@@ -2389,8 +2343,8 @@ if [[ "$LAUNCH" -eq 1 ]]; then
       exit 1
     fi
   else
-    echo "/tmp/cmux-debug.sock" > /tmp/cmux-last-socket-path || true
-    echo "/tmp/cmux-debug.log" > /tmp/cmux-last-debug-log-path || true
+    echo "/tmp/cmux-w3dev-debug.sock" > /tmp/cmux-w3dev-last-socket-path || true
+    echo "/tmp/cmux-w3dev-debug.log" > /tmp/cmux-w3dev-last-debug-log-path || true
     if [[ -n "${CMUX_SOCKET_PATH_VALUE:-}" ]]; then
       # Ensure explicit socket paths win even if the caller has CMUX_* overrides.
       LAUNCH_CMD=("${OPEN_CLEAN_ENV[@]}" "${TAG_LAUNCH_ENV[@]}" CMUX_SOCKET_PATH="$CMUX_SOCKET_PATH_VALUE" CMUXD_UNIX_PATH="$CMUXD_SOCKET" open -g "$APP_PATH")

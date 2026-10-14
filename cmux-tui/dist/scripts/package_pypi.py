@@ -36,7 +36,7 @@ cmux
 ```
 
 For one-off use, run `uvx cmux` or `pipx run cmux`. See the
-[cmux-tui documentation](https://github.com/manaflow-ai/cmux/tree/main/cmux-tui)
+[cmux-tui documentation](https://github.com/ashutoshpw/cmux/tree/main/cmux-tui)
 for CLI commands, configuration, remote sessions, and SDKs.
 """
 
@@ -156,7 +156,7 @@ Name: {DIST_NAME}
 Version: {version}
 Summary: {PROJECT_SUMMARY}
 License: MIT
-Project-URL: Source, https://github.com/manaflow-ai/cmux
+Project-URL: Source, https://github.com/ashutoshpw/cmux
 Description-Content-Type: text/markdown
 
 {PROJECT_DESCRIPTION}"""

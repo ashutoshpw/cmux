@@ -475,7 +475,6 @@ final class PhonePushClient {
         request.httpMethod = "GET"
         request.timeoutInterval = 10
         request.setValue("Bearer \(snapshot.accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(snapshot.refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         guard let (data, response) = try? await session.data(for: request),
               let http = response as? HTTPURLResponse,
               (200...299).contains(http.statusCode),
@@ -1017,10 +1016,6 @@ final class PhonePushClient {
         request.setValue(
             "Bearer \(sessionSnapshot.accessToken)",
             forHTTPHeaderField: "Authorization"
-        )
-        request.setValue(
-            sessionSnapshot.refreshToken,
-            forHTTPHeaderField: "X-Stack-Refresh-Token"
         )
         if let targetBundleIdentifier = envelope.targetBundleIdentifier,
            !targetBundleIdentifier.isEmpty {

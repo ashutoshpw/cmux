@@ -345,7 +345,7 @@ class GhosttyApp {
         }
     )
 
-    private static let releaseBundleIdentifier = "com.cmuxterm.app"
+    private static let releaseBundleIdentifier = "app.w3dev.cmux"
     /// Shared config-file discovery seam. Resolves Ghostty config scan paths,
     /// scans them for font/appearance directives, and decides legacy/CJK/theme
     /// overrides. The C-API config-load methods below call it to decide *what*

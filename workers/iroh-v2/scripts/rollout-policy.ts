@@ -9,17 +9,9 @@ type Migration = { tag: string; new_sqlite_classes?: string[]; [key: string]: un
 type Config = { migrations: Migration[]; env: Record<string, { name: string; vars: Record<string, string>; durable_objects: { bindings: Binding[] } }> };
 type StoragePolicy = { maxSchemaVersion: number; writeSchemaVersion: number };
 
-const targets = { production: "cmux-v2", staging: "cmux-v2-staging" } as const;
+const targets = { production: "w3dev-cmux-v2", staging: "w3dev-cmux-v2-staging" } as const;
 type Environment = keyof typeof targets;
 export const candidateStorage: StoragePolicy = { maxSchemaVersion: STORAGE_SCHEMA_VERSION, writeSchemaVersion: STORAGE_WRITE_SCHEMA_VERSION };
-
-// These immutable versions were inspected read-only before the rollout: their
-// migration readers support schema 6 and their health route is absent. Unknown
-// pre-health versions must be audited, never inferred compatible from a 404.
-const legacyVersions = {
-  production: "bd1538b8-b29f-430f-a33f-119bd41e4118",
-  staging: "e0f72d8d-7db8-423e-a207-f03882523887",
-} as const;
 
 function environment(value: string): Environment {
   if (value !== "production" && value !== "staging") throw new Error("Unsupported rollout environment");
@@ -104,9 +96,7 @@ export function assertRollout(config: Config, previous: Version, health: unknown
   StorageCompatibilitySchema.parse(candidate);
   migrationPlan(config, previous, allowMigration);
   let prior: StoragePolicy;
-  if (status === 404 && previous.id === legacyVersions[lane]) {
-    prior = { maxSchemaVersion: 6, writeSchemaVersion: 6 };
-  } else if (status === 200) {
+  if (status === 200) {
     prior = StorageCompatibilitySchema.parse(verifiedHealth(previous, health, lane).storage);
   } else {
     throw new Error("No verified SQLite rollback compatibility for the active version");

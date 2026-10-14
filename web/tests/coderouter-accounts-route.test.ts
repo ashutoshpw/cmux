@@ -28,7 +28,7 @@ const credentialBody = JSON.stringify({
 });
 
 function addRequest(): Request {
-  return new Request("https://coderouter.dev/api/coderouter/accounts", {
+  return new Request("https://cmux.w3dev.app/api/coderouter/accounts", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: credentialBody,
@@ -59,7 +59,7 @@ describe("coderouter account addition", () => {
         resolveContext: mock(async () => ({ ...context, value: { ...context.value, team: { ...context.value.team, teamId } } })) as never,
         add,
       });
-      const response = await POST(new Request("https://coderouter.dev/api/coderouter/accounts", {
+      const response = await POST(new Request("https://cmux.w3dev.app/api/coderouter/accounts", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ ...JSON.parse(credentialBody), ...body }),

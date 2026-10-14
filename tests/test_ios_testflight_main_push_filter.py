@@ -152,6 +152,7 @@ def resolved_metadata_artifact(
     return module.resolve_distribution(
         variant,
         marketing_version_override,
+        "FORKTEAM12",
     ).metadata_artifact
 
 

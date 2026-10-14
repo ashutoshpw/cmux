@@ -1,6 +1,11 @@
+import { ownedPrincipal } from "./helpers/owned-principal";
 import { describe, expect, mock, test } from "bun:test";
 
 const getUser = mock(async () => null);
+
+mock.module("../services/auth/betterAuthPrincipal", () => ({
+  resolveBetterAuthPrincipal: async (headers: Headers) => ownedPrincipal(await getUser(), headers),
+}));
 
 mock.module("../app/lib/stack", () => ({
   getStackServerApp: () => ({ getUser }),

@@ -73,7 +73,6 @@ public struct BillingPlanClient: Sendable {
             request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
         }
         if let refreshToken {
-            request.setValue(refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         }
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {

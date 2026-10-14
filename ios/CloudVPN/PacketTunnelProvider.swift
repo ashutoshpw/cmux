@@ -3,7 +3,7 @@ import NetworkExtension
 import CmuxCloudTunnelCore
 import os
 
-private let logger = Logger(subsystem: "dev.cmux.ios.cloud-vpn", category: "PacketTunnelProvider")
+private let logger = Logger(subsystem: "app.w3dev.cmux.ios.debug.cloud-vpn", category: "PacketTunnelProvider")
 
 /// Runs the optional cmux Cloud system VPN on iOS.
 ///

@@ -124,12 +124,12 @@ platform :ios do
     UI.message("Framed screenshots + gallery written")
   end
 
-  desc "Upload the captured screenshots to the com.cmux.app App Store listing"
+  desc "Upload the captured screenshots to the app.w3dev.cmux.ios App Store listing"
   desc "Screenshots only: does not touch the binary, metadata, or version state."
   lane :upload_screenshots do
     deliver(
       api_key: asc_api_key,
-      app_identifier: "com.cmux.app",
+      app_identifier: "app.w3dev.cmux.ios",
       screenshots_path: "./fastlane/screenshots",
       skip_binary_upload: true,
       skip_metadata: true,

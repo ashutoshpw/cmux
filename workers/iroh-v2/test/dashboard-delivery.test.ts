@@ -6,11 +6,11 @@ import { emptyDeliveryState, type DeliveryState } from "../src/delivery";
 import type { Environment } from "../src/environment";
 
 const environment = "staging";
-const projectId = "project";
+const projectId = "https://cmux.w3dev.app";
 const teamId = "team";
 const userId = "user";
 const sessionId = "dashboard-session";
-const authority = { environment, projectId, teamId, userId, verifiedAt: 1000 } as const;
+const authority = { environment, projectId, teamId, userId,  sessionId: "auth-session", verifiedAt: 1000 } as const;
 
 type Attachment = {
   kind: "dashboard"; sessionId: string; claims: DashboardClaims; deviceKey: string;
@@ -98,7 +98,7 @@ function connection(options: { refuseFirstCharge?: boolean } = {}) {
   const ledger = outputLedger(options);
   const control = new DashboardControl(
     { waitUntil: () => {} } as unknown as DurableObjectState,
-    { ENVIRONMENT: environment, STACK_PROJECT_ID: projectId } as unknown as Environment,
+    { ENVIRONMENT: environment, CMUX_AUTH_ORIGIN: projectId } as unknown as Environment,
     {
       broker: () => new TeamBroker(dependencies),
       user: () => ledger,

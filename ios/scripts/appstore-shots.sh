@@ -34,9 +34,9 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 IOS_DIR="$(dirname "$HERE")"
 WORK="$IOS_DIR/fastlane/appstore-shots-work"
 PLAN="$IOS_DIR/fastlane/appstore-shots-plan.json"
-REPO="${APPSTORE_SHOTS_REPO:-manaflow-ai/cmux}"
+REPO="${APPSTORE_SHOTS_REPO:-ashutoshpw/cmux}"
 WORKFLOW="ios-screenshots.yml"
-APP_ID="$(python3 -c "import json;print(json.load(open('$PLAN'))['app_id'])")"
+APP_ID="${ASC_APP_ID:-}"
 
 usage() { sed -n '2,27p' "$0" | sed 's/^# \{0,1\}//'; exit 1; }
 
@@ -45,6 +45,7 @@ need() { command -v "$1" >/dev/null 2>&1 || { echo "missing tool: $1" >&2; exit 
 # Resolves the version localization whose locale matches the plan's locale
 # (never data[0]: a multi-locale listing can order another locale first).
 resolve_localization() {
+  [[ "$APP_ID" =~ ^[0-9]+$ ]] || { echo "Set ASC_APP_ID to the fork App Store record" >&2; return 1; }
   local version_id
   version_id="$(asc versions list --app "$APP_ID" --output json \
     | python3 -c "import json,sys;d=json.load(sys.stdin);print(d['data'][0]['id'])")"
@@ -142,7 +143,7 @@ cmd_capture_real() {
 # "reply" mode of ScreenshotNotificationPresenter.
 cmd_lockshot() {
   need xcrun; need axe; need idb
-  local app="" udid="" bundle_id="dev.cmux.ios" sim_name="cmux-shots-lockreply"
+  local app="" udid="" bundle_id="app.w3dev.cmux.ios.debug" sim_name="cmux-shots-lockreply"
   local reply_text="Looks great, merge it and start the deploy"
   while [ $# -gt 0 ]; do
     case "$1" in

@@ -7,12 +7,14 @@ public import Foundation
 public final class ASWebBrowserAuthSessionFactory: HostBrowserAuthSessionFactory {
     private let anchor: any ASWebAuthenticationPresentationContextProviding
     private let log = AuthDebugLog()
+    private let ephemeralSession: Bool
 
     /// Creates the factory.
     /// - Parameter anchor: The presentation anchor provider (production:
     ///   ``AuthPresentationContextProvider``).
-    public init(anchor: any ASWebAuthenticationPresentationContextProviding) {
+    public init(anchor: any ASWebAuthenticationPresentationContextProviding, ephemeralSession: Bool = false) {
         self.anchor = anchor
+        self.ephemeralSession = ephemeralSession
     }
 
     public func makeSession(
@@ -27,7 +29,7 @@ public final class ASWebBrowserAuthSessionFactory: HostBrowserAuthSessionFactory
             completionHandler: sessionCompletionBridge(completion: completion)
         )
         session.presentationContextProvider = anchor
-        session.prefersEphemeralWebBrowserSession = false
+        session.prefersEphemeralWebBrowserSession = ephemeralSession
         return ASWebBrowserAuthSession(session: session)
     }
 

@@ -1,20 +1,52 @@
 # IROH v2 Worker
 
+## Owned deployment boundaries
+
+The owned targets are `w3dev-cmux-v2` and `w3dev-cmux-v2-staging`. Their API and project authority scopes are `https://cmux.w3dev.app` and `https://staging.cmux.w3dev.app`, respectively. The public Worker endpoints come from the fork deployment manifest.
+
+The guarded rollout requires `CMUX_FORK_CLOUDFLARE_ACCOUNT_ID` to name the actual owned Cloudflare account and `CLOUDFLARE_ACCOUNT_ID` to match it. Missing declarations, mismatches, and the upstream account are rejected before provider commands. No account is provisioned by these source changes.
+
+A rollout also requires an existing owned deployment with matching health, source revision, storage compatibility and Durable Object namespace receipts. Production verifies the same revision in owned staging first. Upstream version IDs cannot substitute for a health receipt. An additive pending migration must still be named explicitly and applied in staging before production; automatic rollback remains disabled while applying a migration.
+
+A fresh Worker has no existing receipt, so the guarded rollout intentionally refuses its first deployment. Initial owned Worker and namespace provisioning, migrations, domains, secrets and relay resources need a separate reviewed provisioning step. Reusing upstream namespaces or audited upstream deployment IDs is not a bootstrap path.
+
+### First deployment of an owned Worker
+
+Use this separate bootstrap only after an operator has audited the selected owned Cloudflare account and confirmed that the exact staging or production Worker name has never existed there. Record that inventory evidence and approval. An unavailable API, unauthorized response, generic error or missing health route is not evidence of an absent Worker. If the name exists, inspect its version and namespace receipts and use the guarded upgrade path instead.
+
+1. Provision the owned database schema, owned Better Auth issuer and registered native clients. Prepare an ignored, permission-restricted JSON secrets file containing the names required by `wrangler.jsonc` for the selected lane. Values must belong to that same owned lane; the internal auth service key must match its web authority. Set `CMUX_IROH_BOOTSTRAP_SECRETS_FILE` to the file path. No upstream credentials, database or relay resources may be used.
+2. Set `CMUX_FORK_CLOUDFLARE_ACCOUNT_ID` to the audited owned account and set `CLOUDFLARE_ACCOUNT_ID` to the identical value. Use a clean, committed checkout whose scoped Worker checks pass. Record its SHA before deployment. Begin with staging, whose configuration fixes the name to `w3dev-cmux-v2-staging` and auth origin to `https://staging.cmux.w3dev.app`.
+3. After the explicit bootstrap approval, run the initial staging upload from `workers/iroh-v2`:
+
+   ```bash
+   bootstrap_revision="$(git rev-parse HEAD)"
+   bunx wrangler deploy --config wrangler.jsonc --env staging --keep-vars --strict \
+     --secrets-file "$CMUX_IROH_BOOTSTRAP_SECRETS_FILE" \
+     --var "CMUX_SOURCE_REVISION:$bootstrap_revision"
+   ```
+
+   This initial upload applies the declared Durable Object migrations and creates fresh namespaces. It has no preexisting version to roll back to. Never use `--name` to redirect it onto an existing Worker or alias.
+4. Capture `wrangler deployments status --env staging --name w3dev-cmux-v2-staging --json`, then inspect that deployment's version with `wrangler versions view <captured-version-id> --env staging --name w3dev-cmux-v2-staging --json`. Record the source revision, migration tag and all three fresh namespace IDs. Provision `iroh.staging.cmux.w3dev.app` as the owned Worker's custom domain and verify `/v2/health`, current environment, source revision, storage reader/writer versions and Mac admission rules. Run authenticated native connectivity, membership/role removal and session revocation checks against this lane before approving production.
+5. For production, separately audit that `w3dev-cmux-v2` is absent in the same approved account. Prepare its distinct production secrets file and confirm that staging still serves the approved SHA. With explicit initial production approval, use the same upload command with `--env production`; its configuration binds production to `https://cmux.w3dev.app`. Capture the production version and fresh namespace IDs, provision `iroh.cmux.w3dev.app`, and repeat the production health and authenticated checks. Retain both bootstrap receipts.
+
+Subsequent uploads use `deploy:staging` and `deploy:production`, which require the captured existing deployments and enforce storage compatibility, staging parity and namespace continuity. This procedure documents provisioning; no owned Worker, namespace, domain or deployment has been created by the source changes.
+
+
 The Worker owns `/v2/` control routes. Each team and environment maps to one
 Durable Object with Drizzle SQLite storage. The shared ownership adapter uses
-the existing production PlanetScale PostgreSQL database. Its only v2 tables are
+the explicitly configured owned PostgreSQL database. Its only v2 tables are
 the global EndpointID ownership map and the corresponding owner counts. Device
 registrations, challenges, permissions, directory state and rate limits remain
 in Durable Object SQLite. Credentials do not create a row per issuance.
 
-The shared development Worker is `cmux-v2-development`. For isolated
+The shared development Worker is `w3dev-cmux-v2-development`. For isolated
 branch work, deploy a suffixed Worker:
 
 ```sh
 ./scripts/deploy-dev.sh my-branch
 ```
 
-The current account uses the `debussy.workers.dev` subdomain.
+Declare the actual owned `CMUX_IROH_V2_WORKERS_SUBDOMAIN`, `CMUX_FORK_CLOUDFLARE_ACCOUNT_ID`, and matching `CLOUDFLARE_ACCOUNT_ID`. The isolated deploy accepts only the owned staging authority and publishes `CMUX_AUTH_SERVICE_KEY`, ticket/relay keys and the configured database URL. It never forwards retired provider secrets.
 
 Put the required secrets in the shell environment or `.dev.vars`. Set either
 `DATABASE_URL` or `PLANETSCALE_DATABASE_URL`; deployment publishes the chosen
@@ -34,10 +66,7 @@ Set `PLANETSCALE_DATABASE_URL` in the environment or a local ignored env file.
 Docker database. The PlanetScale CLI accepts a service token through its secure
 credential store or flags; never commit credentials.
 
-The September 15 cutover copied 44 ownership entries from the temporary v2
-databases into the existing production database and switched all three Workers
-to it. Existing legacy tables were preserved. See the deployment receipt in
-`docs/iroh-v2/IMPLEMENTATION.md`. No new database is required.
+Historical upstream database cutovers are not provisioning evidence for this fork. Supply the owned database and apply its reviewed schema before enabling an owned Worker.
 
 The ownership adapter sets its five-second statement timeout inside each
 transaction because the shared database pool rejects that setting during
@@ -49,12 +78,7 @@ environment file. Keep this live check separate from the local workerd suite.
 
 ## Guarded rollout and client rule dependencies
 
-Canonical Workers are `cmux-v2`, `cmux-v2-staging`, and `cmux-v2-development`.
-The old `cmux-iroh-v2*` hosts are forwarding aliases for existing Mac and iOS
-clients. Deploy to the canonical Worker in place; never deploy a full Worker
-onto an alias or create replacement Durable Object namespaces. PR #13768 owns
-the broader client-origin rename and alias tooling; this follow-up adopts its
-deployment names so rollout cannot overwrite those existing aliases.
+Canonical Workers are `w3dev-cmux-v2`, `w3dev-cmux-v2-staging`, and `w3dev-cmux-v2-development`. Fork clients use the owned manifest endpoints. Existing owned namespace IDs must remain unchanged during guarded upgrades; upstream aliases and namespaces are never deployment targets.
 
 Mac-to-Mac links require `directory.rules` to contain
 `cmux.mac-peer-inbound.v1`. An `inboundPeers` field alone is insufficient:
@@ -72,23 +96,15 @@ migration statements and hashes are unchanged; the v7 migration remains intact
 and is not applied implicitly. Audit retention uses the existing bounded SQL
 count on v6 and its counter on already-upgraded v7 databases.
 
-This matters because the currently deployed v6 Worker rejects a v7 history.
-Rolling its code back after a v7 write does not roll SQLite back. Cloudflare's
-Durable Object migration tag is separate from this application SQLite schema.
-The guarded script checks both, plus the active namespaces. It permits only a
-candidate whose write version the previous reader supports, and refuses reader
-downgrades. A 404 health route proves no compatibility. Only the exact audited
-legacy production and staging version IDs in `scripts/rollout-policy.ts` qualify
-for the first v6-preserving deployment; unknown versions fail closed. Do not add
-an ID without inspecting that immutable version's migration reader.
+A v6 reader rejects a v7 history, and rolling its code back after a v7 write does not roll SQLite back. Cloudflare's Durable Object migration tag is separate from this application SQLite schema. The guarded script checks both and the current namespaces. It permits only a candidate whose write version the previous reader supports and refuses reader downgrades. A missing health route proves no compatibility; every owned rollback target needs a current health and storage receipt.
 
 From a clean, committed checkout, using Bun 1.4.2 and the authorized Cloudflare
 account, first deploy staging through the same guards:
 
 ```sh
 bun install --frozen-lockfile
-CLOUDFLARE_ACCOUNT_ID=0c1675e0def6de1ab3a50a4e17dc5656 bun run deploy:staging
-curl -sS https://cmux-v2-staging.debussy.workers.dev/v2/health
+CLOUDFLARE_ACCOUNT_ID="$CMUX_FORK_CLOUDFLARE_ACCOUNT_ID" bun run deploy:staging
+curl -sS https://iroh.staging.cmux.w3dev.app/v2/health
 ```
 
 Confirm the exact source revision, `storage` reader 7/writer 6, and Mac rule.
@@ -97,8 +113,8 @@ connectivity on staging, including revocation and reconnect. Then promote the
 same revision:
 
 ```sh
-CLOUDFLARE_ACCOUNT_ID=0c1675e0def6de1ab3a50a4e17dc5656 bun run deploy:production
-curl -sS https://cmux-v2.debussy.workers.dev/v2/health
+CLOUDFLARE_ACCOUNT_ID="$CMUX_FORK_CLOUDFLARE_ACCOUNT_ID" bun run deploy:production
+curl -sS https://iroh.cmux.w3dev.app/v2/health
 bun run drift:check
 ```
 
@@ -129,15 +145,14 @@ reports drift; merging code does not deploy production.
 
 ## Account Mac directory
 
-`AccountControl` is one Durable Object per Stack user (name `user:<userId>`)
+`AccountControl` is one Durable Object per owned auth user (name `user:<userId>`)
 holding the Macs that user published from any team. `/v2/account/socket` and
 `/v2/account/requests` accept only an `IrohTicket`; the user comes from the
 signed ticket, and every open or request carries a device proof over
 `cmux-iroh-v2-account-request`. Team objects stay the authority: each directory
 read re-checks every row against its team through the read-only
 `TeamControl.accountMacRecords` RPC, and a read that overlaps a revocation
-notice retries or answers `resync_required`. Team frames, rules and storage
-are unchanged; `test/fixtures/team-wire-golden.json` pins them.
+notice retries or answers `resync_required`. Owned team frames, rules and storage are pinned; `test/fixtures/team-wire-golden.json` pins them.
 
 Revocation reaches the account object two ways. TeamControl sends a
 best-effort notice (three immediate attempts) after a Mac row changes, and
@@ -159,8 +174,8 @@ one additive `iroh-v2-account-control-1` migration (it only creates the
 `AccountControl` SQLite class), name it explicitly, staging first:
 
 ```sh
-IROH_V2_APPLY_MIGRATION=iroh-v2-account-control-1 CLOUDFLARE_ACCOUNT_ID=0c1675e0def6de1ab3a50a4e17dc5656 bun run deploy:staging
-IROH_V2_APPLY_MIGRATION=iroh-v2-account-control-1 CLOUDFLARE_ACCOUNT_ID=0c1675e0def6de1ab3a50a4e17dc5656 bun run deploy:production
+IROH_V2_APPLY_MIGRATION=iroh-v2-account-control-1 CLOUDFLARE_ACCOUNT_ID="$CMUX_FORK_CLOUDFLARE_ACCOUNT_ID" bun run deploy:staging
+IROH_V2_APPLY_MIGRATION=iroh-v2-account-control-1 CLOUDFLARE_ACCOUNT_ID="$CMUX_FORK_CLOUDFLARE_ACCOUNT_ID" bun run deploy:production
 ```
 
 `scripts/rollout-policy.ts` accepts the flag only when that tag is the single

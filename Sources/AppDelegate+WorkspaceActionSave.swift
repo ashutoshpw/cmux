@@ -272,7 +272,7 @@ extension AppDelegate {
             // workspace-layout customization.
             openWorkspaceLayoutsCustomization()
         case .alertSecondButtonReturn:
-            guard let url = URL(string: "https://cmux.com/docs/custom-commands") else { return }
+            guard let url = URL(string: "https://cmux.w3dev.app/docs/custom-commands") else { return }
             NSWorkspace.shared.open(url)
         default:
             break

@@ -12,7 +12,7 @@ import CmuxIrohReleaseGateSupport
 #endif
 
 nonisolated private let cmuxAppConnectivityLog = Logger(
-    subsystem: Bundle.main.bundleIdentifier ?? "com.cmuxterm.app",
+    subsystem: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux",
     category: "connectivity"
 )
 

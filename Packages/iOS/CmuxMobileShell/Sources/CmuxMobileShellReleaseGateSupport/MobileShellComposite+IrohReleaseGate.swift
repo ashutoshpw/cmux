@@ -7,7 +7,7 @@ import OSLog
 public import CmuxMobileShell
 
 private let mobileIrohReleaseGateProbeLog = Logger(
-    subsystem: "dev.cmux.ios",
+    subsystem: "app.w3dev.cmux.ios.debug",
     category: "iroh-release-gate-probe"
 )
 

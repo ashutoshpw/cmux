@@ -62,8 +62,8 @@ public struct MacBuildChannel: Sendable {
 
     private func bundleLabel(_ bundle: String) -> String? {
         // The channel is the component RIGHT AFTER the base bundle id; a tagged
-        // build appends a further `.slug` (e.g. `com.cmuxterm.app.nightly.my-tag`).
-        let base = "com.cmuxterm.app"
+        // build appends a further `.slug` (e.g. `app.w3dev.cmux.nightly.my-tag`).
+        let base = "app.w3dev.cmux"
         if bundle == base { return "Stable" }
         if bundle.hasPrefix(base + ".") {
             let rest = bundle.dropFirst(base.count + 1)

@@ -5,9 +5,9 @@ import { useState } from "react";
 type Platform = "unix" | "windows";
 
 const commands: Record<Platform, string> = {
-  unix: "curl -fsSL https://cmux.com/tui/install.sh | sh",
+  unix: "curl -fsSL https://cmux.w3dev.app/tui/install.sh | sh",
   windows:
-    'powershell -c "irm https://cmux.com/tui/install.ps1 | iex"',
+    'powershell -c "irm https://cmux.w3dev.app/tui/install.ps1 | iex"',
 };
 
 function HighlightedCommand({ platform }: { platform: Platform }) {
@@ -17,7 +17,7 @@ function HighlightedCommand({ platform }: { platform: Platform }) {
         <span className="text-[#6F42C1] dark:text-[#B392F0]">curl</span>
         <span className="text-[#005CC5] dark:text-[#79B8FF]"> -fsSL</span>
         <span className="text-[#032F62] dark:text-[#9ECBFF]">
-          {" https://cmux.com/tui/install.sh"}
+          {" https://cmux.w3dev.app/tui/install.sh"}
         </span>
         <span className="text-[#D73A49] dark:text-[#F97583]"> |</span>
         <span className="text-[#6F42C1] dark:text-[#B392F0]"> sh</span>
@@ -31,7 +31,7 @@ function HighlightedCommand({ platform }: { platform: Platform }) {
       <span className="text-[#D73A49] dark:text-[#F97583]">-</span>
       <span>c </span>
       <span className="text-[#032F62] dark:text-[#9ECBFF]">
-        {'"irm https://cmux.com/tui/install.ps1 | iex"'}
+        {'"irm https://cmux.w3dev.app/tui/install.ps1 | iex"'}
       </span>
     </>
   );

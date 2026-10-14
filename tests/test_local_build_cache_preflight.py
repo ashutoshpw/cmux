@@ -64,6 +64,13 @@ class PreflightTests(unittest.TestCase):
     def test_actions_two_file_hash_vector(self):
         self.assertEqual(self.key, "spm-501477d966301ff37b61f4d9f3cc0240f71f7c4e9bec278bbbbddf9c8d71653f")
 
+    def test_unconfigured_warm_cache_is_a_miss_without_network_requests(self):
+        with patch.object(preflight, "fetch", side_effect=AssertionError("unconfigured cache must not contact a host")):
+            result = preflight.seed_spm(self.repo, self.destination, self.cache, "", "macOS-ARM64",
+                                        self.deadline, allow_network=True)
+        self.assertEqual(result["status"], "miss")
+        self.assertIn("not configured", result["reason"])
+
     def test_exact_seed_and_isolated_reuse(self):
         with patch.object(preflight, "fetch", side_effect=self.fetch_exact):
             first = self.seed()

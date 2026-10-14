@@ -50,14 +50,14 @@ public enum SameDeviceEvidence: Equatable, Sendable {
 ///
 /// CROSS-PACKAGE CONTRACT: the service name mirrors
 /// `CmxIrohKeychainIdentityStore.init(service:)` in CmuxIrohTransport
-/// ("com.cmuxterm.iroh.endpoint-identity.v1"). CmuxMobileShell does not depend
+/// ("app.w3dev.cmux.iroh.endpoint-identity.v1"). CmuxMobileShell does not depend
 /// on CmuxIrohTransport, so the constant is duplicated here deliberately; both
 /// sites carry a comment pointing at the other. The probe only asks "does any
 /// item exist" — it never reads key material (`kSecReturnData` is not set).
 public struct IrohEndpointIdentityEvidenceProbe: SameDeviceEvidenceProbing {
     private let service: String
 
-    public init(service: String = "com.cmuxterm.iroh.endpoint-identity.v1") {
+    public init(service: String = "app.w3dev.cmux.iroh.endpoint-identity.v1") {
         self.service = service
     }
 

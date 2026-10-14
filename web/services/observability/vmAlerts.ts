@@ -230,6 +230,7 @@ export async function reportDroppedVmAlerts(
     },
     { fingerprint: ["cmux-vm-alerts", "alerts_unconfigured"] },
   );
+  if (!POSTHOG_PROJECT_KEY || !POSTHOG_HOST) return;
   const fetchImpl = options.fetch ?? fetch;
   const captureTask = Promise.all(keys.map((key) => {
     const body = JSON.stringify({

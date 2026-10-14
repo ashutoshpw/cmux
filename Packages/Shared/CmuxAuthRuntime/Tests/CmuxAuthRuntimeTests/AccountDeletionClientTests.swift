@@ -26,7 +26,7 @@ struct AccountDeletionClientTests {
         #expect(request?.httpMethod == "DELETE")
         #expect(request?.timeoutInterval == 12)
         #expect(request?.value(forHTTPHeaderField: "Authorization") == "Bearer access-token")
-        #expect(request?.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == "refresh-token")
+        #expect(request?.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == nil)
     }
 
     @Test func deleteAccountMapsCleanupIncompleteAcceptedResponse() async throws {

@@ -29,7 +29,7 @@ struct CmxIrohRegistrationSignerTests {
         let payload = try CmxIrohRegistrationPayload(
             deviceID: "123e4567-e89b-12d3-a456-426614174000",
             appInstanceID: "123e4567-e89b-12d3-a456-426614174001",
-            clientNamespace: "dev.cmux.app.internal",
+            clientNamespace: "app.w3dev.cmux.ios.internal",
             tag: "stable",
             platform: .ios,
             displayName: "Phone",
@@ -72,10 +72,10 @@ struct CmxIrohRegistrationSignerTests {
         )
         #expect(payloadObject["endpointId"] as? String == endpointID)
         #expect(payloadObject["endpointID"] == nil)
-        #expect(payloadObject["clientNamespace"] as? String == "dev.cmux.app.internal")
+        #expect(payloadObject["clientNamespace"] as? String == "app.w3dev.cmux.ios.internal")
         #expect(
             prepared.challengeRequest.clientNamespace
-                == "dev.cmux.app.internal"
+                == "app.w3dev.cmux.ios.internal"
         )
         let pathHints = try #require(payloadObject["pathHints"] as? [[String: Any]])
         let encodedHint = try #require(pathHints.first)

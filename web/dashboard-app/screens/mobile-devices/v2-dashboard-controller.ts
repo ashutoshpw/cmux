@@ -1,3 +1,4 @@
+import { forkDeployment } from "../../../services/deployment/config";
 export type DashboardDeviceRecord = {
   readonly deviceRecordId: string;
   readonly descriptor: {
@@ -36,9 +37,8 @@ type Frame = { readonly schemaId?: string; readonly requestId?: string; readonly
 
 const REQUEST_TIMEOUT_MS = 10_000;
 const MAX_RECONNECT_ATTEMPTS = 5;
-// Only the three managed Workers may receive browser Stack tokens. A generic
-// workers.dev suffix would also trust another account's Worker.
-const ORIGIN_ALLOWED = /^https:\/\/cmux-v2(?:-development|-staging)?\.debussy\.workers\.dev$/u;
+// Only the deployment contract's owned device services may receive browser tokens.
+const ORIGIN_ALLOWED = new Set<string>([forkDeployment.irohV2Origin, forkDeployment.developmentIrohV2Origin]);
 
 export class V2DashboardController {
   private readonly options: DashboardOptions;
@@ -56,7 +56,7 @@ export class V2DashboardController {
   private pending = new Map<string, { resolve: (frame: Frame) => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> }>();
 
   constructor(options: DashboardOptions) {
-    if (!ORIGIN_ALLOWED.test(options.origin)) throw new Error("Dashboard origin is not an approved device service");
+    if (!ORIGIN_ALLOWED.has(options.origin)) throw new Error("Dashboard origin is not an approved device service");
     this.options = options;
     const storageKey = "cmux-iroh-v2.dashboard.client-instance";
     const storage = typeof sessionStorage === "undefined" ? null : sessionStorage;

@@ -51,7 +51,7 @@ struct CmuxTUISessionSocketParsingTests {
         /tmp/cmux-tui-501/cmux-ios.sock
         """
         let sockets = CmuxTUIRemote.parseSessionSockets(output)
-        #expect(sockets.map(\.name) == ["main", "work", "cmux-ios"])
+        #expect(sockets.map(\.name) == ["main", "work", "cmux-w3dev-ios"])
         #expect(sockets.first?.path == "/run/user/501/cmux-tui-501/main.sock")
     }
 }

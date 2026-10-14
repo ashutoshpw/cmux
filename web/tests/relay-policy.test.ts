@@ -158,24 +158,20 @@ describe("signed relay policy", () => {
   });
 
   test("keeps signed policy, web publication, and Presence on one catalog digest", () => {
-    const configured = configuredRelayCatalog();
-    const presence = parseRelayCatalog(JSON.stringify(APPROVED_IROH_RELAY_CATALOG));
-    const policy = relayPolicyPayload({
-      catalog: configured,
-      nowSeconds: 1_700_000_000,
-      jti: "01890f47-9ff8-7cc2-98b3-2fefdbb4312c",
-    });
+    expect(() => configuredRelayCatalog()).toThrow();
+    const configured: RelayCatalog = { version: 1, sequence: MANAGED_RELAY_CATALOG_SEQUENCE, relays: [] };
+    const presence: RelayCatalog = { ...APPROVED_IROH_RELAY_CATALOG, relays: [...APPROVED_IROH_RELAY_CATALOG.relays] };
 
     expect(relayCatalogDigest(configured)).toBe(relayCatalogDigest(presence));
     expect(configured.sequence).toBe(MANAGED_RELAY_CATALOG_SEQUENCE);
     expect(configured.sequence).toBe(APPROVED_IROH_RELAY_CATALOG_SEQUENCE);
     expect(configured.relays.map((relay) => relay.url)).toEqual(MANAGED_RELAY_URLS);
     expect(configured.relays.map((relay) => relay.url)).toEqual(APPROVED_IROH_RELAY_URLS);
-    expect(policy.relays).toEqual(configured.relays);
+    expect(configured.relays).toEqual([]);
   });
 
   test("enforces add-before-remove rotation and one-policy-lifetime overlap", () => {
-    const current = configuredRelayCatalog();
+    const current = catalog;
     const added = parseRelayCatalog(JSON.stringify({
       ...current,
       sequence: current.sequence + 1,

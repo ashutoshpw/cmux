@@ -9,8 +9,7 @@ import {
 } from "../../../../services/auth/emailVerificationRecovery";
 
 const MAX_REQUEST_BYTES = 4 * 1_024;
-const PRODUCTION_VERIFICATION_CALLBACK =
-  "https://cmux.com/handler/email-verification";
+import { applicationOrigin } from "../../../../services/deployment/origin";
 
 type RateLimitCheck = typeof checkVercelRateLimit;
 
@@ -56,7 +55,7 @@ export function makeEmailVerificationRecoveryHandler(
     try {
       await dependencies.recover({
         email,
-        callbackURL: verificationCallbackURL(request),
+        callbackURL: verificationCallbackURL(),
       });
     } catch {
       console.error("auth.email_verification_recovery.unexpected", {
@@ -100,16 +99,8 @@ function validEmail(value: unknown): string | null {
   return email;
 }
 
-function verificationCallbackURL(request: Request): string {
-  const requestURL = new URL(request.url);
-  if (
-    requestURL.hostname === "localhost" ||
-    requestURL.hostname === "127.0.0.1" ||
-    requestURL.hostname === "[::1]"
-  ) {
-    return new URL("/handler/email-verification", requestURL.origin).toString();
-  }
-  return PRODUCTION_VERIFICATION_CALLBACK;
+function verificationCallbackURL(): string {
+  return new URL("/handler/after-sign-in", applicationOrigin()).toString();
 }
 
 function json(body: Record<string, unknown>, status: number): Response {

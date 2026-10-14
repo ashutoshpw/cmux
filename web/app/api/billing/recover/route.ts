@@ -18,7 +18,7 @@ import {
 import { recordSpanError, withApiRouteSpan } from "../../../../services/telemetry";
 
 const MAX_REQUEST_BYTES = 4 * 1_024;
-const PRODUCTION_MAGIC_LINK_CALLBACK = "https://cmux.com/handler/after-sign-in";
+import { applicationOrigin } from "../../../../services/deployment/origin";
 export const BILLING_RECOVERY_RESPONSE_MESSAGE =
   (englishMessages as { billingRecovery: { message: string } }).billingRecovery
     .message;
@@ -127,8 +127,8 @@ export function makeBillingRecoveryHandler(
         const email = validEmail(body.value.email);
         if (!email) return json({ error: "invalid_email" }, 400);
 
-        const callbackURL = magicLinkCallbackURL(request);
-        const verificationURL = emailVerificationCallbackURL(request);
+        const callbackURL = magicLinkCallbackURL();
+        const verificationURL = emailVerificationCallbackURL();
         try {
           const paid = await dependencies.recoverPaid(email);
           if (paid && typeof paid === "object" && "skipped" in paid) {
@@ -242,28 +242,12 @@ function validEmail(value: unknown): string | null {
   return email;
 }
 
-function magicLinkCallbackURL(request: Request): string {
-  const requestURL = new URL(request.url);
-  if (
-    requestURL.hostname === "localhost" ||
-    requestURL.hostname === "127.0.0.1" ||
-    requestURL.hostname === "[::1]"
-  ) {
-    return new URL("/handler/after-sign-in", requestURL.origin).toString();
-  }
-  return PRODUCTION_MAGIC_LINK_CALLBACK;
+function magicLinkCallbackURL(): string {
+  return new URL("/handler/after-sign-in", applicationOrigin()).toString();
 }
 
-function emailVerificationCallbackURL(request: Request): string {
-  const requestURL = new URL(request.url);
-  if (
-    requestURL.hostname === "localhost" ||
-    requestURL.hostname === "127.0.0.1" ||
-    requestURL.hostname === "[::1]"
-  ) {
-    return new URL("/handler/email-verification", requestURL.origin).toString();
-  }
-  return "https://cmux.com/handler/email-verification";
+function emailVerificationCallbackURL(): string {
+  return magicLinkCallbackURL();
 }
 
 function json(body: Record<string, unknown>, status: number): Response {

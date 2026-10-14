@@ -2,10 +2,12 @@ import Foundation
 
 extension HostBrowserSignInFlow {
     nonisolated func authCallbackState(from url: URL) -> String? {
-        URLComponents(url: url, resolvingAgainstBaseURL: false)?
-            .queryItems?
-            .first(where: { $0.name == "cmux_auth_state" })?
-            .value
+        let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        let oauthStates = items.filter { $0.name == "state" }
+        if !oauthStates.isEmpty {
+            return oauthStates.count == 1 ? oauthStates[0].value : nil
+        }
+        return items.first(where: { $0.name == "cmux_auth_state" })?.value
     }
 
     nonisolated func redactedAuthState(_ state: String) -> String {

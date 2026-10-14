@@ -1,6 +1,6 @@
 "use client";
 
-import { useStackApp } from "@hexclave/next";
+import { useStackApp } from "@/app/lib/stack-client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getRouteApi, useNavigate } from "@tanstack/react-router";
 import { useLocale } from "next-intl";

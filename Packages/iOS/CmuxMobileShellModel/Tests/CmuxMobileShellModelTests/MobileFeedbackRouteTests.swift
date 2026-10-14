@@ -85,33 +85,33 @@ struct MobileFeedbackRouteTests {
     // MARK: - Build-type derivation
 
     @Test func debugBuildIsAlwaysDev() {
-        #expect(MobileBuildType.resolve(isDebugBuild: true, bundleIdentifier: "dev.cmux.app.beta") == .dev)
+        #expect(MobileBuildType.resolve(isDebugBuild: true, bundleIdentifier: "app.w3dev.cmux.ios.beta") == .dev)
         #expect(MobileBuildType.resolve(isDebugBuild: true, bundleIdentifier: "dev.cmux.app") == .dev)
         #expect(MobileBuildType.resolve(isDebugBuild: true, bundleIdentifier: nil) == .dev)
     }
 
     @Test func releaseBetaBundleIsBeta() {
-        #expect(MobileBuildType.resolve(isDebugBuild: false, bundleIdentifier: "dev.cmux.app.beta") == .beta)
+        #expect(MobileBuildType.resolve(isDebugBuild: false, bundleIdentifier: "app.w3dev.cmux.ios.beta") == .beta)
     }
 
     @Test func releaseInternalAndDemoBundlesKeepTheirOwnBuildTypes() {
         #expect(
             MobileBuildType.resolve(
                 isDebugBuild: false,
-                bundleIdentifier: "dev.cmux.app.internal"
+                bundleIdentifier: "app.w3dev.cmux.ios.internal"
             ) == .internal
         )
         #expect(
             MobileBuildType.resolve(
                 isDebugBuild: false,
-                bundleIdentifier: "dev.cmux.app.demo"
+                bundleIdentifier: "app.w3dev.cmux.ios.demo"
             ) == .demo
         )
     }
 
     @Test func releaseNonBetaBundleIsProd() {
-        // com.cmux.app is the public App Store bundle id.
-        #expect(MobileBuildType.resolve(isDebugBuild: false, bundleIdentifier: "com.cmux.app") == .prod)
+        // app.w3dev.cmux.ios is the public App Store bundle id.
+        #expect(MobileBuildType.resolve(isDebugBuild: false, bundleIdentifier: "app.w3dev.cmux.ios") == .prod)
         #expect(MobileBuildType.resolve(isDebugBuild: false, bundleIdentifier: "dev.cmux.app") == .prod)
         #expect(MobileBuildType.resolve(isDebugBuild: false, bundleIdentifier: nil) == .prod)
     }
@@ -132,7 +132,7 @@ struct MobileFeedbackRouteTests {
     @Test func subjectSuffixStampsBuildTypeAndVersion() {
         let beta = MobileFeedbackStamp(
             buildType: .beta, appVersion: "0.64.13", appBuild: "42",
-            bundleIdentifier: "dev.cmux.app.beta", osVersion: "iOS 18.5", deviceModel: "iPhone16,2"
+            bundleIdentifier: "app.w3dev.cmux.ios.beta", osVersion: "iOS 18.5", deviceModel: "iPhone16,2"
         )
         #expect(beta.subjectSuffix == "[Beta 0.64.13 (42)]")
 
@@ -146,13 +146,13 @@ struct MobileFeedbackRouteTests {
     @Test func agentBuildStampDropsEmptyFields() {
         let full = MobileFeedbackStamp(
             buildType: .beta, appVersion: "0.64.13", appBuild: "42",
-            bundleIdentifier: "dev.cmux.app.beta", osVersion: "iOS 18.5", deviceModel: "iPhone16,2"
+            bundleIdentifier: "app.w3dev.cmux.ios.beta", osVersion: "iOS 18.5", deviceModel: "iPhone16,2"
         )
         #expect(full.agentBuildStamp == "beta · 0.64.13 (42) · iOS 18.5 · iPhone16,2")
 
         let sparse = MobileFeedbackStamp(
             buildType: .dev, appVersion: "", appBuild: "",
-            bundleIdentifier: "dev.cmux.ios", osVersion: "", deviceModel: ""
+            bundleIdentifier: "app.w3dev.cmux.ios.debug", osVersion: "", deviceModel: ""
         )
         #expect(sparse.agentBuildStamp == "dev · unknown")
     }
@@ -164,7 +164,7 @@ struct MobileFeedbackRouteTests {
             buildType: .beta,
             appVersion: version,
             appBuild: build,
-            bundleIdentifier: "dev.cmux.app.beta",
+            bundleIdentifier: "app.w3dev.cmux.ios.beta",
             osVersion: "iOS 18.5",
             deviceModel: "iPhone16,2"
         )

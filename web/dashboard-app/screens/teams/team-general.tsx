@@ -1,6 +1,6 @@
 "use client";
 
-import { type CurrentUser, type Team as StackTeam, useUser } from "@hexclave/next";
+import { type CurrentUser, type Team as StackTeam, useUser } from "@/app/lib/stack-client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useTranslations } from "next-intl";

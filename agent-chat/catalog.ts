@@ -1,3 +1,4 @@
+import { forkDeployment } from "./fork-deployment";
 import { existsSync, readFileSync } from "node:fs";
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
@@ -56,7 +57,7 @@ interface CatalogStoreOptions {
 }
 
 const PROVIDERS = ["claude", "codex", "gemini"] as const;
-const DEFAULT_URL = "https://cmux.com/api/agent-models";
+const DEFAULT_URL = `${forkDeployment.productionOrigin}/api/agent-models`;
 const DEFAULT_CACHE = `${homedir()}/.cache/cmux-agent-chat/models.json`;
 export const AGENT_MODEL_CATALOG_TTL_MS = 60 * 60_000;
 

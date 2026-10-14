@@ -64,37 +64,37 @@ enum CmuxHelpResource {
     var url: URL {
         switch self {
         case .gettingStarted:
-            return URL(string: "https://cmux.com/docs/getting-started")!
+            return URL(string: "https://cmux.w3dev.app/docs/getting-started")!
         case .concepts:
-            return URL(string: "https://cmux.com/docs/concepts")!
+            return URL(string: "https://cmux.w3dev.app/docs/concepts")!
         case .configuration:
-            return URL(string: "https://cmux.com/docs/configuration")!
+            return URL(string: "https://cmux.w3dev.app/docs/configuration")!
         case .customCommands:
-            return URL(string: "https://cmux.com/docs/custom-commands")!
+            return URL(string: "https://cmux.w3dev.app/docs/custom-commands")!
         case .dock:
-            return URL(string: "https://cmux.com/docs/dock")!
+            return URL(string: "https://cmux.w3dev.app/docs/dock")!
         case .keyboardShortcuts:
-            return URL(string: "https://cmux.com/docs/keyboard-shortcuts")!
+            return URL(string: "https://cmux.w3dev.app/docs/keyboard-shortcuts")!
         case .apiReference:
-            return URL(string: "https://cmux.com/docs/api")!
+            return URL(string: "https://cmux.w3dev.app/docs/api")!
         case .browserAutomation:
-            return URL(string: "https://cmux.com/docs/browser-automation")!
+            return URL(string: "https://cmux.w3dev.app/docs/browser-automation")!
         case .notifications:
-            return URL(string: "https://cmux.com/docs/notifications")!
+            return URL(string: "https://cmux.w3dev.app/docs/notifications")!
         case .ssh:
-            return URL(string: "https://cmux.com/docs/ssh")!
+            return URL(string: "https://cmux.w3dev.app/docs/ssh")!
         case .skills:
-            return URL(string: "https://cmux.com/docs/skills")!
+            return URL(string: "https://cmux.w3dev.app/docs/skills")!
         case .claudeCodeTeams:
-            return URL(string: "https://cmux.com/docs/agent-integrations/claude-code-teams")!
+            return URL(string: "https://cmux.w3dev.app/docs/agent-integrations/claude-code-teams")!
         case .ohMyOpenCode:
-            return URL(string: "https://cmux.com/docs/agent-integrations/oh-my-opencode")!
+            return URL(string: "https://cmux.w3dev.app/docs/agent-integrations/oh-my-opencode")!
         case .ohMyCodex:
-            return URL(string: "https://cmux.com/docs/agent-integrations/oh-my-codex")!
+            return URL(string: "https://cmux.w3dev.app/docs/agent-integrations/oh-my-codex")!
         case .ohMyClaudeCode:
-            return URL(string: "https://cmux.com/docs/agent-integrations/oh-my-claudecode")!
+            return URL(string: "https://cmux.w3dev.app/docs/agent-integrations/oh-my-claudecode")!
         case .changelog:
-            return URL(string: "https://cmux.com/docs/changelog")!
+            return URL(string: "https://cmux.w3dev.app/docs/changelog")!
         case .githubIssues:
             return URL(string: "https://github.com/manaflow-ai/cmux/issues")!
         case .discord:

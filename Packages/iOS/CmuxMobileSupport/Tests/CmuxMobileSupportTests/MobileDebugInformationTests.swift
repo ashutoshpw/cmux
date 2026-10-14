@@ -9,7 +9,7 @@ import Testing
             installID: "install-1",
             deviceID: "device-1",
             teamID: "team-1",
-            bundleID: "dev.cmux.ios",
+            bundleID: "app.w3dev.cmux.ios.debug",
             appChannel: "dev",
             appVersion: "1.0.0",
             buildNumber: "42",
@@ -25,7 +25,7 @@ import Testing
         Install ID: install-1
         Device ID: device-1
         Team ID: team-1
-        Bundle ID: dev.cmux.ios
+        Bundle ID: app.w3dev.cmux.ios.debug
         App Channel: dev
         App Version: 1.0.0
         Build Number: 42

@@ -134,7 +134,7 @@ public actor SSHKeyStore {
 
     private static func comment(_ label: String) -> String {
         let cleaned = label.replacingOccurrences(of: " ", with: "-")
-        return cleaned.isEmpty ? "cmux-ios" : "\(cleaned)@cmux-ios"
+        return cleaned.isEmpty ? "cmux-w3dev-ios" : "\(cleaned)@cmux-ios"
     }
 
     private func persist() throws {

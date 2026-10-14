@@ -8,7 +8,7 @@ public import Foundation
 internal import OSLog
 
 private let mobileShellLog = Logger(
-    subsystem: Bundle.main.bundleIdentifier ?? "dev.cmux.ios",
+    subsystem: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux.ios.debug",
     category: "mobile-shell"
 )
 

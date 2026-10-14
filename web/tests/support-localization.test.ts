@@ -45,7 +45,7 @@ const messagesByLocale = {
   uk: ukrainianMessages,
 } as const;
 
-const supportEmail = "founders@cmux.com";
+const supportPath = "cmux.w3dev.app/support";
 
 // Long-form sentences that any genuine translation must render differently
 // from the English catalog. Short labels ("Discord", "Support") may
@@ -118,14 +118,14 @@ describe("support page localization", () => {
       }
     });
 
-    test(`${locale} keeps the support email address intact`, () => {
+    test(`${locale} keeps the owned support link without promising an unconfigured sender`, () => {
       const channels = support as {
         channels: { email: { label: string } };
         form: { success: string; error: string };
       };
-      expect(channels.channels.email.label).toBe(supportEmail);
-      expect(channels.form.success).toContain(supportEmail);
-      expect(channels.form.error).toContain(supportEmail);
+      expect(channels.channels.email.label).toBe(supportPath);
+      expect(channels.form.success).not.toContain("founders@");
+      expect(channels.form.error).not.toContain("founders@");
     });
 
     test(`${locale} links the support page from the footer`, () => {

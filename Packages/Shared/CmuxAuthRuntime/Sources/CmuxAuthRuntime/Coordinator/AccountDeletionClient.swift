@@ -29,7 +29,6 @@ struct AccountDeletionClient: Sendable {
         var request = URLRequest(url: url, timeoutInterval: requestTimeout)
         request.httpMethod = "DELETE"
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
 
         let data: Data
         let response: URLResponse

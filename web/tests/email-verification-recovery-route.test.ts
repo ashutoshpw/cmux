@@ -40,7 +40,7 @@ describe("email verification recovery route", () => {
       expect(await response.json()).toEqual({ ok: true });
       expect(recover).toHaveBeenCalledWith({
         email: "Buyer@Example.com",
-        callbackURL: "https://cmux.com/handler/email-verification",
+        callbackURL: "https://cmux.w3dev.app/handler/after-sign-in",
       });
     }
   });
@@ -55,7 +55,7 @@ describe("email verification recovery route", () => {
     expect(recover).not.toHaveBeenCalled();
   });
 
-  test("keeps an IPv6 loopback verification callback local", async () => {
+  test("uses the configured authority for a loopback request", async () => {
     const recover = mock(async () => ({ delivery: "sent" as const }));
     const response = await makeEmailVerificationRecoveryHandler(
       dependencies({ recover }),
@@ -69,8 +69,24 @@ describe("email verification recovery route", () => {
     expect(response.status).toBe(202);
     expect(recover).toHaveBeenCalledWith({
       email: "buyer@example.com",
-      callbackURL: "http://[::1]:3777/handler/email-verification",
+      callbackURL: "https://cmux.w3dev.app/handler/after-sign-in",
     });
+  });
+
+  test("keeps staging recovery on its configured issuer despite request host", async () => {
+    const previous = process.env.CMUX_APP_ORIGIN;
+    process.env.CMUX_APP_ORIGIN = "https://staging.cmux.w3dev.app";
+    try {
+      const recover = mock(async () => ({ delivery: "sent" as const }));
+      const response = await makeEmailVerificationRecoveryHandler(dependencies({ recover }))(
+        request({ email: "buyer@example.com" }, "https://untrusted.example/api/auth/email-verification"),
+      );
+      expect(response.status).toBe(202);
+      expect(recover).toHaveBeenCalledWith({ email: "buyer@example.com", callbackURL: "https://staging.cmux.w3dev.app/handler/after-sign-in" });
+    } finally {
+      if (previous === undefined) delete process.env.CMUX_APP_ORIGIN;
+      else process.env.CMUX_APP_ORIGIN = previous;
+    }
   });
 
   test("enforces the deployed public-endpoint rate limit", async () => {

@@ -1,4 +1,7 @@
 import { afterAll, afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+import { PgDialect } from "drizzle-orm/pg-core";
+import type { SQL } from "drizzle-orm";
+import { betterAuthSession } from "../db/betterAuthSchema";
 
 // DELETE /api/vm/access-grants/[id] cuts the grant and its tunnels in our
 // database, queues the Stack sessions that enrolled the Mac in the same
@@ -33,7 +36,7 @@ afterAll(() => {
 
 const USER_ID = "grant-owner-1";
 const GRANT_ID = "6f1f6f0e-8f5a-4d55-9a37-7f6c0b1a2c3d";
-const SESSIONS = ["session-a", "session-b"];
+const SESSIONS = ["00000000-0000-4000-8000-00000000000a", "00000000-0000-4000-8000-00000000000b"];
 
 const getUser = mock(async () => ({
   id: USER_ID,
@@ -107,6 +110,22 @@ mock.module("../services/vms/stackSessionRevocationStore", () => ({
   }),
 }));
 
+mock.module("../services/auth/betterAuthPrincipal", () => ({
+  resolveBetterAuthPrincipal: async () => ({ userId: USER_ID, displayName: "Owner", email: "owner@example.com", emailVerified: true, isAnonymous: false, clientReadOnlyMetadata: {}, sessionId: SESSIONS[0], sessionCreatedAt: new Date(0), organizations: [], activeOrganizationId: null }),
+}));
+const ownedSessionIds = new Set<string>();
+const sessionDeletes: string[] = [];
+mock.module("../db/client", () => ({
+  cloudDb: () => ({ delete: (table: unknown) => ({ where: async (condition: SQL) => {
+    expect(table).toBe(betterAuthSession);
+    const sessionId = String(new PgDialect().sqlToQuery(condition).params[0]);
+    sessionDeletes.push(sessionId);
+    const answer = stackAnswers.shift() ?? 200;
+    if (typeof answer !== "number" || answer !== 200) throw new Error("Owned database unavailable");
+    ownedSessionIds.delete(sessionId);
+  } }) }),
+}));
+
 const { DELETE } = await import("../app/api/vm/access-grants/[id]/route");
 const { retryPendingStackSessionRevocations, stackServerSessionRevoker, STACK_SESSION_REVOCATION_POLICY } =
   await import("../services/vms/stackSessionRevocations");
@@ -114,37 +133,26 @@ const { databaseStackSessionRevocationStore } = await import("../services/vms/st
 const { clearNativeAuthCacheForTests } = await import("../services/vms/auth");
 
 const originalFetch = globalThis.fetch;
-let stackAnswers: Array<number | { status: number; knownError: string }> = [];
-const stackRequests: Array<{ method: string; url: string; headers: Record<string, string>; body: unknown }> = [];
+let stackAnswers: number[] = [];
 
 function stubStack(): void {
-  globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-    const url = new URL(input instanceof Request ? input.url : String(input));
-    if (url.origin !== "https://stack.test") throw new Error(`unexpected fetch ${url}`);
-    stackRequests.push({
-      method: init?.method ?? "GET",
-      url: url.toString(),
-      headers: Object.fromEntries(new Headers(init?.headers).entries()),
-      body: init?.body ?? null,
-    });
-    const answer = stackAnswers.shift() ?? 200;
-    if (typeof answer === "number") return new Response(answer === 200 ? "{}" : "{\"error\":\"x\"}", { status: answer });
-    return new Response("{}", { status: answer.status, headers: { "x-hexclave-known-error": answer.knownError } });
-  }) as typeof fetch;
+  globalThis.fetch = Object.assign(mock(async () => { throw new Error("Owned revocation must not contact an upstream provider"); }), { preconnect: Reflect.get(originalFetch, "preconnect") }) as typeof fetch;
 }
 
 function revokeRequest(): Request {
   return new Request(`https://cmux.test/api/vm/access-grants/${GRANT_ID}`, {
     method: "DELETE",
-    headers: { authorization: "Bearer access-1", "x-stack-refresh-token": "refresh-1" },
+    headers: { authorization: "Bearer access-1" },
   });
 }
 
 beforeEach(() => {
   clearNativeAuthCacheForTests();
   rows.clear();
+  ownedSessionIds.clear();
+  for (const id of SESSIONS) ownedSessionIds.add(id);
+  sessionDeletes.length = 0;
   stackAnswers = [];
-  stackRequests.length = 0;
   workflowCalls.length = 0;
   stubStack();
 });
@@ -154,7 +162,7 @@ afterEach(() => {
 });
 
 describe("access-grant session revocation", () => {
-  test("a Stack 429 answers pending, and a cron retry after the backoff revokes and deletes the rows", async () => {
+  test("an owned database failure answers pending, and a cron retry after backoff revokes and deletes the rows", async () => {
     stackAnswers = [429, 429];
     const response = await DELETE(revokeRequest(), { params: Promise.resolve({ id: GRANT_ID }) });
     expect(response.status).toBe(200);
@@ -162,8 +170,8 @@ describe("access-grant session revocation", () => {
     // The grant revocation asked for the sessions to be queued with it.
     expect(workflowCalls).toHaveLength(1);
     expect([...rows.values()].map((row) => [row.stackSessionId, row.attempts])).toEqual([
-      ["session-a", 1],
-      ["session-b", 1],
+      [SESSIONS[0], 1],
+      [SESSIONS[1], 1],
     ]);
 
     const store = databaseStackSessionRevocationStore();
@@ -181,30 +189,25 @@ describe("access-grant session revocation", () => {
     expect(rows.size).toBe(0);
   });
 
-  test("the revocation is the SDK's exact request: DELETE /api/v1/auth/sessions/{id}, server headers, no body or user_id", async () => {
-    await stackServerSessionRevoker()("session/a b");
-    expect(stackRequests).toEqual([{
-      method: "DELETE",
-      url: "https://stack.test/api/v1/auth/sessions/session%2Fa%20b",
-      headers: {
-        "x-hexclave-access-type": "server",
-        "x-hexclave-project-id": "00000000-0000-4000-8000-0000000000cc",
-        "x-hexclave-secret-server-key": "ssk_test",
-      },
-      body: null,
-    }]);
+  test("revocation deletes only the identified owned session without any provider HTTP call", async () => {
+    await stackServerSessionRevoker()(SESSIONS[0]!);
+    expect(sessionDeletes).toEqual([SESSIONS[0]!]);
+    expect(ownedSessionIds.has(SESSIONS[0]!)).toBe(false);
+    expect(ownedSessionIds.has(SESSIONS[1]!)).toBe(true);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
   });
 
-  test("a session Stack no longer has counts as revoked; any other refusal throws", async () => {
-    stackAnswers = [{ status: 404, knownError: "REFRESH_TOKEN_NOT_FOUND_OR_EXPIRED" }, 404, 503];
-    await expect(stackServerSessionRevoker()("session-a")).resolves.toBeUndefined();
-    await expect(stackServerSessionRevoker()("session-a")).rejects.toMatchObject({ status: 404 });
-    await expect(stackServerSessionRevoker()("session-a")).rejects.toMatchObject({ status: 503 });
+  test("an absent owned session is idempotent and a database failure remains retryable", async () => {
+    await expect(stackServerSessionRevoker()(SESSIONS[0]!)).resolves.toBeUndefined();
+    await expect(stackServerSessionRevoker()(SESSIONS[0]!)).resolves.toBeUndefined();
+    stackAnswers = [503];
+    await expect(stackServerSessionRevoker()(SESSIONS[1]!)).rejects.toThrow("Owned database unavailable");
+    await expect(stackServerSessionRevoker()("invalid-session-id")).rejects.toThrow("Owned session id is invalid");
   });
 
   test("a row that reaches the attempt cap gives up and is reported exactly once", async () => {
-    rows.set("session-z", {
-      stackSessionId: "session-z",
+    rows.set("00000000-0000-4000-8000-00000000000d", {
+      stackSessionId: "00000000-0000-4000-8000-00000000000d",
       userId: USER_ID,
       attempts: STACK_SESSION_REVOCATION_POLICY.maxAttempts - 1,
       nextAttemptAt: new Date(0),
@@ -220,19 +223,19 @@ describe("access-grant session revocation", () => {
     await retryPendingStackSessionRevocations({ store, revoke, now: far, onGiveUp: (row) => reported.push(row) });
     await retryPendingStackSessionRevocations({ store, revoke, now: far, onGiveUp: (row) => reported.push(row) });
     expect(reported).toEqual([{
-      stackSessionId: "session-z",
+      stackSessionId: "00000000-0000-4000-8000-00000000000d",
       userId: USER_ID,
       attempts: STACK_SESSION_REVOCATION_POLICY.maxAttempts,
-      error: "Error: HTTP 429",
+      error: "Error",
     }]);
-    expect(rows.get("session-z")!.gaveUpAt).not.toBeNull();
+    expect(rows.get("00000000-0000-4000-8000-00000000000d")!.gaveUpAt).not.toBeNull();
   });
 });
 
 describe("vm-reconcile cron", () => {
   test("retries due session revocations", async () => {
-    rows.set("session-c", {
-      stackSessionId: "session-c",
+    rows.set("00000000-0000-4000-8000-00000000000c", {
+      stackSessionId: "00000000-0000-4000-8000-00000000000c",
       userId: USER_ID,
       attempts: 3,
       nextAttemptAt: new Date(0),
@@ -246,6 +249,6 @@ describe("vm-reconcile cron", () => {
     }));
     const body = await response.json() as { stackSessionRevocations?: unknown };
     expect(body.stackSessionRevocations).toEqual({ attempted: 1, revoked: 1, pending: 0 });
-    expect(rows.has("session-c")).toBe(false);
+    expect(rows.has("00000000-0000-4000-8000-00000000000c")).toBe(false);
   });
 });

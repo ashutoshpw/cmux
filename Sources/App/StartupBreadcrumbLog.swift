@@ -4,7 +4,7 @@ import os
 
 enum StartupBreadcrumbLog {
     private static let maxFieldLength = 240
-    private nonisolated static let logger = Logger(subsystem: "com.cmuxterm.app", category: "StartupBreadcrumbLog")
+    private nonisolated static let logger = Logger(subsystem: "app.w3dev.cmux", category: "StartupBreadcrumbLog")
     private static let reservedFieldKeys: Set<String> = [
         "timestamp",
         "timestampMs",
@@ -101,12 +101,12 @@ enum StartupBreadcrumbLog {
             return true
         }
         let bundleIdentifier = Bundle.main.bundleIdentifier ?? ""
-        return bundleIdentifier == "com.cmuxterm.app.nightly"
-            || bundleIdentifier.hasPrefix("com.cmuxterm.app.nightly.")
-            || bundleIdentifier == "com.cmuxterm.app.rc"
-            || bundleIdentifier.hasPrefix("com.cmuxterm.app.rc.")
-            || bundleIdentifier == "com.cmuxterm.app.debug"
-            || bundleIdentifier.hasPrefix("com.cmuxterm.app.debug.")
+        return bundleIdentifier == "app.w3dev.cmux.nightly"
+            || bundleIdentifier.hasPrefix("app.w3dev.cmux.nightly.")
+            || bundleIdentifier == "app.w3dev.cmux.rc"
+            || bundleIdentifier.hasPrefix("app.w3dev.cmux.rc.")
+            || bundleIdentifier == "app.w3dev.cmux.debug"
+            || bundleIdentifier.hasPrefix("app.w3dev.cmux.debug.")
     }
 
     private static var logURL: URL {

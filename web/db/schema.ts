@@ -1,7 +1,6 @@
 import { sql, type SQL, type SQLWrapper } from "drizzle-orm";
-import type { teamsCrud } from "@hexclave/shared/dist/interface/crud/teams";
-import type { usersCrud } from "@hexclave/shared/dist/interface/crud/users";
-import type { InferType } from "yup";
+export * from "./betterAuthSchema";
+import type { HexclaveServerUser, HexclaveServerTeam } from "../services/auth/hexclave/serverApi";
 import {
   bigint,
   boolean,
@@ -2513,7 +2512,7 @@ export const hexclaveUsers = pgTable("hexclave_users", {
   clientReadOnlyMetadata: jsonb("client_read_only_metadata").$type<unknown>(),
   signedUpAt: timestamp("signed_up_at", { withTimezone: true }).notNull(),
   syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
-  raw: jsonb("raw").$type<InferType<typeof usersCrud.server.readSchema>>().notNull(),
+  raw: jsonb("raw").$type<HexclaveServerUser>().notNull(),
 }, (table) => [
   index("hexclave_users_primary_email_idx").on(sql`lower(${table.primaryEmail})`),
 ]);
@@ -2524,7 +2523,7 @@ export const hexclaveTeams = pgTable("hexclave_teams", {
   clientReadOnlyMetadata: jsonb("client_read_only_metadata").$type<unknown>(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   syncedAt: timestamp("synced_at", { withTimezone: true }).notNull().defaultNow(),
-  raw: jsonb("raw").$type<InferType<typeof teamsCrud.server.readSchema>>().notNull(),
+  raw: jsonb("raw").$type<HexclaveServerTeam>().notNull(),
 });
 
 export const hexclaveTeamMemberships = pgTable("hexclave_team_memberships", {

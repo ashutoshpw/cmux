@@ -16,7 +16,7 @@ extension AuthEnvironmentTests {
         #expect(
             AuthEnvironment.callbackScheme(
                 environment: [:],
-                bundleIdentifier: "com.cmuxterm.app.rc",
+                bundleIdentifier: "app.w3dev.cmux.rc",
                 isDebugBuild: false
             ) == "cmux-rc"
         )
@@ -27,11 +27,11 @@ extension MobileHostIdentityTests {
     @Test func instanceTagUsesRCChannelAndSlug() {
         #expect(MobileHostIdentity.instanceTag(
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app.rc"
+            bundleIdentifier: "app.w3dev.cmux.rc"
         ) == "rc")
         #expect(MobileHostIdentity.instanceTag(
             environment: [:],
-            bundleIdentifier: "com.cmuxterm.app.rc.candidate1"
+            bundleIdentifier: "app.w3dev.cmux.rc.candidate1"
         ) == "candidate1")
     }
 }
@@ -42,7 +42,7 @@ extension CMUXCLIErrorOutputRegressionTests {
     }
 
     /// `channel` is the socket/bundle infix shared by the release lanes: `cmux-<channel>-<slug>.sock`
-    /// maps to `com.cmuxterm.app.<channel>.<slug>`. The nightly twin in
+    /// maps to `app.w3dev.cmux.<channel>.<slug>`. The nightly twin in
     /// `CMUXCLIErrorOutputRegressionTests.swift` calls this with `"nightly"`.
     func assertThemesSetOverridePathIsReadableByChannelApp(channel: String) throws {
         let cliPath = try bundledCLIPath()
@@ -58,7 +58,7 @@ extension CMUXCLIErrorOutputRegressionTests {
         try writeTheme(named: "Theme A", background: "#101010", to: themesURL)
 
         // The reload target comes from the socket file name before CMUX_BUNDLE_ID is even
-        // consulted: `cmux-nightly-<slug>.sock` becomes `com.cmuxterm.app.nightly.<slug>`.
+        // consulted: `cmux-w3dev-nightly-<slug>.sock` becomes `app.w3dev.cmux.nightly.<slug>`.
         // So scoping the identifier means scoping the socket name it is read from, and both
         // take the same hex-only suffix — a raw UUID's dashes would turn into dots in the
         // identifier. Scoping matters because the reload goes out machine-wide: on the
@@ -66,7 +66,7 @@ extension CMUXCLIErrorOutputRegressionTests {
         // config, and two runs at once shared one identifier.
         let uniqueSuffix = UUID().uuidString.lowercased().replacingOccurrences(of: "-", with: "")
         let socketPath = "/tmp/cmux-\(channel)-\(uniqueSuffix).sock"
-        let bundleIdentifier = "com.cmuxterm.app.\(channel).\(uniqueSuffix)"
+        let bundleIdentifier = "app.w3dev.cmux.\(channel).\(uniqueSuffix)"
         var environment = ProcessInfo.processInfo.environment
         for key in Array(environment.keys) where key.hasPrefix("CMUX_") {
             environment.removeValue(forKey: key)

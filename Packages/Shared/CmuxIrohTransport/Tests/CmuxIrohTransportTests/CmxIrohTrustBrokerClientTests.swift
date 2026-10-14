@@ -40,7 +40,7 @@ struct CmxIrohTrustBrokerClientTests {
         #expect(captured.url?.path == "/api/devices/iroh/challenge")
         #expect(captured.httpMethod == "POST")
         #expect(captured.value(forHTTPHeaderField: "Authorization") == "Bearer access")
-        #expect(captured.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == "refresh")
+        #expect(captured.value(forHTTPHeaderField: "X-Stack-Refresh-Token") == nil)
         let body = try #require(captured.httpBody)
         let object = try #require(
             JSONSerialization.jsonObject(with: body) as? [String: Any]
@@ -123,14 +123,14 @@ struct CmxIrohTrustBrokerClientTests {
         ])
         let authorization = try CmxIrohBindingRequestAuthorization(
             bindingID: Self.bindingID,
-            clientNamespace: "dev.cmux.app.internal",
+            clientNamespace: "app.w3dev.cmux.ios.internal",
             identity: identityMaterial(),
             endpointID: CmxIrohPeerIdentity(endpointID: Self.endpointID)
         )
         let client = try CmxIrohTrustBrokerClient(
             baseURL: #require(URL(string: "https://cmux.example")),
             tokenSource: Self.tokenSource,
-            clientNamespace: "dev.cmux.app.internal",
+            clientNamespace: "app.w3dev.cmux.ios.internal",
             bindingAuthorization: authorization,
             transport: transport
         )
@@ -140,7 +140,7 @@ struct CmxIrohTrustBrokerClientTests {
         let request = try #require(await transport.requests().first)
         #expect(
             request.value(forHTTPHeaderField: "X-Cmux-App-Namespace")
-                == "dev.cmux.app.internal"
+                == "app.w3dev.cmux.ios.internal"
         )
         #expect(
             request.value(forHTTPHeaderField: "X-Cmux-Iroh-Binding-ID")
@@ -1157,7 +1157,7 @@ struct CmxIrohTrustBrokerClientTests {
         try CmxIrohTrustBrokerClient(
             baseURL: #require(URL(string: "https://cmux.example")),
             tokenSource: Self.tokenSource,
-            clientNamespace: "dev.cmux.app.internal",
+            clientNamespace: "app.w3dev.cmux.ios.internal",
             discoveryScope: discoveryScope,
             transport: transport
         )

@@ -170,7 +170,7 @@ function HomeContent() {
               <span>
                 <strong className="font-medium">
                   <a
-                    href="https://github.com/manaflow-ai/cmux#founders-edition"
+                    href="https://github.com/ashutoshpw/cmux#founders-edition"
                     className={linkClass}
                   >
                     {t("feature.ios")}
@@ -229,7 +229,7 @@ function HomeContent() {
                 {t.rich("faqIosA", {
                   foundersLink: (chunks) => (
                     <a
-                      href="https://github.com/manaflow-ai/cmux#founders-edition"
+                      href="https://github.com/ashutoshpw/cmux#founders-edition"
                       className={linkClass}
                     >
                       {chunks}
@@ -418,7 +418,7 @@ function HomeContent() {
                 {t.rich("faqFreeA", {
                   link: (chunks) => (
                     <a
-                      href="https://github.com/manaflow-ai/cmux"
+                      href="https://github.com/ashutoshpw/cmux"
                       className={linkClass}
                     >
                       {chunks}
@@ -433,7 +433,7 @@ function HomeContent() {
                 {t.rich("faqSupportA", {
                   foundersLink: (chunks) => (
                     <a
-                      href="https://github.com/manaflow-ai/cmux#founders-edition"
+                      href="https://github.com/ashutoshpw/cmux#founders-edition"
                       className={linkClass}
                     >
                       {chunks}
@@ -448,7 +448,7 @@ function HomeContent() {
                 {t.rich("faqFeatureA", {
                   issuesLink: (chunks) => (
                     <a
-                      href="https://github.com/manaflow-ai/cmux/issues"
+                      href="https://github.com/ashutoshpw/cmux/issues"
                       className={linkClass}
                     >
                       {chunks}
@@ -456,7 +456,7 @@ function HomeContent() {
                   ),
                   prLink: (chunks) => (
                     <a
-                      href="https://github.com/manaflow-ai/cmux/pulls"
+                      href="https://github.com/ashutoshpw/cmux/pulls"
                       className={linkClass}
                     >
                       {chunks}
@@ -464,7 +464,7 @@ function HomeContent() {
                   ),
                   mailLink: (chunks) => (
                     <a
-                      href="mailto:founders@cmux.com?subject=%5Bcmux%20feature%20request%20landing%5D&body=Hi%20cmux%20team%2C%20"
+                      href="https://cmux.w3dev.app/support"
                       className={linkClass}
                     >
                       {chunks}

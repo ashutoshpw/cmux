@@ -12,7 +12,7 @@
 // upstream calls, stored per-socket and deleted on close.
 
 import { DurableObject } from "cloudflare:workers";
-import { bearerToken } from "./auth";
+import { bearerToken, ownedAuthOrigin, type AuthEnv } from "./auth";
 import {
   CONTROL_REFRESH_INTERVAL_MS,
   ControlPlaneCore,
@@ -25,13 +25,11 @@ import {
 import { captureSentryException, type SentryEnv } from "./sentry";
 import { parseRetryAfterSeconds, rateLimitedJson } from "./retryAfterResponse";
 
-export interface ControlPlaneEnv extends SentryEnv {
-  /** Vercel web API origin the DO proxies (dev/prod), e.g. https://cmux.com.
-   * Same optional-with-production-default pattern as STACK_API_URL. */
+export interface ControlPlaneEnv extends SentryEnv, AuthEnv {
+  /** Must match the verified owned auth origin when explicitly configured. */
   CMUX_WEB_BASE_URL?: string;
 }
 
-const PRODUCTION_WEB_BASE_URL = "https://cmux.com";
 
 function json(body: unknown, status: number): Response {
   return new Response(JSON.stringify(body), {
@@ -78,10 +76,14 @@ export class AccountControlPlane extends DurableObject<ControlPlaneEnv> {
     storage: this.ctx.storage as unknown as CtlStorage,
     now: () => Date.now(),
     upstream: async (path, init) => {
-      const base = (this.env.CMUX_WEB_BASE_URL ?? PRODUCTION_WEB_BASE_URL).replace(/\/+$/, "");
+      const base = ownedAuthOrigin(this.env);
+      if (this.env.CMUX_WEB_BASE_URL && this.env.CMUX_WEB_BASE_URL !== base) {
+        throw new Error("Control-plane origin must match the configured authentication authority");
+      }
       let response: Response;
       try {
         response = await fetch(`${base}${path}`, {
+          redirect: "error",
           method: init.method,
           headers: init.headers,
           ...(init.body !== undefined ? { body: init.body } : {}),

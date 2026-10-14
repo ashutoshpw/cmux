@@ -1,3 +1,4 @@
+import { resolveBetterAuthPrincipal } from "../../../../services/auth/betterAuthPrincipal";
 import { defaultProviderId, isProviderId } from "../../../../services/vms/drivers";
 import {
   jsonResponse,
@@ -83,7 +84,7 @@ export async function POST(request: Request): Promise<Response> {
         "cmux.vm.tunnel.device": deviceFingerprint,
       });
 
-      const login = stackSession(request);
+      const login = await stackSession(request);
       if (!login) return missingStackSession();
       const membership = await tunnelTeamMembership(request, user);
       setSpanAttributes(span, { "cmux.vm.tunnel.team_list_complete": membership.teamIdsComplete });
@@ -321,22 +322,9 @@ function parseTunnelPurpose(value: unknown): "terminal" | "browser" | null {
   return raw === "terminal" || raw === "browser" ? raw : null;
 }
 
-function stackSession(request: Request): { readonly id: string; readonly issuedAt: Date } | null {
-  const authorization = request.headers.get("authorization");
-  if (!authorization?.toLowerCase().startsWith("bearer ")) return null;
-  const token = authorization.slice("bearer ".length).trim();
-  const payload = token.split(".")[1];
-  if (!payload) return null;
-  try {
-    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
-    const decoded = JSON.parse(Buffer.from(normalized, "base64").toString("utf8"));
-    const id = optionalClientIdentifier(decoded.refresh_token_id, "stackSessionId");
-    const issuedAtSeconds = typeof decoded.iat === "number" ? decoded.iat : null;
-    if (!id || issuedAtSeconds === null || !Number.isFinite(issuedAtSeconds)) return null;
-    return { id, issuedAt: new Date(issuedAtSeconds * 1_000) };
-  } catch {
-    return null;
-  }
+async function stackSession(request: Request): Promise<{ readonly id: string; readonly issuedAt: Date } | null> {
+  const principal = await resolveBetterAuthPrincipal(request.headers);
+  return principal?.authentication === "oauth" ? { id: principal.sessionId, issuedAt: principal.sessionCreatedAt } : null;
 }
 
 function missingStackSession(): Response {

@@ -1,3 +1,4 @@
+import { forkDeployment } from "../deployment/config";
 /**
  * The cmux-owned desktop wrapper: the URL a person actually sees and keeps.
  *
@@ -25,7 +26,7 @@
  */
 
 /** Hosts the wrapper will agree to send a pane to: the cmux-branded machine domain. */
-const ALLOWED_UPSTREAM_SUFFIXES = [".vm.cmux.sh"] as const;
+const ALLOWED_UPSTREAM_SUFFIXES = [`.${forkDeployment.publicationDomain}`] as const;
 
 /**
  * The upstream gateway's own token parameter. Still carries the retired

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Install a PREBUILT cmux iOS simulator .app into the tag's isolated simulator
-# and launch it signed in + auto-paired. Used by cloud iOS reloads
+# and launch it for hosted sign-in and pairing. Used by cloud iOS reloads
 # (cmuxterm-hq scripts/reload-cloud-ios.sh), which download the simulator app
 # instead of building it locally; local builds go through ios/scripts/reload.sh,
 # which shares the same isolated-simulator resolution.
@@ -24,7 +24,7 @@ NO_ATTACH=0
 NO_SIGN_IN=0
 NO_SETUP=0
 LAUNCH=1
-AUTH_PROFILE="agent"
+AUTH_PROFILE=""
 EXPECTED_ACCOUNT=""
 AUTH_CREDENTIALS_FILE=""
 
@@ -44,11 +44,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+if [[ -n "$AUTH_PROFILE" || -n "$EXPECTED_ACCOUNT" || -n "$AUTH_CREDENTIALS_FILE" ]]; then
+  echo "error: password auto-login is retired; sign in through the hosted Better Auth browser" >&2
+  exit 2
+fi
+
 [[ -n "$TAG" ]] || { echo "error: --tag is required" >&2; exit 2; }
 [[ -n "$APP" && -d "$APP" ]] || { echo "error: --app must point at a simulator .app" >&2; exit 2; }
 
 SLUG="$(cmux_attach__slug "$TAG")"
-BUNDLE_ID="dev.cmux.ios.$SLUG"
+BUNDLE_ID="app.w3dev.cmux.ios.debug.$SLUG"
 # Fail closed: an unreadable CFBundleIdentifier must not skip validation and
 # install an arbitrary app under this tag's identity.
 APP_BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist" 2>/dev/null || true)"
@@ -71,19 +76,9 @@ xcrun simctl install "$SIM_UDID" "$APP"
 
 if [[ "$LAUNCH" -eq 1 ]]; then
   xcrun simctl terminate "$SIM_UDID" "$BUNDLE_ID" >/dev/null 2>&1 || true
-  if [[ "$NO_SETUP" -eq 1 || "$NO_SIGN_IN" -eq 1 ]]; then
-    xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID" >/dev/null
-  else
-    launch_args=(--tag "$TAG" --simulator-id "$SIM_UDID" --detach)
-    launch_args+=(--auth-profile "$AUTH_PROFILE")
-    [[ -n "$EXPECTED_ACCOUNT" ]] && launch_args+=(--expected-account "$EXPECTED_ACCOUNT")
-    [[ -n "$AUTH_CREDENTIALS_FILE" ]] && launch_args+=(--credentials-file "$AUTH_CREDENTIALS_FILE")
-    [[ "$NO_ATTACH" -eq 0 ]] && launch_args+=(--ensure-mac)
-    if ! "$SCRIPT_DIR/mobile-dev-launch.sh" "${launch_args[@]}"; then
-      echo "error: installed $BUNDLE_ID on $SIM_NAME, but signed setup failed; refusing an unpaired fallback launch" >&2
-      exit 1
-    fi
-  fi
+  xcrun simctl launch "$SIM_UDID" "$BUNDLE_ID" >/dev/null
+  echo "==> Complete hosted sign-in and pairing in the tagged app."
+
 fi
 
 cat <<EOF

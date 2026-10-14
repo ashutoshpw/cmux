@@ -20,7 +20,7 @@ export type JobRoleNamespace =
 
 const focusRingClass =
   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-foreground";
-const applicationEmail = "founders@cmux.com";
+const applicationEmail = process.env.CMUX_JOBS_TO_EMAIL?.trim();
 const ycJobUrls = {
   foundingEngineer:
     "https://www.ycombinator.com/companies/cmux/jobs/RcX3bDA-founding-engineer",
@@ -165,9 +165,9 @@ function JobRoleSection({
   const t = useTranslations(namespace);
   const whatYoullDo = t.raw("whatYoullDoItems") as string[];
   const excitedItems = t.raw("excitedItems") as string[];
-  const applyHref = `mailto:${applicationEmail}?subject=${encodeURIComponent(
+  const applyHref = applicationEmail ? `mailto:${applicationEmail}?subject=${encodeURIComponent(
     t("applyEmailSubject"),
-  )}`;
+  )}` : "/support";
 
   return (
     <section

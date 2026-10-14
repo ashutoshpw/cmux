@@ -64,7 +64,7 @@ export function signInEntry(input: {
 export function signInIsForApp(returnTo: string | null): boolean {
   if (!returnTo) return false;
   try {
-    const target = new URL(returnTo, "https://cmux.com");
+    const target = new URL(returnTo, "https://cmux.w3dev.app");
     if (target.pathname !== "/handler/after-sign-in") return false;
     const appCallback = target.searchParams.get("native_app_return_to");
     return appCallback !== null && new URL(appCallback).searchParams.has("cmux_auth_state");
@@ -108,7 +108,7 @@ export function oauthReturnTo(href: string): string | undefined {
 
 /** `/handler/<page>` with only `after_auth_return_to` carried over. */
 export function handlerHref(page: "sign-in" | "sign-up" | "forgot-password", returnTo: string | null): string {
-  const url = new URL(`/handler/${page}`, "https://cmux.com");
+  const url = new URL(`/handler/${page}`, "https://cmux.w3dev.app");
   if (returnTo) url.searchParams.set("after_auth_return_to", returnTo);
   return `${url.pathname}${url.search}`;
 }
@@ -254,7 +254,7 @@ export function hostedAuthErrorRedirect(
   const emailInUse =
     /CONTACT_CHANNEL_ALREADY_USED_FOR_AUTH_BY_SOMEONE_ELSE/.test(detail) ||
     /already used for authentication by another account/i.test(detail);
-  const target = new URL("/handler/auth-error", "https://cmux.com");
+  const target = new URL("/handler/auth-error", "https://cmux.w3dev.app");
   if (emailInUse) target.searchParams.set("code", "email-unverified");
   // The recovery page's "back to sign in" keeps whatever return target this
   // URL carries, so a retry still finishes the original web or app sign-in.

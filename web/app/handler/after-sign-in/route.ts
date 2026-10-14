@@ -1,25 +1,14 @@
-import { cookies } from "next/headers";
-import {
-  promoteStackUserFromAnonymousWithDeletionGuard,
-  stackServerApp,
-} from "../../lib/stack";
-import { env } from "../../env";
-import { applyPendingEmailGrants } from "../../../services/admin/proGrants";
+import { getStackServerApp } from "../../lib/stack";
 import { claimPendingProBilling } from "../../../services/billing/purchase";
+import { applyPendingEmailGrants } from "../../../services/admin/proGrants";
 import { makeAfterSignInHandler } from "./handler";
-
-
 export const GET = makeAfterSignInHandler({
-  projectId: env.NEXT_PUBLIC_STACK_PROJECT_ID,
-  stackServerApp,
-  getCookieStore: cookies,
-  promoteVerifiedAnonymousUser: promoteStackUserFromAnonymousWithDeletionGuard,
+  getUser: (request) =>
+    getStackServerApp().getUser({ tokenStore: request, or: "return-null" }),
   claimVerifiedBilling: async (userId) => {
-    if (!stackServerApp) return;
-    const user = await stackServerApp.getUser(userId);
+    const user = await getStackServerApp().getUser(userId);
     if (user) await claimPendingProBilling(user);
   },
-  applyAdminGrants: async (userId, email) => {
-    await applyPendingEmailGrants({ id: userId, primaryEmail: email });
-  },
+  applyAdminGrants: (id, primaryEmail) =>
+    applyPendingEmailGrants({ id, primaryEmail }).then(() => undefined),
 });

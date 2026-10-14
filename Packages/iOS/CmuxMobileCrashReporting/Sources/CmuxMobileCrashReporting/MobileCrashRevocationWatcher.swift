@@ -9,7 +9,7 @@ internal import Foundation
 /// UserDefaults changes are observed through `UserDefaults.didChangeNotification`,
 /// the same backing store the consent provider reads.
 public final class MobileCrashRevocationWatcher: @unchecked Sendable {
-    private let lifecycleQueue = DispatchQueue(label: "dev.cmux.ios.crash-consent-lifecycle")
+    private let lifecycleQueue = DispatchQueue(label: "app.w3dev.cmux.ios.debug.crash-consent-lifecycle")
     private var token: (any NSObjectProtocol)?
     private var center: NotificationCenter?
     private var isEnabled: Bool?

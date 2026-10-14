@@ -17,6 +17,7 @@ export const TicketClaimsSchema = z.strictObject({
   issuedAt: timestamp,
   expiresAt: timestamp,
   keyId: identifier,
+  sessionId: identifier,
 });
 export type TicketClaims = z.infer<typeof TicketClaimsSchema>;
 
@@ -60,12 +61,12 @@ export async function hmacKey(secret: string, usage: "sign" | "verify"): Promise
 }
 
 export async function issueTicket(
-  device: DeviceDescriptor, keyId: string, secret: string, now: number,
+  device: DeviceDescriptor, keyId: string, secret: string, now: number, sessionId?: string,
 ): Promise<{ token: string; expiresAt: number; refreshAfter: number }> {
   const claims = TicketClaimsSchema.parse({
     version: 2, audience: "cmux-iroh-api-v2", identity: device.identity,
     endpointId: device.endpointId, identityGeneration: device.identityGeneration,
-    issuedAt: now, expiresAt: now + API_TICKET_SECONDS, keyId,
+    issuedAt: now, expiresAt: now + API_TICKET_SECONDS, keyId, sessionId,
   });
   const body = encodeBase64URL(encoder.encode(canonicalJSON(claims)));
   const signature = await crypto.subtle.sign("HMAC", await hmacKey(secret, "sign"), encoder.encode(body));

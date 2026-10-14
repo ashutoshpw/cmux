@@ -731,12 +731,12 @@ Archives cmux iOS, exports an App Store Connect IPA, and uploads it to
 App Store Connect. The default lane is beta and preserves the existing
 TestFlight behavior:
 
-  bundle id: dev.cmux.app.beta
+  bundle id: app.w3dev.cmux.ios.beta
   profile:   cmux Beta Distribution
 
 The production App Store lane uses:
 
-  bundle id: com.cmux.app
+  bundle id: app.w3dev.cmux.ios
   profile:   cmux App Store Distribution
   display:   cmux
 
@@ -996,13 +996,13 @@ done
 
 case "$LANE" in
   beta)
-    PRODUCT_BUNDLE_IDENTIFIER="${IOS_BETA_BUNDLE_ID:-dev.cmux.app.beta}"
+    PRODUCT_BUNDLE_IDENTIFIER="${IOS_BETA_BUNDLE_ID:-app.w3dev.cmux.ios.beta}"
     PROVISIONING_PROFILE_NAME="${IOS_BETA_PROVISIONING_PROFILE_NAME:-cmux Beta Distribution}"
     PRODUCT_DISPLAY_NAME="${IOS_BETA_DISPLAY_NAME:-cmux BETA}"
     CRASH_REPORTING_ENABLED="YES"
     ;;
   appstore)
-    PRODUCT_BUNDLE_IDENTIFIER="${IOS_APPSTORE_BUNDLE_ID:-com.cmux.app}"
+    PRODUCT_BUNDLE_IDENTIFIER="${IOS_APPSTORE_BUNDLE_ID:-app.w3dev.cmux.ios}"
     PROVISIONING_PROFILE_NAME="${IOS_APPSTORE_PROVISIONING_PROFILE_NAME:-cmux App Store Distribution}"
     PRODUCT_DISPLAY_NAME="${IOS_APPSTORE_DISPLAY_NAME:-cmux}"
     CRASH_REPORTING_ENABLED="YES"
@@ -1039,12 +1039,12 @@ REPO_ROOT="$(cd "$IOS_DIR/.." && pwd)"
 NOTIFICATION_SERVICE_BUNDLE_IDENTIFIER="$(bash "$SCRIPT_DIR/notification-service-bundle-id.sh" "$PRODUCT_BUNDLE_IDENTIFIER")"
 WORKSPACE="$IOS_DIR/cmux.xcworkspace"
 SCHEME="cmux-ios"
-DEVELOPMENT_TEAM="${IOS_DEVELOPMENT_TEAM:-7WLXT3NR37}"
+DEVELOPMENT_TEAM="${IOS_DEVELOPMENT_TEAM:?Set IOS_DEVELOPMENT_TEAM to the fork Apple team ID}"
 CLOUD_VPN_BUNDLE_IDENTIFIER="${PRODUCT_BUNDLE_IDENTIFIER}.CloudVPN"
 # These public apps have provisioned packet-tunnel extensions. Internal/demo
 # app identities are separate Apple registrations and do not opt in implicitly.
 CLOUD_VPN_REQUIRED=0
-if [[ "$LANE" == "appstore" || "$PRODUCT_BUNDLE_IDENTIFIER" == "dev.cmux.app.beta" ]]; then
+if [[ "$LANE" == "appstore" || "$PRODUCT_BUNDLE_IDENTIFIER" == "app.w3dev.cmux.ios.beta" ]]; then
   CLOUD_VPN_REQUIRED=1
 fi
 SHARED_XCCONFIG="$IOS_DIR/Config/Shared.xcconfig"
@@ -1066,18 +1066,26 @@ require_marketing_version "$LANE" "$LANE_MARKETING_VERSION"
 # them explicitly to every archive invocation. This prevents a runner's
 # staging environment, a stale shell export, or a reused archive from silently
 # producing a production-auth app that talks to staging Iroh infrastructure.
+OAUTH_CHANNEL="${PRODUCT_BUNDLE_IDENTIFIER#app.w3dev.cmux.ios}"
+OAUTH_CHANNEL="${OAUTH_CHANNEL//./-}"
+if [[ "$PRODUCT_BUNDLE_IDENTIFIER" != app.w3dev.cmux.ios* ]]; then
+  : "${CMUX_OAUTH_CLIENT_ID:?Register and set the custom OAuth client ID}"
+  : "${CMUX_OAUTH_CALLBACK_SCHEME:?Register and set the custom OAuth callback scheme}"
+fi
 PRODUCTION_RUNTIME_BUILD_ARGS=(
+  "CMUX_OAUTH_CLIENT_ID=${CMUX_OAUTH_CLIENT_ID:-cmux-w3dev-ios$OAUTH_CHANNEL}"
+  "CMUX_OAUTH_CALLBACK_SCHEME=${CMUX_OAUTH_CALLBACK_SCHEME:-cmux-w3dev-ios$OAUTH_CHANNEL}"
   CMUX_IOS_AUTH_ENV=production
-  CMUX_API_BASE_URL=https://cmux.com
-  CMUX_IROH_BROKER_BASE_URL=https://cmux.com
-  CMUX_PRESENCE_BASE_URL=https://presence.cmux.dev
+  CMUX_API_BASE_URL=https://cmux.w3dev.app
+  CMUX_IROH_BROKER_BASE_URL=https://cmux.w3dev.app
+  CMUX_PRESENCE_BASE_URL=https://presence.cmux.w3dev.app
 )
 
 # Notes audience is driven by the testing lane (External block for --external).
 NOTES_AUDIENCE="internal"
 [[ "$EXTERNAL_TESTING" == "1" ]] && NOTES_AUDIENCE="external"
 
-# Both beta and the official com.cmux.app upload are TestFlight lanes. The
+# Both beta and the official app.w3dev.cmux.ios upload are TestFlight lanes. The
 # production marketing version has its own independent sequence, so its notes
 # use the current changelog entry without requiring that entry's version to
 # equal the production version.
@@ -1456,7 +1464,7 @@ fi
 
 # For beta, the archived marketing version (CFBundleShortVersionString) must
 # match the changelog entry before export/upload, so a build never gets notes for
-# the wrong beta version. The official com.cmux.app lane has an independent
+# the wrong beta version. The official app.w3dev.cmux.ios lane has an independent
 # production version stream and validates the changelog structure without this
 # equality check. Skipped for --export-only / --skip-notes. If the archive's
 # version is unreadable, the lane version guard above fails closed before this
@@ -1606,7 +1614,7 @@ if [[ "$SIGNING" == "manual" ]]; then
   # CODE_SIGN_ENTITLEMENTS = Config/cmux-release.entitlements, so default to that
   # path rather than parsing xcodebuild -showBuildSettings (slower, more brittle).
   RELEASE_ENTITLEMENTS="${IOS_RELEASE_ENTITLEMENTS:-$IOS_DIR/Config/cmux-release.entitlements}"
-  RESIGN_IDENTITY="${IOS_DISTRIBUTION_IDENTITY:-Apple Distribution: Manaflow, Inc. (7WLXT3NR37)}"
+  RESIGN_IDENTITY="${IOS_DISTRIBUTION_IDENTITY:?Set IOS_DISTRIBUTION_IDENTITY to the fork signing identity}"
 
   if [[ ! -f "$RELEASE_ENTITLEMENTS" ]]; then
     echo "error: re-sign needs the Release entitlements file but it is missing: $RELEASE_ENTITLEMENTS (set IOS_RELEASE_ENTITLEMENTS to override)" >&2

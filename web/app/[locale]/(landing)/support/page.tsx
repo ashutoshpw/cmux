@@ -34,10 +34,9 @@ const channels = [
   { key: "discord", href: "https://discord.gg/xsgFEVrWCZ", internal: false },
   {
     key: "github",
-    href: "https://github.com/manaflow-ai/cmux/issues",
+    href: "https://github.com/ashutoshpw/cmux/issues",
     internal: false,
   },
-  { key: "email", href: "mailto:founders@cmux.com", internal: false },
 ] as const;
 
 export default function SupportPage() {

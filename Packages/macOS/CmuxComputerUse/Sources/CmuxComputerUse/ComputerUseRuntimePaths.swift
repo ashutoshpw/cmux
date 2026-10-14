@@ -80,7 +80,7 @@ public struct ComputerUseRuntimePaths: Sendable {
             userIdentifier: userIdentifier
         )
         computerUseDirectoryURL = homeDirectoryURL
-            .appendingPathComponent("Library/Application Support/cmux/cmux-cua", isDirectory: true)
+            .appendingPathComponent("Library/Application Support/cmux-w3dev/cmux-cua", isDirectory: true)
         runtimeDirectoryURL = socketRootDirectoryURL
             .appendingPathComponent("cmux-cua-\(userIdentifier)", isDirectory: true)
             .appendingPathComponent(scope, isDirectory: true)

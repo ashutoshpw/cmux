@@ -72,10 +72,10 @@ export async function SiteFooter() {
     {
       heading: t("social"),
       links: [
-        { label: t("github"), href: "https://github.com/manaflow-ai/cmux" },
+        { label: t("github"), href: "https://github.com/ashutoshpw/cmux" },
         { label: t("twitter"), href: "https://twitter.com/manaflowai" },
         { label: t("discord"), href: "https://discord.gg/xsgFEVrWCZ" },
-        { label: t("contact"), href: "mailto:founders@cmux.com" },
+        { label: t("contact"), href: "https://cmux.w3dev.app/support" },
       ] satisfies FooterLink[],
     },
   ];
@@ -138,7 +138,7 @@ export async function SiteFooter() {
               ·
             </span>
             <a
-              href="https://github.com/manaflow-ai/cmux"
+              href="https://github.com/ashutoshpw/cmux"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"

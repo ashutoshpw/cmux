@@ -6,7 +6,7 @@ import OSLog
 
 /// Attach and catalog milestones at notice level, so they survive in the
 /// persisted log a dogfood report pulls. Ids only; never terminal bytes.
-private let bridgeLog = Logger(subsystem: "dev.cmux.ios", category: "cloud-bridge")
+private let bridgeLog = Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "cloud-bridge")
 
 /// Publishes the account's Cloud machines into the phone's workspace
 /// experience and serves their terminals.

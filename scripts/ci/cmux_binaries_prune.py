@@ -10,7 +10,7 @@ prefix only when nothing can still ask for it.
 
 A family is a key pattern plus a decide function, so the families another owner prunes (the
 `cmux-tui/tree/<key>/` trees, op-ci-tiers) plug into the same run. A key that matches no family is
-never touched: `*/latest/`, `mux/` (read outside this repo until manaflow-ai/cmux-cloud#2),
+never touched: `*/latest/`, `mux/` (read outside this repo until ashutoshpw/cmux-cloud#2),
 `cmux-next-web/`, the `nightly/`, `rc/` and `stable/` appcasts, and anything new.
 
 A commit-addressed prefix is kept when its commit is any of:
@@ -77,7 +77,7 @@ import r2_cache_census as census  # noqa: E402
 import r2_cache_prune  # noqa: E402
 import r2_storage_census  # noqa: E402
 
-BUCKET = "cmux-binaries"
+BUCKET = os.environ.get("CMUX_ARTIFACTS_R2_BUCKET", "")
 BRANCH_DAYS = 14
 TRUNK_DAYS = 30
 WINDOW_KEEP = 3  # newest published commits kept per --windows line, per family
@@ -317,7 +317,7 @@ def write_cold_queue(bucket, cold: list[Group], out: Path, now: dt.datetime, sig
     out.mkdir(parents=True, exist_ok=True)
     (out / "queue.json").write_text(json.dumps(
         {"generated": now.strftime("%Y-%m-%dT%H:%M:%SZ"), "bucket": BUCKET,
-         "public_base": "https://files.cmux.com", "groups": groups}, indent=1) + "\n")
+         "public_base": "https://files.cmux.w3dev.app", "groups": groups}, indent=1) + "\n")
     fd = os.open(out / "deletes.json", os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
     with os.fdopen(fd, "w") as handle:
         json.dump(deletes, handle)

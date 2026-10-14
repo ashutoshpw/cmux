@@ -4,13 +4,12 @@ import CmuxAuthRuntime
 import AppKit
 import Foundation
 import Network
-import StackAuth
 
 /// The macOS auth composition root.
 ///
 /// Constructs the de-singletonized auth graph once at app startup, mirroring
-/// the iOS `MobileAuthComposition`: the keychain/file fallback token store, a
-/// `StackClientApp` over it (wrapped in ``CmuxAuthRuntime/StackAuthClient``),
+/// the iOS `MobileAuthComposition`: device-bound Keychain token storage and a
+/// ``CmuxAuthRuntime/BetterAuthClient`` with a registered OAuth PKCE flow,
 /// the shared ``CmuxAuthRuntime/AuthCoordinator`` bound to the historical mac
 /// defaults keys, and the ``HostBrowserSignInFlow``. Replaces
 /// `AuthManager.shared`.
@@ -20,11 +19,11 @@ struct MacAuthComposition {
     let coordinator: AuthCoordinator
     /// Recognizes/parses auth callback URLs (AppDelegate URL routing).
     let callbackRouter: AuthCallbackRouter
-    /// The token store the Stack client persists through.
+    /// The secure token store shared by OAuth exchange and sign-out.
     let tokenStore: any StackAuthTokenStoreProtocol
     /// The hosted-browser sign-in flow used by app-session recovery.
     let browserSignIn: HostBrowserSignInFlow
-    /// Bridges the native Stack session into explicitly opened cmux web panes.
+    /// Opens fork web panes in isolated storage with hosted browser sign-in.
     let browserAppSession: BrowserAppSessionController
     /// Shared observable account projection used by Settings and sidebar UI.
     let accountFlow: HostAccountFlow
@@ -42,23 +41,13 @@ struct MacAuthComposition {
         defaults: UserDefaults = .standard
     ) {
         let bundleIdentifier = Bundle.main.bundleIdentifier
-        let resolvedAuthEnvironment = AuthEnvironment.resolvedStackAuthEnvironment(
-            environment: environment,
-            isDebugBuild: Self.isDebugBuild
-        )
-        let stackProjectID = AuthEnvironment.resolvedStackProjectID(
-            environment: environment,
-            isDebugBuild: Self.isDebugBuild
-        )
-        let stackPublishableClientKey = AuthEnvironment.resolvedStackPublishableClientKey(
-            environment: environment,
-            isDebugBuild: Self.isDebugBuild
-        )
-        let tokenStore = FallbackTokenStore(
-            primary: KeychainStackTokenStore(
-                service: KeychainStackTokenStore.serviceName(bundleIdentifier: bundleIdentifier)
-            ),
-            fallback: FileStackTokenStore(directory: Self.credentialsDirectory(bundleIdentifier: bundleIdentifier))
+        let issuer = AuthEnvironment.apiBaseURL
+        let callback = AuthEnvironment.callbackURL
+        let clientID = AuthEnvironment.oauthClientID
+        let stackProjectID = issuer.absoluteString + "|" + clientID
+        let stackPublishableClientKey = clientID
+        let tokenStore = KeychainOAuthTokenStore(
+            service: "\(bundleIdentifier ?? ForkDeployment.macOSBundleID).oauth.\(Data(issuer.absoluteString.utf8).base64EncodedString())"
         )
         self.tokenStore = tokenStore
 
@@ -81,7 +70,7 @@ struct MacAuthComposition {
 
         let config = AuthConfig(
             stack: CMUXAuthConfig(
-                projectId: stackProjectID,
+                projectId: issuer.absoluteString.trimmingCharacters(in: CharacterSet(charactersIn: "/")),
                 publishableClientKey: stackPublishableClientKey
             ),
             magicLinkCallbackURL: AuthEnvironment.websiteOrigin
@@ -89,39 +78,17 @@ struct MacAuthComposition {
                 .absoluteString,
             apiBaseURL: AuthEnvironment.apiBaseURL.absoluteString
         )
-        let client = StackAuthClient(
-            config: config,
-            tokenStore: .custom(tokenStore),
-            baseURL: AuthEnvironment.stackBaseURL.absoluteString,
-            noAutomaticPrefetch: true
-        )
-        // DEBUG-only: make a tagged `cmux DEV` build come up already signed in
-        // as the dogfood account, mirroring iOS. A tagged build is a separate
-        // bundle (separate keychain), so it starts signed out. iOS injects
-        // `CMUX_UITEST_STACK_*` into the launch environment; the Mac app needs
-        // the same, but a `cmux DEV` opened from Finder / the CMUX Tag Opener
-        // does not inherit a shell's environment, so the resolver also reads
-        // `~/.secrets/cmuxterm-dev.env` / `~/.secrets/cmux.env` directly. The
-        // resolver runs unconditionally and applies file-first precedence, so
-        // on the dog Mac the verified dogfood file wins even when stale Stack
-        // creds are present in the environment; only the two resolved cred keys
-        // are filled in (never the whole file). When the only creds are
-        // `CMUX_UITEST_STACK_*` env (a CI UI test with no `~/.secrets` files),
-        // the resolver returns that same pair, so the merge is a no-op. The
-        // existing `CMUXAuthAutoLoginCredentials` + `shouldStartAutoLogin` gate
-        // then fires unchanged. Compiled out of release builds.
-        let resolvedEnvironment = Self.environmentWithDogfoodAutoSignIn(environment)
+        let transport = URLSessionOAuthTransport()
+        let oauthConfiguration = OAuthClientConfiguration(origin: issuer, clientID: clientID, redirectURI: callback)
+        let oauthBrowser = OAuthAuthorizationFlow(configuration: oauthConfiguration, transport: transport)
+        let client = BetterAuthClient(configuration: oauthConfiguration, store: tokenStore, transport: transport, browser: oauthBrowser)
+        let resolvedEnvironment = environment
         let authProjectSwitched = Self.detectAuthProjectSwitch(
             resolvedProjectID: stackProjectID,
-            buildDefaultProjectID: AuthEnvironment.resolvedStackProjectID(
-                environment: [:],
-                isDebugBuild: Self.isDebugBuild
-            ),
+            buildDefaultProjectID: stackProjectID,
             defaults: defaults
         )
-        let includesDevAuth = Self.includesDevAuth(
-            resolvedAuthEnvironment: resolvedAuthEnvironment
-        )
+        let includesDevAuth = false
         let replacesStoredDevSession = includesDevAuth
             && resolvedEnvironment["CMUX_DEV_AUTH_CREDENTIALS_RESOLVED"] == "1"
         let launch = AuthLaunchOptions(
@@ -183,8 +150,9 @@ struct MacAuthComposition {
             tokenStore: tokenStore,
             sessionFactory: ASWebBrowserAuthSessionFactory(anchor: anchor),
             callbackRouter: callbackRouter,
-            makeSignInURL: { AuthEnvironment.signInURL(callbackState: $0) },
+            makeSignInURL: { oauthBrowser.authorizationURL(state: $0) },
             callbackScheme: { AuthEnvironment.callbackScheme },
+            callbackExchange: { try await client.completeBrowserCallback($0, attemptGeneration: $1) },
             openExternalURL: { NSWorkspace.shared.open($0) },
             approveUnsolicitedCallback: { await UnsolicitedAuthCallbackApprovalPrompt.present($0) },
             beginSignOut: {
@@ -240,26 +208,6 @@ struct MacAuthComposition {
         coordinator.start()
     }
 
-    /// Where the file-fallback token store persists, namespaced by bundle id
-    /// (matching the pre-package layout so existing sessions survive).
-    private static func credentialsDirectory(bundleIdentifier: String?) -> URL {
-        let support = FileManager.default.urls(
-            for: .applicationSupportDirectory,
-            in: .userDomainMask
-        ).first ?? URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support")
-        return support
-            .appendingPathComponent("cmux", isDirectory: true)
-            .appendingPathComponent(bundleIdentifier ?? "cmux", isDirectory: true)
-    }
-
-    private static var isDebugBuild: Bool {
-        #if DEBUG
-        true
-        #else
-        false
-        #endif
-    }
-
     /// DEBUG UI tests can serve fixture team membership around the live client.
     private static func uiTestAuthClient(
         wrapping client: any AuthClient,
@@ -270,12 +218,6 @@ struct MacAuthComposition {
         #else
         client
         #endif
-    }
-
-    private static func includesDevAuth(
-        resolvedAuthEnvironment: CMUXAuthEnvironment
-    ) -> Bool {
-        isDebugBuild && resolvedAuthEnvironment == .development
     }
 
     nonisolated static let storedStackProjectIDKey = "cmux.auth.stackProjectID"
@@ -292,86 +234,7 @@ struct MacAuthComposition {
         return previous != resolvedProjectID
     }
 
-    #if DEBUG
-    /// Returns `environment` with the dogfood auto-sign-in credentials filled in
-    /// under the `CMUX_UITEST_STACK_*` keys (DEBUG only; the whole method is
-    /// compiled out of release, so the auto-sign-in path can never run in
-    /// production).
-    ///
-    /// Always consults ``DebugDogfoodCredentialResolver`` so the resolver's
-    /// file-first precedence is honored even when stale `CMUX_UITEST_STACK_*`
-    /// or `CMUX_DOGFOOD_STACK_*` vars are already present in the environment:
-    /// on the dog Mac, the verified `~/.secrets/cmuxterm-dev.env` account must
-    /// win, while a CI UI test with no `~/.secrets` files still resolves the
-    /// env pair and merges it unchanged.
-    ///
-    /// - Parameters:
-    ///   - environment: The launch environment.
-    ///   - secretFilePaths: Ordered secret-file candidates for the resolver.
-    ///     Defaults to `nil` so the resolver uses `~/.secrets/cmuxterm-dev.env`
-    ///     then `~/.secrets/cmux.env`. Injected by tests to exercise the
-    ///     dog-Mac precedence without touching real files.
-    ///   - readFile: File reader seam for the resolver. Defaults to a real read;
-    ///     injected by tests.
-    ///
-    /// `nonisolated`: a pure transformation over its arguments that touches no
-    /// main-actor state, so tests can call it from a nonisolated context.
-    nonisolated static func environmentWithDogfoodAutoSignIn(
-        _ environment: [String: String],
-        secretFilePaths: [String]? = nil,
-        readFile: ((String) -> String?)? = nil
-    ) -> [String: String] {
-        let resolver: DebugDogfoodCredentialResolver
-        if let readFile {
-            resolver = DebugDogfoodCredentialResolver(
-                environment: environment,
-                secretFilePaths: secretFilePaths,
-                readFile: readFile
-            )
-        } else {
-            resolver = DebugDogfoodCredentialResolver(
-                environment: environment,
-                secretFilePaths: secretFilePaths
-            )
-        }
-        guard let resolved = resolver.resolve() else {
-            var unresolved = environment
-            unresolved["CMUX_DEV_AUTH_CREDENTIALS_RESOLVED"] = nil
-            unresolved["CMUX_DEV_AUTH_REPLACE_SESSION"] = nil
-            return unresolved
-        }
-        let replacementRequested = environment[DebugDogfoodCredentialResolver.authProfileEnvironmentKey] != nil
-            || environment[DebugDogfoodCredentialResolver.explicitCredentialsFileEnvironmentKey] != nil
-            || environment["CMUX_DEV_AUTH_REPLACE_SESSION"] == "1"
-        var merged = environment
-        merged["CMUX_UITEST_STACK_EMAIL"] = resolved.email
-        merged["CMUX_UITEST_STACK_PASSWORD"] = resolved.password
-        if replacementRequested {
-            // Credential resolution is the deterministic identity selection
-            // for an explicit tagged DEBUG launch, even when the source is a
-            // file and the secret values never arrive in the process
-            // environment. Mirror the iOS launch contract so a stale stored
-            // session cannot survive under a different account.
-            merged["CMUX_DEV_AUTH_CREDENTIALS_RESOLVED"] = "1"
-            merged["CMUX_DEV_AUTH_REPLACE_SESSION"] = "1"
-        } else {
-            // Preserve legacy launches that only discover ambient credentials:
-            // they may auto-login when signed out, but must not clear an active
-            // persisted session on every ordinary restart.
-            merged["CMUX_DEV_AUTH_CREDENTIALS_RESOLVED"] = nil
-            merged["CMUX_DEV_AUTH_REPLACE_SESSION"] = nil
-        }
-        return merged
-    }
-    #else
-    /// In release builds the dogfood auto-sign-in path does not exist; this is
-    /// the identity function so production never auto-signs-in.
-    nonisolated static func environmentWithDogfoodAutoSignIn(
-        _ environment: [String: String]
-    ) -> [String: String] {
-        environment
-    }
-    #endif
+
 }
 
 /// Retries a missing team scope when a retry is likely to succeed.

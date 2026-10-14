@@ -186,7 +186,7 @@ def package_platforms(
                 ),
                 "repository": {
                     "type": "git",
-                    "url": "git+https://github.com/manaflow-ai/cmux.git",
+                    "url": "git+https://github.com/ashutoshpw/cmux.git",
                     "directory": "cmux-tui/dist",
                 },
                 "license": "MIT",
@@ -220,7 +220,7 @@ def package_platforms(
                 "description": f"Prebuilt cmux-relay binary for {target['os']}-{target['cpu']}.",
                 "repository": {
                     "type": "git",
-                    "url": "git+https://github.com/manaflow-ai/cmux.git",
+                    "url": "git+https://github.com/ashutoshpw/cmux.git",
                     "directory": "cmux-tui/dist",
                 },
                 "license": "MIT",

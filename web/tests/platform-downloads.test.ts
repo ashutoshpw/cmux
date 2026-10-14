@@ -59,10 +59,10 @@ describe("Windows and Linux downloads", () => {
       "/api/download/browser-nightly/mac-arm64/zip",
     );
     expect(BROWSER_RELEASE_REPOSITORY_URL).toBe(
-      "https://github.com/manaflow-ai/cmux-v2",
+      "https://github.com/ashutoshpw/cmux",
     );
     expect(BROWSER_NIGHTLY_RELEASE_URL).toBe(
-      "https://github.com/manaflow-ai/cmux-v2/releases/tag/nightly",
+      "https://github.com/ashutoshpw/cmux/releases/tag/nightly",
     );
     expect(JSON.stringify(PLATFORM_DOWNLOADS)).not.toContain("cmux-browser");
     expect(JSON.stringify(BROWSER_MACOS_NIGHTLY_DOWNLOAD)).not.toContain(

@@ -73,17 +73,17 @@ describe("SEO metadata helpers", () => {
   });
 
   test("keeps canonical URLs locale-aware", () => {
-    expect(canonicalUrl("en", "/docs")).toBe("https://cmux.com/docs");
-    expect(canonicalUrl("ja", "/docs")).toBe("https://cmux.com/ja/docs");
+    expect(canonicalUrl("en", "/docs")).toBe("https://cmux.w3dev.app/docs");
+    expect(canonicalUrl("ja", "/docs")).toBe("https://cmux.w3dev.app/ja/docs");
     expect(buildAlternates("ja", "/docs").canonical).toBe(
-      "https://cmux.com/ja/docs",
+      "https://cmux.w3dev.app/ja/docs",
     );
     expect(
       buildAlternates("en", "/blog/cmux-omo", englishFallbackContentLocales)
         .languages,
     ).toEqual({
-      en: "https://cmux.com/blog/cmux-omo",
-      "x-default": "https://cmux.com/blog/cmux-omo",
+      en: "https://cmux.w3dev.app/blog/cmux-omo",
+      "x-default": "https://cmux.w3dev.app/blog/cmux-omo",
     });
   });
 
@@ -205,7 +205,7 @@ describe("SEO metadata helpers", () => {
       type: "article",
       images: [
         {
-          url: "https://cmux.com/opengraph-image",
+          url: "https://cmux.w3dev.app/opengraph-image",
           width: 2400,
           height: 1260,
           alt: "cmux - The terminal built for multitasking",
@@ -216,17 +216,17 @@ describe("SEO metadata helpers", () => {
       card: "summary_large_image",
       title: "Title",
       description: "Description",
-      images: ["https://cmux.com/opengraph-image"],
+      images: ["https://cmux.w3dev.app/opengraph-image"],
     });
     expect(twitterSummary("ja", "Title", "Description").images).toEqual([
-      "https://cmux.com/ja/opengraph-image",
+      "https://cmux.w3dev.app/ja/opengraph-image",
     ]);
     expect(browserOpenGraphDefaults("Descargar cmux para Windows")).toEqual({
       siteName: "cmux",
       type: "website",
       images: [
         {
-          url: "https://cmux.com/browser-opengraph-image",
+          url: "https://cmux.w3dev.app/browser-opengraph-image",
           width: 2400,
           height: 1260,
           alt: "Descargar cmux para Windows",
@@ -235,7 +235,7 @@ describe("SEO metadata helpers", () => {
     });
     expect(browserOpenGraphImage("متصفح cmux").alt).toBe("متصفح cmux");
     expect(browserTwitterSummary("Title", "Description").images).toEqual([
-      "https://cmux.com/browser-opengraph-image",
+      "https://cmux.w3dev.app/browser-opengraph-image",
     ]);
   });
 
@@ -1048,7 +1048,7 @@ describe("SEO middleware", () => {
     );
     expect(unsupportedLocale.status).toBe(301);
     expect(unsupportedLocale.headers.get("location")).toBe(
-      "https://cmux.com/docs/base",
+      "https://cmux.w3dev.app/docs/base",
     );
 
     const canonicalEnglish = middleware(
@@ -1056,7 +1056,7 @@ describe("SEO middleware", () => {
     );
     expect(canonicalEnglish.status).toBe(200);
     expect(canonicalEnglish.headers.get("x-middleware-rewrite")).toBe(
-      "https://cmux.com/en/docs/base",
+      "https://cmux.w3dev.app/en/docs/base",
     );
     expect(canonicalEnglish.headers.get("location")).toBeNull();
   });
@@ -1067,7 +1067,7 @@ describe("SEO middleware", () => {
     );
     expect(unsupportedLocale.status).toBe(301);
     expect(unsupportedLocale.headers.get("location")).toBe(
-      "https://cmux.com/docs/remote-tmux",
+      "https://cmux.w3dev.app/docs/remote-tmux",
     );
 
     const canonicalEnglish = middleware(
@@ -1075,7 +1075,7 @@ describe("SEO middleware", () => {
     );
     expect(canonicalEnglish.status).toBe(200);
     expect(canonicalEnglish.headers.get("x-middleware-rewrite")).toBe(
-      "https://cmux.com/en/docs/remote-tmux",
+      "https://cmux.w3dev.app/en/docs/remote-tmux",
     );
     expect(canonicalEnglish.headers.get("location")).toBeNull();
   });
@@ -1091,7 +1091,7 @@ describe("SEO middleware", () => {
       );
       expect(response.status).toBe(301);
       expect(response.headers.get("location")).toBe(
-        `https://cmux.com${canonicalPath}`,
+        `https://cmux.w3dev.app${canonicalPath}`,
       );
 
       const canonical = middleware(
@@ -1100,7 +1100,7 @@ describe("SEO middleware", () => {
       expect(canonical.status).toBe(200);
       expect(canonical.headers.get("location")).toBeNull();
       expect(canonical.headers.get("x-middleware-rewrite")).toBe(
-        `https://cmux.com/en${canonicalPath}`,
+        `https://cmux.w3dev.app/en${canonicalPath}`,
       );
       expect(canonical.headers.get("Link")).toContain('hreflang="ja"');
       expect(canonical.headers.get("Link")).not.toContain('hreflang="de"');
@@ -1111,7 +1111,7 @@ describe("SEO middleware", () => {
     );
     expect(negotiatedJapanese.status).toBe(307);
     expect(negotiatedJapanese.headers.get("location")).toBe(
-      "https://cmux.com/ja/pricing",
+      "https://cmux.w3dev.app/ja/pricing",
     );
     expect(negotiatedJapanese.headers.get("location")).not.toContain("/en/");
 
@@ -1123,7 +1123,7 @@ describe("SEO middleware", () => {
     expect(wildcardPrefersEnglish.status).toBe(200);
     expect(wildcardPrefersEnglish.headers.get("location")).toBeNull();
     expect(wildcardPrefersEnglish.headers.get("x-middleware-rewrite")).toBe(
-      "https://cmux.com/en/pricing",
+      "https://cmux.w3dev.app/en/pricing",
     );
 
     const wildcardExcludesEnglish = middleware(
@@ -1133,7 +1133,7 @@ describe("SEO middleware", () => {
     );
     expect(wildcardExcludesEnglish.status).toBe(307);
     expect(wildcardExcludesEnglish.headers.get("location")).toBe(
-      "https://cmux.com/ja/pricing",
+      "https://cmux.w3dev.app/ja/pricing",
     );
 
     const invalidJapaneseQuality = middleware(
@@ -1152,7 +1152,7 @@ describe("SEO middleware", () => {
     );
     expect(cookieJapanese.status).toBe(307);
     expect(cookieJapanese.headers.get("location")).toBe(
-      "https://cmux.com/ja/pricing",
+      "https://cmux.w3dev.app/ja/pricing",
     );
 
     const cookieEnglish = middleware(
@@ -1164,7 +1164,7 @@ describe("SEO middleware", () => {
     expect(cookieEnglish.status).toBe(200);
     expect(cookieEnglish.headers.get("location")).toBeNull();
     expect(cookieEnglish.headers.get("x-middleware-rewrite")).toBe(
-      "https://cmux.com/en/pricing",
+      "https://cmux.w3dev.app/en/pricing",
     );
 
     const unavailableCookieLocale = middleware(
@@ -1176,7 +1176,7 @@ describe("SEO middleware", () => {
     expect(unavailableCookieLocale.status).toBe(200);
     expect(unavailableCookieLocale.headers.get("location")).toBeNull();
     expect(unavailableCookieLocale.headers.get("x-middleware-rewrite")).toBe(
-      "https://cmux.com/en/pricing",
+      "https://cmux.w3dev.app/en/pricing",
     );
     expect(unavailableCookieLocale.headers.get("set-cookie")).toBeNull();
 
@@ -1185,7 +1185,7 @@ describe("SEO middleware", () => {
     );
     expect(encodedUnavailableLocale.status).toBe(301);
     expect(encodedUnavailableLocale.headers.get("location")).toBe(
-      "https://cmux.com/pricing",
+      "https://cmux.w3dev.app/pricing",
     );
 
     const encodedDocsLocale = middleware(
@@ -1195,7 +1195,7 @@ describe("SEO middleware", () => {
     );
     expect(encodedDocsLocale.status).toBe(301);
     expect(encodedDocsLocale.headers.get("location")).toBe(
-      "https://cmux.com/docs/agent-integrations/oh-my-pi",
+      "https://cmux.w3dev.app/docs/agent-integrations/oh-my-pi",
     );
 
     const japanese = middleware(
@@ -1220,16 +1220,16 @@ describe("SEO middleware", () => {
           url.endsWith("/docs/agent-integrations/oh-my-pi"),
       );
     expect(urls).toEqual([
-      "https://cmux.com/pricing",
-      "https://cmux.com/ja/pricing",
-      "https://cmux.com/blog/367-billion-tokens",
-      "https://cmux.com/ja/blog/367-billion-tokens",
-      "https://cmux.com/blog/claude-code-best-worktree-manager",
-      "https://cmux.com/ja/blog/claude-code-best-worktree-manager",
-      "https://cmux.com/blog/cmux-ssh",
-      "https://cmux.com/ja/blog/cmux-ssh",
-      "https://cmux.com/docs/agent-integrations/oh-my-pi",
-      "https://cmux.com/ja/docs/agent-integrations/oh-my-pi",
+      "https://cmux.w3dev.app/pricing",
+      "https://cmux.w3dev.app/ja/pricing",
+      "https://cmux.w3dev.app/blog/367-billion-tokens",
+      "https://cmux.w3dev.app/ja/blog/367-billion-tokens",
+      "https://cmux.w3dev.app/blog/claude-code-best-worktree-manager",
+      "https://cmux.w3dev.app/ja/blog/claude-code-best-worktree-manager",
+      "https://cmux.w3dev.app/blog/cmux-ssh",
+      "https://cmux.w3dev.app/ja/blog/cmux-ssh",
+      "https://cmux.w3dev.app/docs/agent-integrations/oh-my-pi",
+      "https://cmux.w3dev.app/ja/docs/agent-integrations/oh-my-pi",
     ]);
   });
 
@@ -1251,7 +1251,7 @@ describe("SEO middleware", () => {
       );
       expect(localized.status).toBe(301);
       expect(localized.headers.get("location")).toBe(
-        `https://cmux.com${canonicalPath}`,
+        `https://cmux.w3dev.app${canonicalPath}`,
       );
 
       const canonical = middleware(
@@ -1259,7 +1259,7 @@ describe("SEO middleware", () => {
       );
       expect(canonical.status).toBe(200);
       expect(canonical.headers.get("x-middleware-rewrite")).toBe(
-        `https://cmux.com/en${canonicalPath}`,
+        `https://cmux.w3dev.app/en${canonicalPath}`,
       );
       expect(canonical.headers.get("Link")).toContain('hreflang="en"');
       expect(canonical.headers.get("Link")).not.toContain('hreflang="ja"');
@@ -1274,9 +1274,9 @@ describe("SEO middleware", () => {
           url.endsWith("/blog/gpl"),
       );
     expect(urls).toEqual([
-      "https://cmux.com/blog/cmux-claude-teams",
-      "https://cmux.com/blog/cmux-omo",
-      "https://cmux.com/blog/gpl",
+      "https://cmux.w3dev.app/blog/cmux-claude-teams",
+      "https://cmux.w3dev.app/blog/cmux-omo",
+      "https://cmux.w3dev.app/blog/gpl",
     ]);
   });
 
@@ -1290,7 +1290,7 @@ describe("SEO middleware", () => {
         requestFor(`/de${path}`, { "accept-language": "de" }),
       );
       expect(german.status).toBe(301);
-      expect(german.headers.get("location")).toBe(`https://cmux.com${path}`);
+      expect(german.headers.get("location")).toBe(`https://cmux.w3dev.app${path}`);
 
       const japanese = middleware(
         requestFor(`/ja${path}`, { "accept-language": "ja" }),
@@ -1367,7 +1367,7 @@ function auditedRow(
 }
 
 function requestFor(pathname: string, headers: Record<string, string> = {}) {
-  return new NextRequest(`https://cmux.com${pathname}`, {
+  return new NextRequest(`https://cmux.w3dev.app${pathname}`, {
     headers: {
       host: "cmux.com",
       ...headers,
@@ -1378,7 +1378,7 @@ function requestFor(pathname: string, headers: Record<string, string> = {}) {
 describe("docs markdown alternate", () => {
   test("docs pages advertise their .md copy; other pages do not", () => {
     expect(buildAlternates("ja", "/docs/api").types).toEqual({
-      "text/markdown": "https://cmux.com/ja/docs/api.md",
+      "text/markdown": "https://cmux.w3dev.app/ja/docs/api.md",
     });
     expect("types" in buildAlternates("en", "/blog/cmux-omo")).toBe(false);
     // /docs/base has no agent-readable copy, so it must not advertise one.

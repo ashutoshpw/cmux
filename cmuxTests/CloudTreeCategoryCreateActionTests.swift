@@ -90,7 +90,7 @@ struct CloudTreeCategoryCreateActionTests {
             linkError: nil, remoteWorkspaces: [],
             presence: SurfaceDevicePresence(
                 state: .online, lastSeenAt: nil, tag: "default",
-                bundleID: "com.cmuxterm.app", accountTrust: .sameAccount
+                bundleID: "app.w3dev.cmux", accountTrust: .sameAccount
             )
         )
         let snapshot = SurfaceCatalogSnapshot(machines: [info], resources: [], projections: [])

@@ -134,6 +134,7 @@ export function captureServerEvent(
   // its own fetch to inspect the payload.
   if (isAnalyticsTestRun(deps.env) && !dependencies.fetch) return Promise.resolve();
   if (!serverAnalyticsEnabled(deps.env)) return Promise.resolve();
+  if (!(deps.env.POSTHOG_PROJECT_KEY?.trim() || POSTHOG_PROJECT_KEY) || !configuredPosthogHost(deps.env)) return Promise.resolve();
   const payload = serverEventPayload(input, deps.now());
   if (!payload) return Promise.resolve();
   const posthogHost = configuredPosthogHost(deps.env);

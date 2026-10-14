@@ -1,3 +1,4 @@
+import { ownedPrincipal } from "./helpers/owned-principal";
 import { beforeEach, describe, expect, mock, test } from "bun:test";
 
 // Shipped Macs withdraw an app instance with PATCH /api/devices and repeat the
@@ -15,6 +16,10 @@ const getUser = mock(async () => ({
   primaryEmail: "registry-user-2@example.com",
   selectedTeam: { id: "team-a" },
   listTeams: async () => [{ id: "team-a" }],
+}));
+
+mock.module("../services/auth/betterAuthPrincipal", () => ({
+  resolveBetterAuthPrincipal: async (headers: Headers) => ownedPrincipal(await getUser(), headers),
 }));
 
 mock.module("../app/lib/stack", () => ({

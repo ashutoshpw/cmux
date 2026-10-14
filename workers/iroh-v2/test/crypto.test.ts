@@ -7,15 +7,15 @@ import { descriptor } from "./fixtures";
 
 const secret = encodeBase64URL(crypto.getRandomValues(new Uint8Array(32)));
 test("ticket renewal overlaps without invalidating an unexpired token", async () => {
-  const old = await issueTicket(descriptor, "key-1", secret, 1000);
-  const replacement = await issueTicket(descriptor, "key-1", secret, 4300);
+  const old = await issueTicket(descriptor, "key-1", secret, 1000, "auth-session");
+  const replacement = await issueTicket(descriptor, "key-1", secret, 4300, "auth-session");
   for (const ticket of [old, replacement]) {
     expect((await verifyTicket(ticket.token, { "key-1": secret }, "staging", "project", 4301)).identity).toEqual(descriptor.identity);
   }
   await expect(verifyTicket(old.token, { "key-1": secret }, "staging", "project", 4600)).rejects.toThrow("ticket_expired");
 });
 test("rejects tampering, wrong environment/project and unknown signing keys", async () => {
-  const ticket = await issueTicket(descriptor, "key-1", secret, 1000);
+  const ticket = await issueTicket(descriptor, "key-1", secret, 1000, "auth-session");
   await expect(verifyTicket(ticket.token, { "key-1": secret }, "production", "project", 1001)).rejects.toThrow("environment_mismatch");
   await expect(verifyTicket(ticket.token, { "key-1": secret }, "staging", "other", 1001)).rejects.toThrow("environment_mismatch");
   await expect(verifyTicket(ticket.token, {}, "staging", "project", 1001)).rejects.toThrow("unauthorized");

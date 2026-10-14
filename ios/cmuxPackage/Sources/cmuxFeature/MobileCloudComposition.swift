@@ -24,12 +24,12 @@ struct MobileCloudComposition {
 
     /// The Keychain service base; the bundle id is appended so tagged builds
     /// never share a tunnel identity.
-    static let keychainServiceBase = "com.cmuxterm.cloud.wireguard.v1"
+    static let keychainServiceBase = "app.w3dev.cmux.cloud.wireguard.v1"
     /// The Application Support subdirectory for the link client's state.
     static let stateDirectoryName = "cmux-cloud-remote"
 
     /// The Keychain service base for the system VPN's configuration item.
-    static let systemVPNKeychainServiceBase = "com.cmuxterm.cloud.system-vpn.v1"
+    static let systemVPNKeychainServiceBase = "app.w3dev.cmux.cloud.system-vpn.v1"
     /// The Info.plist key naming the packet tunnel extension's bundle id.
     static let systemVPNProviderInfoKey = "CMUXCloudVPNProviderBundleIdentifier"
 

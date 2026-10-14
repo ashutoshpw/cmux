@@ -11,7 +11,7 @@ public import Foundation
 public enum MobileBuildType: String, Equatable, Sendable {
     /// A local DEBUG build (Xcode / `ios/scripts/reload.sh`).
     case dev
-    /// A Release build distributed for beta dogfooding (bundle id `dev.cmux.app.beta`).
+    /// A Release build distributed for beta dogfooding (bundle id `app.w3dev.cmux.ios.beta`).
     case beta
     /// A Release build distributed to the internal team.
     case `internal`
@@ -24,9 +24,9 @@ public enum MobileBuildType: String, Equatable, Sendable {
     ///
     /// `#if DEBUG` short-circuits to ``dev`` so a local build is never mistaken
     /// for a distribution build. In Release the bundle id decides: the beta
-    /// TestFlight bundle is `dev.cmux.app.beta`; Internal and Demo have their
+    /// TestFlight bundle is `app.w3dev.cmux.ios.beta`; Internal and Demo have their
     /// own exact bundle identifiers; the public App Store bundle is
-    /// `com.cmux.app`. Unknown Release identifiers are treated as ``prod``.
+    /// `app.w3dev.cmux.ios`. Unknown Release identifiers are treated as ``prod``.
     ///
     /// - Parameters:
     ///   - isDebugBuild: `true` when compiled with `DEBUG` defined. Injected so
@@ -39,11 +39,11 @@ public enum MobileBuildType: String, Equatable, Sendable {
             return .dev
         }
         switch bundleIdentifier {
-        case "dev.cmux.app.beta":
+        case "app.w3dev.cmux.ios.beta":
             return .beta
-        case "dev.cmux.app.internal":
+        case "app.w3dev.cmux.ios.internal":
             return .internal
-        case "dev.cmux.app.demo":
+        case "app.w3dev.cmux.ios.demo":
             return .demo
         default:
             return .prod

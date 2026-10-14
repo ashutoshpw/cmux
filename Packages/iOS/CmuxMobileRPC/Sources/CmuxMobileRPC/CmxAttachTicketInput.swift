@@ -23,7 +23,7 @@ public struct CmxAttachTicketInput {
             throw MobileSyncPairingPayloadError.invalidURL
         }
         // Accept any channel's pairing scheme (cmux-ios for release builds,
-        // cmux-ios-dev for development); cross-channel pairing still works when
+        // cmux-w3dev-ios-dev for development); cross-channel pairing still works when
         // the user scans from inside the app. The emitter picks the matching
         // scheme so the *system camera* routes each channel's QR to its build.
         if CmxPairingURLScheme(rawValue: url.scheme) != nil, url.host == "pair" {

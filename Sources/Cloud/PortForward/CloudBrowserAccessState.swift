@@ -6,7 +6,7 @@ import CmuxFoundation
 import Observation
 import OSLog
 
-private let cloudDisplayLogger = Logger(subsystem: "com.cmuxterm.app", category: "CloudDisplayConnection")
+private let cloudDisplayLogger = Logger(subsystem: "app.w3dev.cmux", category: "CloudDisplayConnection")
 
 /// Browser-owned navigation state, separate from the shared VM-port choice.
 /// Failed loads keep the native connection controls visible in the same pane.

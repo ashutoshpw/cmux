@@ -46,7 +46,7 @@ final class BrowserDownloadsPopoverContrastUITests: XCTestCase {
             .appendingPathComponent("error.txt", isDirectory: false)
         try Data(repeating: 0x41, count: 5_400).write(to: fixtureURL, options: .atomic)
 
-        let app = XCUIApplication(bundleIdentifier: "com.cmuxterm.app.debug")
+        let app = XCUIApplication(bundleIdentifier: "app.w3dev.cmux.debug")
         self.app = app
         app.terminate()
 

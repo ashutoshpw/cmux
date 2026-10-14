@@ -4,24 +4,24 @@ import Testing
 
 @Suite struct BrowserHistoryLocationTests {
     @Test func foldsDebugAndStagingNamespaces() {
-        #expect(BrowserHistoryLocation.normalizedNamespace(bundleIdentifier: "com.cmuxterm.app.debug.my-tag") == "com.cmuxterm.app.debug")
-        #expect(BrowserHistoryLocation.normalizedNamespace(bundleIdentifier: "com.cmuxterm.app.staging.rc") == "com.cmuxterm.app.staging")
-        #expect(BrowserHistoryLocation.normalizedNamespace(bundleIdentifier: "com.cmuxterm.app") == "com.cmuxterm.app")
+        #expect(BrowserHistoryLocation.normalizedNamespace(bundleIdentifier: "app.w3dev.cmux.debug.my-tag") == "app.w3dev.cmux.debug")
+        #expect(BrowserHistoryLocation.normalizedNamespace(bundleIdentifier: "app.w3dev.cmux.staging.rc") == "app.w3dev.cmux.staging")
+        #expect(BrowserHistoryLocation.normalizedNamespace(bundleIdentifier: "app.w3dev.cmux") == "app.w3dev.cmux")
     }
 
     @Test func historyFileURLNestsUnderNamespace() {
         let root = URL(fileURLWithPath: "/tmp/appsupport", isDirectory: true)
-        let location = BrowserHistoryLocation(applicationSupportDirectory: root, bundleIdentifier: "com.cmuxterm.app.debug.tag")
-        #expect(location.namespace == "com.cmuxterm.app.debug")
-        #expect(location.historyFileURL.path == "/tmp/appsupport/com.cmuxterm.app.debug/browser_history.json")
+        let location = BrowserHistoryLocation(applicationSupportDirectory: root, bundleIdentifier: "app.w3dev.cmux.debug.tag")
+        #expect(location.namespace == "app.w3dev.cmux.debug")
+        #expect(location.historyFileURL.path == "/tmp/appsupport/app.w3dev.cmux.debug/browser_history.json")
     }
 
     @Test func legacyURLPresentOnlyWhenNamespaceDiffers() {
         let root = URL(fileURLWithPath: "/tmp/appsupport", isDirectory: true)
-        let tagged = BrowserHistoryLocation(applicationSupportDirectory: root, bundleIdentifier: "com.cmuxterm.app.debug.tag")
-        #expect(tagged.legacyTaggedHistoryFileURL?.path == "/tmp/appsupport/com.cmuxterm.app.debug.tag/browser_history.json")
+        let tagged = BrowserHistoryLocation(applicationSupportDirectory: root, bundleIdentifier: "app.w3dev.cmux.debug.tag")
+        #expect(tagged.legacyTaggedHistoryFileURL?.path == "/tmp/appsupport/app.w3dev.cmux.debug.tag/browser_history.json")
 
-        let prod = BrowserHistoryLocation(applicationSupportDirectory: root, bundleIdentifier: "com.cmuxterm.app")
+        let prod = BrowserHistoryLocation(applicationSupportDirectory: root, bundleIdentifier: "app.w3dev.cmux")
         #expect(prod.legacyTaggedHistoryFileURL == nil)
     }
 }

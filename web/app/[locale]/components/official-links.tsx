@@ -64,7 +64,7 @@ export function OfficialLinks({ heading = true }: { heading?: boolean }) {
         />
 
         <CommunityLink
-          href="https://github.com/manaflow-ai/cmux"
+          href="https://github.com/ashutoshpw/cmux"
           name="GitHub"
           action={t("githubAction")}
           description={t("githubDesc")}

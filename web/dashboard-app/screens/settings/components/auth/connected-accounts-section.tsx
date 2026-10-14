@@ -1,13 +1,12 @@
 "use client";
 
-import type { CurrentUser, OAuthProvider } from "@hexclave/next";
+import type { CurrentUser, OAuthProvider } from "@/app/lib/stack-client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   type SettingsOAuthProvider,
   settingsOAuthProvidersQuery,
   useRefreshSettings,
 } from "@/dashboard-app/queries/settings";
-import { KnownErrors } from "@hexclave/shared";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import {
@@ -59,20 +58,13 @@ export function ConnectedAccountsSection({ user }: { readonly user: CurrentUser 
     await refresh();
   };
   const [run, state] = useAsyncAction(t("actionError"), (error) =>
-    KnownErrors.OAuthProviderAccountIdAlreadyUsedForSignIn.isInstance(error) ? t("usedBySomeoneElse") : null,
+    error instanceof Error && error.message.includes("already linked") ? t("usedBySomeoneElse") : null,
   );
   if (providers.length === 0) return null;
 
   const signInCount = providers.filter((provider) => provider.allowSignIn).length;
   const onlyMethod = isOnlySignInMethod("oauth", signInFacts(user, signInCount));
 
-  const setSignIn = (provider: SettingsOAuthProvider, allowSignIn: boolean) =>
-    run(() =>
-      withProvider(provider.id, async (sdk) => {
-        const result = await sdk.update({ allowSignIn });
-        if (result.status === "error") throw result.error;
-      })
-    );
 
   return (
     <SettingsPanel title={t("title")} description={t("description")}>
@@ -90,15 +82,6 @@ export function ConnectedAccountsSection({ user }: { readonly user: CurrentUser 
                 label={t("actionsLabel", { provider: providerDisplayName(provider.type) })}
                 disabled={state.pending}
                 items={[
-                  provider.allowSignIn
-                    ? {
-                        id: "stop",
-                        label: t("stopUsingForSignIn"),
-                        onSelect: () => void setSignIn(provider, false),
-                        disabled: guarded,
-                        disabledReason: guarded ? t("lastMethod") : undefined,
-                      }
-                    : { id: "use", label: t("useForSignIn"), onSelect: () => void setSignIn(provider, true) },
                   {
                     id: "remove",
                     label: t("remove"),

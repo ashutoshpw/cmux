@@ -97,9 +97,7 @@ describe("tokenExpiryMs", () => {
 
 describe("verifyRequest negative cache", () => {
   const env = {
-    STACK_PROJECT_ID: "proj",
-    STACK_PUBLISHABLE_CLIENT_KEY: "pk",
-    STACK_API_URL: "https://stack.test",
+    CMUX_AUTH_ORIGIN: "https://cmux.w3dev.app",
   };
 
   it("does not re-hit Stack for a token it already rejected", async () => {
@@ -138,7 +136,7 @@ describe("verifyRequest negative cache", () => {
     globalThis.fetch = (async (input: string | URL | Request) => {
       if (revoked) return new Response("unauthorized", { status: 401 });
       const url = String(input);
-      return Response.json(url.includes("/teams") ? { items: [] } : { id: "user-1" });
+      return Response.json({ user: { id: "user-1", name: "Test User", image: null }, session: { id: "auth-session" }, organizations: [], activeOrganizationId: null });
     }) as unknown as typeof fetch;
     try {
       const make = () =>
@@ -147,10 +145,35 @@ describe("verifyRequest negative cache", () => {
         });
       expect((await verifyRequest(make(), env))?.id).toBe("user-1");
       revoked = true;
-      expect((await verifyRequest(make(), env))?.id).toBe("user-1");
+      expect(await verifyRequest(make(), env)).toBeNull();
       expect(await verifyRequest(make(), env, { fresh: true })).toBeNull();
     } finally {
       globalThis.fetch = realFetch;
     }
   });
 })
+
+
+describe("owned authority origin", () => {
+  it("rejects missing and upstream origins before forwarding a bearer", async () => {
+    const { verifyRequest } = await import("../src/auth");
+    const request = new Request("https://presence.test/v1/presence/snapshot", { headers: { authorization: "Bearer owned-origin-test-token" } });
+    await expect(verifyRequest(request, {})).rejects.toThrow("Owned authentication origin is required");
+    await expect(verifyRequest(request, { CMUX_AUTH_ORIGIN: "https://cmux.com" })).rejects.toThrow("Owned authentication origin is required");
+  });
+  it("forwards staging credentials only to the configured staging authority", async () => {
+    const { verifyRequest } = await import("../src/auth");
+    const previous = globalThis.fetch;
+    const calls: string[] = [];
+    globalThis.fetch = Object.assign(async (input: string | URL | Request, init?: RequestInit) => {
+      calls.push(String(input));
+      expect(init?.redirect).toBe("error");
+      return Response.json({ user: { id: "staging-user" }, organizations: [], activeOrganizationId: null });
+    }, { preconnect: previous.preconnect }) as typeof fetch;
+    try {
+      const request = new Request("https://presence.test/v1/presence/snapshot", { headers: { authorization: "Bearer staging-origin-test-token" } });
+      expect((await verifyRequest(request, { CMUX_AUTH_ORIGIN: "https://staging.cmux.w3dev.app" }))?.id).toBe("staging-user");
+      expect(calls).toEqual(["https://staging.cmux.w3dev.app/api/native-auth/session"]);
+    } finally { globalThis.fetch = previous; }
+  });
+});

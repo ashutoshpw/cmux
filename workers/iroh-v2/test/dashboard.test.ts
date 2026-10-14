@@ -3,7 +3,7 @@ import { issueDashboardTicket, verifyDashboardTicket } from "../src/dashboard-au
 import { encodeBase64URL, verifyTicket } from "../src/crypto";
 
 const secret = encodeBase64URL(new Uint8Array(32).fill(91));
-const authority = { environment: "staging", projectId: "project", teamId: "team", userId: "user", verifiedAt: 1000 };
+const authority = { environment: "staging", projectId: "project", teamId: "team", userId: "user",  sessionId: "auth-session", verifiedAt: 1000 };
 const origin = "https://cmux.com";
 const session = { authority, origin, clientInstanceId: "tab-1", canManageTeam: false };
 

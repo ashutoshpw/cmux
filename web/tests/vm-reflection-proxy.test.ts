@@ -14,38 +14,38 @@ import {
 describe("reflection alias proxy", () => {
   test("rewrites the alias root to the reflection index (no trailing slash)", () => {
     const response = middleware(
-      new NextRequest("https://coderouter.dev/", {
-        headers: { host: "coderouter.dev", [VM_REFLECTION_ALIAS_HEADER]: VM_REFLECTION_ALIAS_VALUE },
+      new NextRequest("https://cmux.w3dev.app/", {
+        headers: { host: "cmux.w3dev.app", [VM_REFLECTION_ALIAS_HEADER]: VM_REFLECTION_ALIAS_VALUE },
       }),
     );
-    expect(response.headers.get("x-middleware-rewrite")).toBe("https://coderouter.dev/api/vm/reflection");
+    expect(response.headers.get("x-middleware-rewrite")).toBe("https://cmux.w3dev.app/api/vm/reflection");
   });
 
   test("rewrites alias sub-paths and strips trailing slashes", () => {
     const peers = middleware(
-      new NextRequest("https://coderouter.dev/peers/", {
-        headers: { host: "coderouter.dev", [VM_REFLECTION_ALIAS_HEADER]: VM_REFLECTION_ALIAS_VALUE },
+      new NextRequest("https://cmux.w3dev.app/peers/", {
+        headers: { host: "cmux.w3dev.app", [VM_REFLECTION_ALIAS_HEADER]: VM_REFLECTION_ALIAS_VALUE },
       }),
     );
-    expect(peers.headers.get("x-middleware-rewrite")).toBe("https://coderouter.dev/api/vm/reflection/peers");
+    expect(peers.headers.get("x-middleware-rewrite")).toBe("https://cmux.w3dev.app/api/vm/reflection/peers");
     const integrations = middleware(
-      new NextRequest("https://coderouter.dev/integrations?x=1", {
-        headers: { host: "coderouter.dev", [VM_REFLECTION_ALIAS_HEADER]: VM_REFLECTION_ALIAS_VALUE },
+      new NextRequest("https://cmux.w3dev.app/integrations?x=1", {
+        headers: { host: "cmux.w3dev.app", [VM_REFLECTION_ALIAS_HEADER]: VM_REFLECTION_ALIAS_VALUE },
       }),
     );
-    expect(integrations.headers.get("x-middleware-rewrite")).toBe("https://coderouter.dev/api/vm/reflection/integrations?x=1");
+    expect(integrations.headers.get("x-middleware-rewrite")).toBe("https://cmux.w3dev.app/api/vm/reflection/integrations?x=1");
   });
 
   test("a wrong marker value or no marker never reaches reflection", () => {
     const wrong = middleware(
-      new NextRequest("https://coderouter.dev/peers", {
-        headers: { host: "coderouter.dev", [VM_REFLECTION_ALIAS_HEADER]: "something-else" },
+      new NextRequest("https://cmux.w3dev.app/peers", {
+        headers: { host: "cmux.w3dev.app", [VM_REFLECTION_ALIAS_HEADER]: "something-else" },
       }),
     );
     expect(wrong.headers.get("x-middleware-rewrite") ?? "").not.toContain("/api/vm/reflection");
     const plain = middleware(
-      new NextRequest("https://coderouter.dev/", { headers: { host: "coderouter.dev" } }),
+      new NextRequest("https://cmux.w3dev.app/", { headers: { host: "cmux.w3dev.app" } }),
     );
-    expect(plain.headers.get("x-middleware-rewrite")).toBe("https://coderouter.dev/coderouter");
+    expect(plain.headers.get("x-middleware-rewrite")).toBe("https://cmux.w3dev.app/en");
   });
 });

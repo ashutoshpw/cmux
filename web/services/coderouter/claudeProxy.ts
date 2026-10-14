@@ -1,3 +1,4 @@
+import { forkDeployment } from "../deployment/config";
 import { accountAccessForIdentity } from "./accountAccess";
 import { noAccountConfiguredMessage } from "./noAccountMessage";
 // The Claude leg of coderouter: serves the Anthropic Messages API to a guest
@@ -729,7 +730,7 @@ async function probeClaudeStreamFailure(response: Response, signal: AbortSignal)
     await reader.cancel().catch(() => undefined);
     throw error;
   }
-  let buffered = chunks.slice();
+  const buffered = chunks.slice();
   let upstreamDone = false;
   const stream = new ReadableStream<Uint8Array>({
     async pull(controller) {
@@ -1043,7 +1044,7 @@ async function bedrockMessages(
 ): Promise<Response> {
   const bedrock = bedrockUpstream(upstream);
   if (!bedrock) {
-    return anthropicError(503, "api_error", "The team's Bedrock account is missing a region. Add it again at coderouter.dev.");
+    return anthropicError(503, "api_error", `The team's Bedrock account is missing a region. Add it again at ${forkDeployment.productionOrigin}/dashboard/coderouter.`);
   }
   const parsed = parseJsonObject(body);
   if (!parsed.ok) return parsed.response;
@@ -1101,7 +1102,7 @@ async function bedrockCountTokens(
 ): Promise<Response> {
   const bedrock = bedrockUpstream(upstream);
   if (!bedrock) {
-    return anthropicError(503, "api_error", "The team's Bedrock account is missing a region. Add it again at coderouter.dev.");
+    return anthropicError(503, "api_error", `The team's Bedrock account is missing a region. Add it again at ${forkDeployment.productionOrigin}/dashboard/coderouter.`);
   }
   const parsed = parseJsonObject(body);
   if (!parsed.ok) return parsed.response;

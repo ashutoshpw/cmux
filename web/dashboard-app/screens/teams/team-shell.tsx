@@ -1,6 +1,6 @@
 "use client";
 
-import { useStackApp } from "@hexclave/next";
+import { useStackApp } from "@/app/lib/stack-client";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { type ErrorComponentProps, getRouteApi, Link, type LinkOptions, Outlet } from "@tanstack/react-router";
 import { useTranslations } from "next-intl";

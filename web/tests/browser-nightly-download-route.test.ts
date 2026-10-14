@@ -26,26 +26,21 @@ const PRODUCTION_SIGNED_FEED =
   '{"payload":"eyJwbGF0Zm9ybXMiOnsibGludXgteDY0Ijp7ImFyY2hpdmVfcm9vdCI6ImNtdXgtYnJvd3NlciIsImV4ZWN1dGFibGUiOiJjaHJvbWUiLCJzaGEyNTYiOiI2NTdlZmM2MTljMzYwNmUxN2I0MTViNDlkZWQxZDQ2ZjhjMGYwZmI4YjFlNGRiYjNiNDU5NDgzZTgzOWUwMTNhIiwic2l6ZSI6IjY1MTk1MjUyMSIsInVybCI6Imh0dHBzOi8vZ2l0aHViLmNvbS9tYW5hZmxvdy1haS9jbXV4LXYyL3JlbGVhc2VzL2Rvd25sb2FkL25pZ2h0bHkvY211eC1saW51eC14NjQuemlwIn19LCJzY2hlbWEiOjEsInZlcnNpb24iOiIxNTEuMC43OTIyLjY0In0=","signature":"MEQCIDqsCafTkEF9jKuN+O99bUBWiEZBec7TzLXNvN2bw/swAiB+WnzF7teqNr4B1juRDY8mwwMqcBJbffQWvAzVDK7Ieg=="}';
 
 describe("cmux Browser nightly download route", () => {
-  test("resolves the live Linux contract through the production update key", async () => {
+  test("refuses downloads without a fork verification key before I/O", async () => {
     const fetchMock = feedFetch(PRODUCTION_SIGNED_FEED, 302);
-
-    const resolution = await resolveBrowserNightlyDownload(
-      "linux-x64",
-      "zip",
-      { fetch: fetchMock },
+    const response = await handleBrowserNightlyDownloadRequest(
+      { platform: "linux-x64", artifact: "zip" },
+      { fetch: fetchMock, publicKeyPem: "" },
     );
-
-    expect(resolution).toEqual({
-      version: VERSION,
-      url: "https://github.com/manaflow-ai/cmux-v2/releases/download/nightly/cmux-linux-x64.zip",
-    });
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(response.status).toBe(503);
+    expect(await response.json()).toEqual({ error: "browser_download_not_configured" });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   test("redirects the stable Linux endpoint after feed and asset checks", async () => {
     const fetchMock = feedFetch(signedFeed({
       "linux-x64": platformEntry(
-        "https://github.com/manaflow-ai/cmux-v2/releases/download/nightly/cmux-linux-x64.zip",
+        "https://github.com/ashutoshpw/cmux/releases/download/nightly/cmux-linux-x64.zip",
       ),
     }), 302);
 
@@ -56,7 +51,7 @@ describe("cmux Browser nightly download route", () => {
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
-      "https://github.com/manaflow-ai/cmux-v2/releases/download/nightly/cmux-linux-x64.deb",
+      "https://github.com/ashutoshpw/cmux/releases/download/nightly/cmux-linux-x64.deb",
     );
     expect(response.headers.get("x-cmux-browser-version")).toBe(VERSION);
     expect(response.headers.get("cache-control")).toContain("s-maxage=300");
@@ -76,12 +71,12 @@ describe("cmux Browser nightly download route", () => {
     const immutableTag = `nightly-${VERSION}`;
     const envelope = signedFeed({
       "mac-arm64": platformEntry(
-        `https://github.com/manaflow-ai/cmux-v2/releases/download/${immutableTag}/cmux-macos-universal.zip`,
+        `https://github.com/ashutoshpw/cmux/releases/download/${immutableTag}/cmux-macos-universal.zip`,
         "cmux-browser.app",
         "Contents/MacOS/cmux",
       ),
       "mac-x64": platformEntry(
-        `https://github.com/manaflow-ai/cmux-v2/releases/download/${immutableTag}/cmux-macos-universal.zip`,
+        `https://github.com/ashutoshpw/cmux/releases/download/${immutableTag}/cmux-macos-universal.zip`,
         "cmux-browser.app",
         "Contents/MacOS/cmux",
       ),
@@ -100,7 +95,7 @@ describe("cmux Browser nightly download route", () => {
 
         expect(response.status).toBe(307);
         expect(response.headers.get("location")).toBe(
-          `https://github.com/manaflow-ai/cmux-v2/releases/download/${immutableTag}/${filename}`,
+          `https://github.com/ashutoshpw/cmux/releases/download/${immutableTag}/${filename}`,
         );
         expect(fetchMock).toHaveBeenCalledTimes(2);
       }
@@ -157,18 +152,16 @@ describe("cmux Browser nightly download route", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
-  test("keeps both Mac architectures unavailable in the current production feed", async () => {
+  test("keeps both Mac architectures unavailable in a Linux-only signed feed", async () => {
     for (const platform of ["mac-arm64", "mac-x64"]) {
-      const fetchMock = feedFetch(PRODUCTION_SIGNED_FEED, 302);
+      const fetchMock = feedFetch(signedFeed({
+        "linux-x64": platformEntry("https://github.com/ashutoshpw/cmux/releases/download/nightly/cmux-linux-x64.zip"),
+      }), 302);
       const response = await handleBrowserNightlyDownloadRequest(
         { platform, artifact: "dmg" },
-        { fetch: fetchMock },
+        { fetch: fetchMock, publicKeyPem: TEST_PUBLIC_KEY_PEM },
       );
-
       expect(response.status).toBe(404);
-      expect(await response.json()).toEqual({
-        error: "browser_download_unavailable",
-      });
       expect(fetchMock).toHaveBeenCalledTimes(1);
     }
   });
@@ -176,7 +169,7 @@ describe("cmux Browser nightly download route", () => {
   test("keeps a platform unavailable until its signed feed entry exists", async () => {
     const fetchMock = feedFetch(signedFeed({
       "linux-x64": platformEntry(
-        "https://github.com/manaflow-ai/cmux-v2/releases/download/nightly/cmux-linux-x64.zip",
+        "https://github.com/ashutoshpw/cmux/releases/download/nightly/cmux-linux-x64.zip",
       ),
     }), 302);
 
@@ -195,7 +188,7 @@ describe("cmux Browser nightly download route", () => {
   test("keeps a companion installer unavailable until the asset is published", async () => {
     const fetchMock = feedFetch(signedFeed({
       "windows-x64": platformEntry(
-        "https://github.com/manaflow-ai/cmux-v2/releases/download/nightly/cmux-windows-x64.zip",
+        "https://github.com/ashutoshpw/cmux/releases/download/nightly/cmux-windows-x64.zip",
         "cmux-browser",
         "chrome.exe",
       ),
@@ -216,7 +209,7 @@ describe("cmux Browser nightly download route", () => {
   test("rejects tampered signed payloads before checking an asset", async () => {
     const validEnvelope = signedFeed({
       "linux-x64": platformEntry(
-        "https://github.com/manaflow-ai/cmux-v2/releases/download/nightly/cmux-linux-x64.zip",
+        "https://github.com/ashutoshpw/cmux/releases/download/nightly/cmux-linux-x64.zip",
       ),
     });
     const tampered = JSON.parse(validEnvelope) as {
@@ -242,11 +235,12 @@ describe("cmux Browser nightly download route", () => {
 
   test("rejects signed URLs outside the public repository allowlist", async () => {
     for (const url of [
+      "https://github.com/manaflow-ai/cmux-v2/releases/download/nightly/cmux-linux-x64.zip",
       "https://github.com/manaflow-ai/cmux-browser/releases/download/nightly/cmux-linux-x64.zip",
       "https://attacker.example/manaflow-ai/cmux-v2/releases/download/nightly/cmux-linux-x64.zip",
-      "https://github.com/manaflow-ai/cmux-v2/releases/download/nightly/cmux-linux-x64.zip?redirect=attacker",
+      "https://github.com/ashutoshpw/cmux/releases/download/nightly/cmux-linux-x64.zip?redirect=attacker",
       "https://github.com/manaflow-ai//cmux-v2/releases/download/nightly/cmux-linux-x64.zip",
-      `https://github.com/manaflow-ai/cmux-v2/releases/download/nightly-${VERSION}.1/cmux-linux-x64.zip`,
+      `https://github.com/ashutoshpw/cmux/releases/download/nightly-${VERSION}.1/cmux-linux-x64.zip`,
       `${BROWSER_PUBLIC_ASSET_ORIGIN}/nightly/${VERSION}.1/cmux-linux-x64.zip`,
       `${BROWSER_PUBLIC_ASSET_ORIGIN}/nightly/${VERSION}/other.zip`,
       `${BROWSER_PUBLIC_ASSET_ORIGIN}.evil/nightly/${VERSION}/cmux-linux-x64.zip`,

@@ -7160,7 +7160,7 @@ final class TerminalControllerSocketListenerHealthTests: XCTestCase {
         TerminalController.shared.stop(cleanupDiscoveryState: true)
         defer { TerminalController.shared.stop(cleanupDiscoveryState: true) }
 
-        let path = "/tmp/cmux-debug-reclaim-\(UUID().uuidString.lowercased()).sock"
+        let path = "/tmp/cmux-w3dev-debug-reclaim-\(UUID().uuidString.lowercased()).sock"
         let listenerFD = try bindUnixSocket(at: path)
         Darwin.close(listenerFD)
         defer {

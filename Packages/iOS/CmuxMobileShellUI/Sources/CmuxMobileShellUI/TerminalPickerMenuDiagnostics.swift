@@ -5,11 +5,11 @@ import OSLog
 /// Counts native menu openings, independent of workspace refresh frequency.
 struct TerminalPickerMenuDiagnostics {
     private let logger = Logger(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.cmuxterm.app",
+        subsystem: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux",
         category: "TerminalPickerMenu"
     )
     private let signpostLog = OSLog(
-        subsystem: Bundle.main.bundleIdentifier ?? "com.cmuxterm.app",
+        subsystem: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux",
         category: "TerminalPickerMenu"
     )
 

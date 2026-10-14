@@ -31,7 +31,7 @@ struct HostRuntimeFixture {
         managedRelays = Set(Self.relayURLs)
         clientNamespace = try #require(
             CmxIrohMacBundleNamespace(
-                bundleIdentifier: "com.cmuxterm.tests"
+                bundleIdentifier: "app.w3dev.cmux.tests"
             )
         )
         binding = try Self.binding(
@@ -187,8 +187,8 @@ struct HostRuntimeFixture {
             "binding_id": bindingID,
             "device_id": deviceID,
             "app_instance_id": "123e4567-e89b-42d3-a456-426614174012",
-            "client_namespace": "mac:com.cmuxterm.tests",
-            "tag": "cmux-ios-v0",
+            "client_namespace": "mac:app.w3dev.cmux.tests",
+            "tag": "cmux-w3dev-ios-v0",
             "platform": "mac",
             "display_name": "Test Mac",
             "endpoint_id": endpointID,

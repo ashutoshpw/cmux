@@ -27,10 +27,10 @@ export interface BrokerDependencies {
   readonly relays: RelayIssuer;
   readonly now: () => number;
   readonly charge: (userId: string, operation: string) => Promise<void>;
-  readonly issueTicket: (device: DeviceDescriptor, now: number) => Promise<{ token: string; expiresAt: number; refreshAfter: number }>;
+  readonly issueTicket: (device: DeviceDescriptor, now: number, sessionId?: string) => Promise<{ token: string; expiresAt: number; refreshAfter: number }>;
   readonly verifyStack: (token: string, identity: Identity, now: number) => Promise<VerifiedAuthority>;
   readonly canManageTeam: (authority: VerifiedAuthority) => Promise<boolean>;
-  readonly verifyTeamMember: (teamId: string, userId: string) => Promise<boolean>;
+  readonly verifyTeamMember: (teamId: string, userId: string, authority?: VerifiedAuthority) => Promise<boolean>;
 }
 
 export interface BrokerResult {
@@ -94,7 +94,7 @@ export class TeamBroker {
     let ticket;
     if (issueTicket) {
       await this.dependencies.charge(authority.userId, "ticket.request");
-      ticket = await this.dependencies.issueTicket(setup.device, authority.verifiedAt);
+      ticket = await this.dependencies.issueTicket(setup.device, authority.verifiedAt, authority.sessionId);
     }
     const challenge = recoveringRevoked
       ? await this.challenge(session, setup.device, true, true)
@@ -150,6 +150,7 @@ export class TeamBroker {
     if (session.expiresAt <= now && request.schemaId !== "ticket.request.v1" && request.schemaId !== "session.goodbye.v1") {
       throw new OperationError("ticket_expired", 401, true);
     }
+    if (!await this.dependencies.verifyTeamMember(session.identity.teamId, session.identity.userId, session.authority)) throw new OperationError("team_access_revoked", 403);
     const existing = this.dependencies.store.getDevice(session.identity);
     if (existing) this.assertDeviceIdentity(existing, session);
     const recoveringRevoked = existing?.revoked === true && this.dependencies.store.canRecoverRevokedDevice(existing.deviceRecordId);
@@ -170,7 +171,7 @@ export class TeamBroker {
     const now = this.dependencies.now();
     const authority = session.authority;
     if (session.expiresAt <= now) throw new OperationError("ticket_expired", 401, true);
-    if (!await this.dependencies.verifyTeamMember(authority.teamId, authority.userId)) {
+    if (!await this.dependencies.verifyTeamMember(authority.teamId, authority.userId, authority)) {
       throw new OperationError("team_access_revoked", 403);
     }
     // Dashboard tickets carry the role observed at issuance for reconnect UX,
@@ -248,7 +249,7 @@ export class TeamBroker {
         this.assertAuthority(authority, session.identity);
         // Re-read after remote auth; revocation wins over a concurrent renewal.
         const record = this.requiredDevice(session);
-        const ticket = await this.dependencies.issueTicket(record.descriptor, authority.verifiedAt);
+        const ticket = await this.dependencies.issueTicket(record.descriptor, authority.verifiedAt, authority.sessionId);
         this.requiredDevice(session);
         const revision = this.observeAuthority(authority);
         return {
@@ -282,7 +283,7 @@ export class TeamBroker {
       }
       case "permission.update.v1": {
         this.manageableDevice(session, request.permission.deviceRecordId);
-        if (!await this.dependencies.verifyTeamMember(session.identity.teamId, request.permission.subjectUserId)) throw new OperationError("permission_denied", 403);
+        if (!await this.dependencies.verifyTeamMember(session.identity.teamId, request.permission.subjectUserId, session.authority)) throw new OperationError("permission_denied", 403);
         this.requiredDevice(session);
         this.manageableDevice(session, request.permission.deviceRecordId);
         const current = this.dependencies.store.getPermission(request.permission.subjectUserId, request.permission.deviceRecordId);

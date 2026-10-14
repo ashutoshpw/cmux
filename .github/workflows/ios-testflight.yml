@@ -29,8 +29,8 @@ on:
         type: boolean
       variant:
         description: >-
-          Upload variant. internal (default) ships dev.cmux.app.internal /
-          "cmux INTERNAL"; demo ships dev.cmux.app.demo / "cmux DEMO" with the
+          Upload variant. internal (default) ships app.w3dev.cmux.ios.internal /
+          "cmux INTERNAL"; demo ships app.w3dev.cmux.ios.demo / "cmux DEMO" with the
           DEMO-badged app icon and assigns to the cmux DEMO TestFlight group.
         required: false
         default: internal
@@ -55,7 +55,10 @@ permissions:
 # a miss and every save prints "nothing saved", so the package and
 # compilation caches from #14180 never filled (09-24/25: 0 hits, 344 misses).
 env:
-  CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+  CMUX_APPLE_TEAM_ID: ${{ vars.CMUX_APPLE_TEAM_ID }}
+  IOS_DEVELOPMENT_TEAM: ${{ vars.CMUX_APPLE_TEAM_ID }}
+  IOS_APPSTORE_TEAM_ID: ${{ vars.CMUX_APPLE_TEAM_ID }}
+  CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
 
 jobs:
   decide:
@@ -689,13 +692,14 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
           security list-keychains -d user -s "$KEYCHAIN_NAME"
           security find-identity -v -p codesigning "$KEYCHAIN_NAME"
+          [[ "$CMUX_APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]] || { echo "Set CMUX_APPLE_TEAM_ID to the fork signing team" >&2; exit 1; }
           IOS_DISTRIBUTION_IDENTITY="$(
             security find-identity -v -p codesigning "$KEYCHAIN_NAME" |
-              sed -n 's/.*"\(Apple Distribution: .* (7WLXT3NR37)\)".*/\1/p' |
+              awk -F'"' -v team="$CMUX_APPLE_TEAM_ID" '/Apple Distribution:/ && index($2, "(" team ")") { print $2; exit }'  |
               head -n 1
           )"
           if [ -z "$IOS_DISTRIBUTION_IDENTITY" ]; then
-            echo "No Apple Distribution identity for team 7WLXT3NR37 was found in the imported certificate" >&2
+            echo "No Apple Distribution identity for team $CMUX_APPLE_TEAM_ID was found in the imported certificate" >&2
             exit 1
           fi
           echo "IOS_DISTRIBUTION_IDENTITY=$IOS_DISTRIBUTION_IDENTITY" >> "$GITHUB_ENV"
@@ -769,7 +773,7 @@ jobs:
             if [ "$IOS_BETA_PROFILE_TYPE" = "beta" ]; then
               ENABLE_CLOUD_VPN=1
             fi
-            IOS_APPSTORE_TEAM_ID=7WLXT3NR37 \
+            IOS_APPSTORE_TEAM_ID="$CMUX_APPLE_TEAM_ID" \
             IOS_APPSTORE_BUNDLE_IDENTIFIER="$IOS_BETA_BUNDLE_ID" \
             IOS_APPSTORE_EXTENSION_BUNDLE_IDENTIFIER="$EXTENSION_BUNDLE_ID" \
             IOS_APPSTORE_PROVISIONING_PROFILE_BASE64="$PROFILE_BASE64" \
@@ -920,7 +924,7 @@ jobs:
             # Reuse the checked-in CMUX_IOS_BETA_MARKETING_VERSION for automatic betas.
             # Main-push builds use:
             # - "cmux INTERNAL" display name
-            # - dev.cmux.app.internal bundle ID (separate app, can coexist with external)
+            # - app.w3dev.cmux.ios.internal bundle ID (separate app, can coexist with external)
             # - assigned to internal TestFlight group for dogfooding within the team
             # --notes-from-range: auto-generate audience-appropriate "What to
             # Test" notes from the commits since the previous beta (skipped if we
@@ -1238,8 +1242,8 @@ jobs:
       # or --group-name"), which failed every internal assignment while both
       # repo variables were wired in.
       # The demo variant assigns to the "cmux DEMO" internal group on the
-      # dev.cmux.app.demo app record instead.
-      CMUX_TESTFLIGHT_INTERNAL_GROUP_ID: ${{ needs.decide.outputs.variant == 'demo' && 'dd5c5cde-05a6-44e5-bd71-c2ec08a3ebfe' || vars.IOS_TESTFLIGHT_INTERNAL_GROUP_ID }}
+      # app.w3dev.cmux.ios.demo app record instead.
+      CMUX_TESTFLIGHT_INTERNAL_GROUP_ID: ${{ needs.decide.outputs.variant == 'demo' && vars.IOS_TESTFLIGHT_DEMO_GROUP_ID || needs.decide.outputs.variant != 'demo' && vars.IOS_TESTFLIGHT_INTERNAL_GROUP_ID || '' }}
       ASSIGN_BUNDLE_ID: ${{ needs.upload.outputs.bundle_id }}
       BUILD_NUMBER: ${{ needs.upload.outputs.final_build_number }}
     steps:

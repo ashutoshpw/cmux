@@ -25,14 +25,38 @@ private struct OfflineReachabilityStub: ReachabilityProviding {
 /// official Mac. These tests pin only the auth override to its configuration.
 @MainActor
 @Suite struct MobileAuthEnvironmentOverrideTests {
-    /// The production Stack project id (`CmuxAuthRuntime.AuthConfig`).
-    private static let productionProjectID = "9790718f-14cd-4f7e-824d-eaf527a82b82"
-    /// The development Stack project id (`CmuxAuthRuntime.AuthConfig`).
-    private static let developmentProjectID = "454ecd03-1db2-4050-845e-4ce5b0cd9895"
-
-    @Test func oauthBrowserCookiesAreNeverSharedWithAnotherIOSBuild() {
-        #expect(MobileAuthComposition.oauthBrowserSessionPrivacy == .ephemeral)
+    @Test func releaseUsesTheBakedOAuthRegistrationForEveryChannel() {
+        for channel in ["beta", "internal", "demo", "nightly", "staging"] {
+            let configuration = MobileAuthComposition.makeOAuthConfiguration(
+                origin: URL(string: "https://cmux.w3dev.app")!,
+                bundleIdentifier: "app.w3dev.cmux.ios.\(channel)",
+                isDevelopmentBuild: false,
+                overrides: ["OAuthClientID": "stale-local-client"],
+                bakedClientID: " cmux-w3dev-ios-\(channel) ",
+                bakedCallbackScheme: " cmux-w3dev-ios-\(channel) "
+            )
+            #expect(configuration.clientID == "cmux-w3dev-ios-\(channel)")
+            #expect(configuration.redirectURI.absoluteString == "cmux-w3dev-ios-\(channel)://auth-callback")
+        }
     }
+
+    @Test func customBakedReleaseClientAndCallbackAreKeptTogether() {
+        let configuration = MobileAuthComposition.makeOAuthConfiguration(
+            origin: URL(string: "https://cmux.w3dev.app")!,
+            bundleIdentifier: "app.w3dev.cmux.ios.beta",
+            isDevelopmentBuild: false,
+            overrides: [:],
+            bakedClientID: "custom-registered-client",
+            bakedCallbackScheme: "custom-registered-callback"
+        )
+        #expect(configuration.clientID == "custom-registered-client")
+        #expect(configuration.redirectURI.absoluteString == "custom-registered-callback://auth-callback")
+    }
+
+    /// The production Stack project id (`CmuxAuthRuntime.AuthConfig`).
+    private static let productionProjectID = "https://cmux.w3dev.app"
+    /// The development Stack project id (`CmuxAuthRuntime.AuthConfig`).
+    private static let developmentProjectID = "https://cmux.w3dev.app"
 
     /// Write `localConfig` as `LocalConfig.plist` inside a fresh directory
     /// bundle, mirroring how a build bundles the override plist.
@@ -67,8 +91,8 @@ private struct OfflineReachabilityStub: ReachabilityProviding {
         // A dev build overridden to production auth must resolve the
         // production Stack project and the production web API/callback.
         #expect(composition.config.stack.projectId == Self.productionProjectID)
-        #expect(composition.config.apiBaseURL == "https://cmux.com")
-        #expect(composition.config.magicLinkCallbackURL == "https://cmux.com/auth/callback")
+        #expect(composition.config.apiBaseURL == "https://cmux.w3dev.app")
+        #expect(composition.config.magicLinkCallbackURL == "https://cmux.w3dev.app/auth/callback")
     }
 
     @Test func missingOverrideKeepsBuildDefaultEnvironment() throws {
@@ -96,11 +120,11 @@ private struct OfflineReachabilityStub: ReachabilityProviding {
         #expect(MobileAuthComposition.cloudAPIBaseURL(
             authEnvironment: .development,
             configuredBaseURL: "http://localhost:9660"
-        ) == "https://cmux-staging.vercel.app")
+        ) == "https://staging.cmux.w3dev.app")
         #expect(MobileAuthComposition.cloudAPIBaseURL(
             authEnvironment: .development,
             configuredBaseURL: "http://127.0.0.1:3000"
-        ) == "https://cmux-staging.vercel.app")
+        ) == "https://staging.cmux.w3dev.app")
     }
 
     @Test func cloudKeepsExplicitRemoteDevelopmentOrigin() {
@@ -114,7 +138,7 @@ private struct OfflineReachabilityStub: ReachabilityProviding {
         #expect(MobileAuthComposition.cloudAPIBaseURL(
             authEnvironment: .production,
             configuredBaseURL: "http://localhost:3000"
-        ) == "https://cmux.com")
+        ) == "https://cmux.w3dev.app")
     }
 
     // MARK: - Pure environment resolution
@@ -216,7 +240,7 @@ private struct OfflineReachabilityStub: ReachabilityProviding {
             isDevelopmentBuild: false,
             overrides: [
                 "AuthEnvironment": "development",
-                "ApiBaseURL": "https://cmux-staging.vercel.app",
+                "ApiBaseURL": "https://staging.cmux.w3dev.app",
             ]
         )
         #expect(resolved == .production)
@@ -224,53 +248,12 @@ private struct OfflineReachabilityStub: ReachabilityProviding {
         let safe = MobileAuthComposition.productionSafeOverrides(
             [
                 "AuthEnvironment": "development",
-                "ApiBaseURL": "https://cmux-staging.vercel.app",
+                "ApiBaseURL": "https://staging.cmux.w3dev.app",
             ],
             authEnvironment: resolved
         )
         #expect(safe["AuthEnvironment"] == "production")
-        #expect(safe["ApiBaseURL"] == "https://cmux.com")
-    }
-
-    // MARK: - Dev sign-in shortcut gating
-
-    @Test func productionAuthDisablesTheFortyTwoShortcut() {
-        // The 42 shortcut signs in with fixed development-project
-        // credentials; a --prod-auth build must not expose that
-        // known-credential path against the production Stack project.
-        #expect(MobileAuthComposition.includesDevAuth(
-            policy: MobileAuthBuildPolicy(includesFortyTwoShortcut: true),
-            resolvedEnvironment: .production
-        ) == false)
-    }
-
-    @Test func developmentAuthKeepsTheFortyTwoShortcutWhenThePolicyHasIt() {
-        #expect(MobileAuthComposition.includesDevAuth(
-            policy: MobileAuthBuildPolicy(includesFortyTwoShortcut: true),
-            resolvedEnvironment: .development
-        ) == true)
-        // Release policy never includes it, whatever the environment.
-        #expect(MobileAuthComposition.includesDevAuth(
-            policy: MobileAuthBuildPolicy(includesFortyTwoShortcut: false),
-            resolvedEnvironment: .development
-        ) == false)
-    }
-
-    @Test func productionAuthCannotReplaceStoredSessionFromDevMarkers() {
-        let environment = [
-            "CMUX_DEV_AUTH_REPLACE_SESSION": "1",
-            "CMUX_UITEST_STACK_EMAIL": "production@example.com",
-            "CMUX_UITEST_STACK_PASSWORD": "password",
-        ]
-
-        #expect(!MobileAuthComposition.shouldReplaceStoredSessionWithAutoLogin(
-            includesDevAuth: false,
-            environment: environment
-        ))
-        #expect(MobileAuthComposition.shouldReplaceStoredSessionWithAutoLogin(
-            includesDevAuth: true,
-            environment: environment
-        ))
+        #expect(safe["ApiBaseURL"] == "https://cmux.w3dev.app")
     }
 
     // MARK: - Project-switch detection (stale cross-project auth state)

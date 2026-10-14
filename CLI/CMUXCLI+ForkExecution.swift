@@ -4,7 +4,7 @@ import Foundation
 import OSLog
 
 nonisolated private let forkFailureLogger = Logger(
-    subsystem: "com.cmuxterm.cli",
+    subsystem: "app.w3dev.cmux.cli",
     category: "Fork"
 )
 

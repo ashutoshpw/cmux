@@ -7,7 +7,7 @@ internal import CMUXDebugLog
 #endif
 
 nonisolated private let rendererHealthLogger = Logger(
-    subsystem: "com.cmuxterm.app",
+    subsystem: "app.w3dev.cmux",
     category: "terminal.render"
 )
 

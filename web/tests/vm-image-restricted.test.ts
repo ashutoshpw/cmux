@@ -1,7 +1,8 @@
-import { describe, expect, mock, test } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import realManifest from "../services/vms/images/manifest.json";
+import realManifest from "../services/vms/images/upstream-manifest.json";
+import { createVmImageCatalog, vmRestrictedImageAllowed, type VmImageManifestEntry } from "../services/vms/images/resolver";
 
 // A restricted (test) manifest image: never a default, and only a caller whose
 // Stack user id is in CMUX_VM_RESTRICTED_IMAGE_USER_IDS may create a machine
@@ -20,11 +21,10 @@ const restrictedEntry = {
 // The same image listed again under the other kind without the flag: the
 // unrestricted twin must not open it.
 const unrestrictedTwin = { ...restrictedEntry, version: "freestyle-cmux-devbox-restricted-test-base", kind: "base", restricted: undefined };
-mock.module("../services/vms/images/manifest.json", () => ({
-  default: { ...realManifest, images: [...realManifest.images, restrictedEntry, unrestrictedTwin] },
-}));
-
-const { findVmImageKindDefault, listVmImageKindDefaults, resolveVmImage, vmRestrictedImageAllowed } = await import("../services/vms/images/resolver");
+const { findVmImageKindDefault, listVmImageKindDefaults, resolveVmImage } = createVmImageCatalog({
+  ...realManifest,
+  images: [...realManifest.images, restrictedEntry, unrestrictedTwin] as VmImageManifestEntry[],
+});
 const { VmImageConfigError } = await import("../services/vms/errors");
 const { imageManifestProblems } = await import("../scripts/devbox-image-common");
 

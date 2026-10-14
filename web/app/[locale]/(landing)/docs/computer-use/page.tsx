@@ -56,7 +56,7 @@ get_window_state`}</CodeBlock>
       <p>{t("disableBody")}</p>
       <DocsHeading level={2} id="skills">{t("skillTitle")}</DocsHeading>
       <p>{t("skillBody")}</p>
-      <p><a href="https://github.com/manaflow-ai/cmux/blob/main/skills/cmux-cua/SKILL.md">{t("skillLink")}</a></p>
+      <p><a href="https://github.com/ashutoshpw/cmux/blob/main/skills/cmux-cua/SKILL.md">{t("skillLink")}</a></p>
       <DocsHeading level={2} id="browser-automation">{t("browserTitle")}</DocsHeading>
       <p>{t("browserBody")}</p>
       <p><Link href="/docs/browser-automation">{t("browserLink")}</Link></p>

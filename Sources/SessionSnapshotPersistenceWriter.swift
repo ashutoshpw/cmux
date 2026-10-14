@@ -28,7 +28,7 @@ struct SessionSnapshotPersistenceWriter: @unchecked Sendable {
         self.targetQueue = queue
         // Own serial ordering even if the supplied scheduling target is concurrent.
         self.queue = DispatchQueue(
-            label: "com.cmuxterm.app.sessionPersistence.writer",
+            label: "app.w3dev.cmux.sessionPersistence.writer",
             qos: .utility,
             target: queue
         )

@@ -1017,7 +1017,7 @@ enum SurfaceResumeApprovalStore {
     private static let secretFileName = ".surface-resume-approval-secret"
     private static let settingsTerminalSectionKey = "terminal"
     private static let settingsRecordsKey = "resumeCommands"
-    private static let keychainService = "com.cmuxterm.app.surface-resume-approvals"
+    private static let keychainService = "app.w3dev.cmux.surface-resume-approvals"
     private static let keychainAccount = "hmac-secret-v1"
     private static let signingSecretCache = SurfaceResumeApprovalSigningSecretCache(
         loader: {

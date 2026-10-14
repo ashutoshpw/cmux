@@ -2,7 +2,7 @@ import Foundation
 import os
 
 nonisolated private let oneShotTerminalLauncherLogger = Logger(
-    subsystem: "com.cmuxterm.app",
+    subsystem: "app.w3dev.cmux",
     category: "OneShotTerminalLauncherStore"
 )
 

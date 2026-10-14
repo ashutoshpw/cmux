@@ -246,7 +246,7 @@ final class CloseWorkspacesConfirmDialogUITests: XCTestCase {
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty }
             .joined(separator: "-")
-        return "/tmp/cmux-debug-\(slug).sock"
+        return "/tmp/cmux-w3dev-debug-\(slug).sock"
     }
 
     private func waitForWorkspaceCount(_ expectedCount: Int, timeout: TimeInterval) -> Bool {

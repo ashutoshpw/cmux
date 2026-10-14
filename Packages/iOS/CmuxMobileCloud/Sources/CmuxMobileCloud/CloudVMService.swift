@@ -9,7 +9,7 @@ public actor CloudVMService: CloudVMServing {
     private let tokens: CloudAPITokenSource
     private let session: CmxCredentialedHTTPSession
     private let deviceID: @Sendable () async -> String?
-    private let log = Logger(subsystem: "dev.cmux.ios", category: "cloud-api")
+    private let log = Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "cloud-api")
 
     /// Creates the service.
     /// - Parameters:

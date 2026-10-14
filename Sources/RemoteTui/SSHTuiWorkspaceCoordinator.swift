@@ -5,7 +5,7 @@ import CmuxSurfaceCatalogModel
 import Foundation
 import os
 
-private let sshTuiWorkspaceLogger = Logger(subsystem: "com.cmuxterm.app", category: "SSHTuiWorkspace")
+private let sshTuiWorkspaceLogger = Logger(subsystem: "app.w3dev.cmux", category: "SSHTuiWorkspace")
 
 /// Composes SSH carriers with the same terminal graph and native projections as Cloud.
 @MainActor

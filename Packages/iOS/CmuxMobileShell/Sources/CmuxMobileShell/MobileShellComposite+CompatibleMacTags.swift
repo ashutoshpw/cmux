@@ -3,7 +3,7 @@ internal import Foundation
 internal import OSLog
 
 private let compatibleMacTagsLog = Logger(
-    subsystem: "com.cmuxterm.mobile",
+    subsystem: "app.w3dev.cmux.mobile",
     category: "compatible-mac-tags"
 )
 

@@ -1,6 +1,6 @@
 import Foundation
 import os
-nonisolated private let cmuxEventBusLogger = Logger(subsystem: "com.cmuxterm.app", category: "events")
+nonisolated private let cmuxEventBusLogger = Logger(subsystem: "app.w3dev.cmux", category: "events")
 struct CmuxEventSubscriptionSnapshot {
     let subscription: CmuxEventSubscription
     let replay: [[String: Any]]
@@ -265,7 +265,7 @@ final class CmuxEventBus: @unchecked Sendable {
         self.restoreTask = nil
         self.sequenceStore = eventLogURL.map { CmuxEventSequenceStore(eventLogURL: $0) }
         self.publicationQueue = DispatchQueue(
-            label: "com.cmuxterm.event-publish.\(UUID().uuidString)",
+            label: "app.w3dev.cmux.event-publish.\(UUID().uuidString)",
             qos: .utility
         )
         self.eventLogWriter = eventLogURL.map {

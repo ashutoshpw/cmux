@@ -21,7 +21,7 @@ extension TerminalSurface {
         homeDirectory
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Application Support", isDirectory: true)
-            .appendingPathComponent("cmux", isDirectory: true)
+            .appendingPathComponent("cmux-w3dev", isDirectory: true)
             .appendingPathComponent("terminal-history", isDirectory: true)
             .appendingPathComponent("surface-\(surfaceID.uuidString).history", isDirectory: false)
     }
@@ -43,7 +43,7 @@ extension TerminalSurface {
         homeDirectory
             .appendingPathComponent("Library", isDirectory: true)
             .appendingPathComponent("Application Support", isDirectory: true)
-            .appendingPathComponent("cmux", isDirectory: true)
+            .appendingPathComponent("cmux-w3dev", isDirectory: true)
             .appendingPathComponent("cmux-cua", isDirectory: true)
             .appendingPathComponent("enabled", isDirectory: false)
     }
@@ -254,7 +254,7 @@ extension TerminalSurface {
         if fileManager.fileExists(atPath: integrationDir, isDirectory: &isDirectory), isDirectory.boolValue {
             return true
         }
-        Logger(subsystem: "com.cmuxterm.app", category: "ghostty.initialization")
+        Logger(subsystem: "app.w3dev.cmux", category: "ghostty.initialization")
             .error("cmux shell-integration dir missing at \(integrationDir, privacy: .private); spawning shell without cmux shell integration so the user's shell config still loads")
         return false
     }
@@ -304,7 +304,7 @@ extension TerminalSurface {
         func bundledBootstrapIsReadable(_ relativePath: String) -> Bool {
             let path = (integrationDir as NSString).appendingPathComponent(relativePath)
             if FileManager.default.isReadableFile(atPath: path) { return true }
-            Logger(subsystem: "com.cmuxterm.app", category: "ghostty.initialization")
+            Logger(subsystem: "app.w3dev.cmux", category: "ghostty.initialization")
                 .error("cmux \(shellName, privacy: .public) bootstrap unreadable at \(path, privacy: .private); skipping cmux shell-startup redirection so the user's shell config still loads")
             return false
         }
@@ -340,7 +340,7 @@ extension TerminalSurface {
                     return TerminalManagedShellStartupPlan(command: nil, reportsPromptReadiness: true)
                 }
             } catch {
-                Logger(subsystem: "com.cmuxterm.app", category: "ghostty.initialization")
+                Logger(subsystem: "app.w3dev.cmux", category: "ghostty.initialization")
                     .error("cmux bash bootstrap unreadable at \(bashBootstrapPath, privacy: .private): \(error.localizedDescription, privacy: .public); bash shell integration will not load")
             }
         case "fish":
@@ -365,7 +365,7 @@ extension TerminalSurface {
                     reportsPromptReadiness: integrationSourced
                 )
             } catch {
-                Logger(subsystem: "com.cmuxterm.app", category: "ghostty.initialization")
+                Logger(subsystem: "app.w3dev.cmux", category: "ghostty.initialization")
                     .error("cmux nushell bootstrap unreadable at \(bootstrapPath, privacy: .private): \(error.localizedDescription, privacy: .public); nushell shell integration will not load")
                 return unavailable
             }

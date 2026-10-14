@@ -41,8 +41,8 @@ export default async function RootLayout({
   const blogTranslations = await getTranslations({ locale, namespace: "blog" });
   const feedUrl =
     locale === routing.defaultLocale
-      ? "https://cmux.com/feed.xml"
-      : `https://cmux.com/${locale}/feed.xml`;
+      ? "https://cmux.w3dev.app/feed.xml"
+      : `https://cmux.w3dev.app/${locale}/feed.xml`;
 
   return (
     <html lang={locale} dir={dir} suppressHydrationWarning>

@@ -25,7 +25,7 @@ struct TerminalPathEnvironmentTests {
             workspaceId: UUID(),
             surfaceId: surfaceID,
             terminalLifecycleId: UUID(),
-            socketPath: "/tmp/cmux.sock"
+            socketPath: "/tmp/cmux-w3dev.sock"
         )
         var environment: [String: String] = [:]
         var protectedKeys: Set<String> = []

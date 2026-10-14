@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "cmux-v2-local",
+  "name": "w3dev-cmux-v2-local",
   "main": "src/index.ts",
   "compatibility_date": "2026-09-10",
   "compatibility_flags": [
@@ -10,7 +10,7 @@
   "preview_urls": false,
   "vars": {
     "ENVIRONMENT": "local",
-    "STACK_API_URL": "https://api.stack-auth.com",
+    "CMUX_AUTH_ORIGIN": "https://cmux.w3dev.app",
     "AXIOM_DATASET": "iroh-v2",
     "AXIOM_INGEST_URL": "https://api.axiom.co/v1/datasets/iroh-v2/ingest",
     "SENTRY_ENVIRONMENT": "local"
@@ -33,9 +33,7 @@
   },
   "secrets": {
     "required": [
-      "STACK_PROJECT_ID",
-      "STACK_PUBLISHABLE_KEY",
-      "STACK_SERVER_KEY",
+      "CMUX_AUTH_SERVICE_KEY",
       "API_TICKET_KEYS",
       "API_TICKET_CURRENT_KEY_ID",
       "RELAY_SIGNING_KEY",
@@ -72,10 +70,10 @@
   },
   "env": {
     "development": {
-      "name": "cmux-v2-development",
+      "name": "w3dev-cmux-v2-development",
       "vars": {
         "ENVIRONMENT": "development",
-        "STACK_API_URL": "https://api.stack-auth.com",
+        "CMUX_AUTH_ORIGIN": "https://staging.cmux.w3dev.app",
         "AXIOM_DATASET": "iroh-v2",
         "AXIOM_INGEST_URL": "https://api.axiom.co/v1/datasets/iroh-v2/ingest",
         "SENTRY_ENVIRONMENT": "development"
@@ -98,9 +96,7 @@
       },
       "secrets": {
         "required": [
-          "STACK_PROJECT_ID",
-          "STACK_PUBLISHABLE_KEY",
-          "STACK_SERVER_KEY",
+          "CMUX_AUTH_SERVICE_KEY",
           "API_TICKET_KEYS",
           "API_TICKET_CURRENT_KEY_ID",
           "RELAY_SIGNING_KEY",
@@ -113,10 +109,10 @@
       }
     },
     "staging": {
-      "name": "cmux-v2-staging",
+      "name": "w3dev-cmux-v2-staging",
       "vars": {
         "ENVIRONMENT": "staging",
-        "STACK_API_URL": "https://api.stack-auth.com",
+        "CMUX_AUTH_ORIGIN": "https://staging.cmux.w3dev.app",
         "AXIOM_DATASET": "iroh-v2",
         "AXIOM_INGEST_URL": "https://api.axiom.co/v1/datasets/iroh-v2/ingest",
         "SENTRY_ENVIRONMENT": "staging"
@@ -139,9 +135,7 @@
       },
       "secrets": {
         "required": [
-          "STACK_PROJECT_ID",
-          "STACK_PUBLISHABLE_KEY",
-          "STACK_SERVER_KEY",
+          "CMUX_AUTH_SERVICE_KEY",
           "API_TICKET_KEYS",
           "API_TICKET_CURRENT_KEY_ID",
           "RELAY_SIGNING_KEY",
@@ -154,10 +148,10 @@
       }
     },
     "production": {
-      "name": "cmux-v2",
+      "name": "w3dev-cmux-v2",
       "vars": {
         "ENVIRONMENT": "production",
-        "STACK_API_URL": "https://api.stack-auth.com",
+        "CMUX_AUTH_ORIGIN": "https://cmux.w3dev.app",
         "AXIOM_DATASET": "iroh-v2",
         "AXIOM_INGEST_URL": "https://api.axiom.co/v1/datasets/iroh-v2/ingest",
         "SENTRY_ENVIRONMENT": "production"
@@ -180,9 +174,7 @@
       },
       "secrets": {
         "required": [
-          "STACK_PROJECT_ID",
-          "STACK_PUBLISHABLE_KEY",
-          "STACK_SERVER_KEY",
+          "CMUX_AUTH_SERVICE_KEY",
           "API_TICKET_KEYS",
           "API_TICKET_CURRENT_KEY_ID",
           "RELAY_SIGNING_KEY",

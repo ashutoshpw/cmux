@@ -62,7 +62,7 @@ test("release gate rejects Mac and iOS artifacts configured for different author
   const macApp = path.join(directory, "cmux DEV gate.app");
   const iosApp = path.join(directory, "cmux.app");
   const expected = "https://gate.example";
-  const expectedV2 = "https://cmux-v2-staging.debussy.workers.dev";
+  const expectedV2 = "https://iroh.staging.cmux.w3dev.app";
   const presence = "https://presence.example";
 
   writeGateAppPlist(macApp, {}, {
@@ -129,89 +129,8 @@ test("release gate rejects Mac and iOS artifacts configured for different author
   assert.equal(matched.status, 0, matched.stderr);
 });
 
-test("explicit credentials file is exclusive and accepts either supported key pair", (t) => {
-  const directory = fixtureDirectory();
-  t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const credentialsFile = path.join(directory, "credentials.env");
-  writeFileSync(credentialsFile, [
-    "CMUX_UITEST_STACK_EMAIL=temporary@example.com",
-    "CMUX_UITEST_STACK_PASSWORD=temporary-password",
-    "",
-  ].join("\n"), { mode: 0o600 });
-  chmodSync(credentialsFile, 0o600);
 
-  const result = run("bash", ["-c", [
-    "source scripts/lib/dev-secrets.sh",
-    "cmux_dev_secrets_load --credentials-file \"$CREDENTIALS_FILE\"",
-    "! env | grep -Eq '^CMUX_(DOGFOOD|UITEST)_STACK_(EMAIL|PASSWORD)='",
-    "printf '%s\\n%s\\n' \"$CMUX_UITEST_STACK_EMAIL\" \"$CMUX_UITEST_STACK_PASSWORD\"",
-  ].join("; ")], {
-    CREDENTIALS_FILE: credentialsFile,
-    CMUX_DOGFOOD_STACK_EMAIL: "ambient@example.com",
-    CMUX_DOGFOOD_STACK_PASSWORD: "ambient-password",
-  });
 
-  assert.equal(result.status, 0, result.stderr);
-  assert.equal(result.stdout, [
-    "==> dev sign-in profile: agent ([redacted])",
-    "temporary@example.com",
-    "temporary-password",
-    "",
-  ].join("\n"));
-  assert.doesNotMatch(result.stderr, /temporary@example|temporary-password|ambient@example|ambient-password/u);
-});
-
-test("explicit credentials file rejects permissive modes and symlinks", (t) => {
-  const directory = fixtureDirectory();
-  t.after(() => rmSync(directory, { recursive: true, force: true }));
-  const credentialsFile = path.join(directory, "credentials.env");
-  writeFileSync(credentialsFile, "CMUX_UITEST_STACK_EMAIL=x\nCMUX_UITEST_STACK_PASSWORD=y\n", {
-    mode: 0o640,
-  });
-  chmodSync(credentialsFile, 0o640);
-  const symlink = path.join(directory, "credentials-link.env");
-  symlinkSync(credentialsFile, symlink);
-
-  for (const candidate of [credentialsFile, symlink]) {
-    const result = run("bash", ["-c", [
-      "source scripts/lib/dev-secrets.sh",
-      "cmux_dev_secrets_load --credentials-file \"$CREDENTIALS_FILE\"",
-    ].join("; ")], { CREDENTIALS_FILE: candidate });
-    assert.equal(result.status, 2);
-    assert.doesNotMatch(result.stderr, /temporary-password|ambient-password/u);
-  }
-});
-
-test("production release-gate flags fail before creating runtime state", () => {
-  const conflictingBase = run("bash", [
-    "scripts/run-iroh-release-gate.sh",
-    "--mode", "automatic",
-    "--tag", "prodtest",
-    "--production",
-    "--staging-base-url", "https://example.com",
-  ]);
-  assert.equal(conflictingBase.status, 2);
-  assert.match(conflictingBase.stderr, /cannot be combined/u);
-
-  const reusedBuild = run("bash", [
-    "scripts/run-iroh-release-gate.sh",
-    "--mode", "automatic",
-    "--tag", "prodtest",
-    "--production",
-    "--skip-build",
-  ]);
-  assert.equal(reusedBuild.status, 2);
-  assert.match(reusedBuild.stderr, /cannot reuse a build/u);
-
-  const productionEnvironmentWithoutProduction = run("bash", [
-    "scripts/run-iroh-release-gate.sh",
-    "--mode", "automatic",
-    "--tag", "prodtest",
-    "--stack-env-file", "/private/tmp/unused.env",
-  ]);
-  assert.equal(productionEnvironmentWithoutProduction.status, 2);
-  assert.match(productionEnvironmentWithoutProduction.stderr, /requires --production/u);
-});
 
 test("release gate iOS build is isolated from the configured default iPhone", () => {
   const result = run("bash", ["-c", [
@@ -243,22 +162,26 @@ test("iOS release artifact gate rejects staged runtime origins", (t) => {
   const args = ["scripts/lib/verify-ios-release-origins.sh", "--app", app];
 
   writeGateAppPlist(app, {
-    CFBundleIdentifier: "dev.cmux.app.internal",
+    CFBundleIdentifier: "app.w3dev.cmux.ios",
     CMUXAuthEnvironment: "production",
-    CMUXApiBaseURL: "https://cmux.com",
-    CMUXIrohBrokerBaseURL: "https://cmux.com",
-    CMUXPresenceBaseURL: "https://presence.cmux.dev",
+    CMUXOAuthClientID: "cmux-w3dev-ios",
+    CMUXOAuthCallbackScheme: "cmux-w3dev-ios",
+    CMUXApiBaseURL: "https://cmux.w3dev.app",
+    CMUXIrohBrokerBaseURL: "https://cmux.w3dev.app",
+    CMUXPresenceBaseURL: "https://presence.cmux.w3dev.app",
     CMUXDevTag: "",
   });
   const valid = run("bash", args);
   assert.equal(valid.status, 0, valid.stderr);
 
   writeGateAppPlist(app, {
-    CFBundleIdentifier: "dev.cmux.app.internal",
+    CFBundleIdentifier: "app.w3dev.cmux.ios",
     CMUXAuthEnvironment: "production",
-    CMUXApiBaseURL: "https://cmux.com",
+    CMUXOAuthClientID: "cmux-w3dev-ios",
+    CMUXOAuthCallbackScheme: "cmux-w3dev-ios",
+    CMUXApiBaseURL: "https://cmux.w3dev.app",
     CMUXIrohBrokerBaseURL: "https://cmux-staging.vercel.app",
-    CMUXPresenceBaseURL: "https://presence.cmux.dev",
+    CMUXPresenceBaseURL: "https://presence.cmux.w3dev.app",
     CMUXDevTag: "internal",
   });
   const invalid = run("bash", args);
@@ -266,113 +189,49 @@ test("iOS release artifact gate rejects staged runtime origins", (t) => {
   assert.match(invalid.stderr, /CMUXIrohBrokerBaseURL/u);
 });
 
-test("production release gate gives its account helper a normalized protected state directory", (t) => {
+test("iOS distribution artifacts require their channel's registered OAuth client", (t) => {
   const directory = fixtureDirectory();
   t.after(() => rmSync(directory, { recursive: true, force: true }));
-
-  const fakeBin = path.join(directory, "bin");
-  mkdirSync(fakeBin, { mode: 0o700 });
-  const captureFile = path.join(directory, "captured-state.txt");
-  const fakeBun = path.join(fakeBin, "bun");
-  writeFileSync(fakeBun, `#!/usr/bin/env bash
-set -euo pipefail
-state_file=""
-while [[ $# -gt 0 ]]; do
-  if [[ "$1" == "--state-file" ]]; then
-    state_file="\${2:-}"
-    break
-  fi
-  shift
-done
-[[ -n "$state_file" ]]
-state_directory="$(dirname "$state_file")"
-if [[ "$(uname)" == "Darwin" ]]; then
-  mode="$(stat -f '%Lp' "$state_directory")"
-else
-  mode="$(stat -c '%a' "$state_directory")"
-fi
-printf '%s\n%s\n' "$state_file" "$mode" > "$CMUX_TEST_CAPTURE_FILE"
-exit 73
-`, { mode: 0o755 });
-  chmodSync(fakeBun, 0o755);
-
-  const stackEnvironment = path.join(directory, "stack.env");
-  writeFileSync(stackEnvironment, "unused=true\n", { mode: 0o600 });
-  chmodSync(stackEnvironment, 0o600);
-  const reportOutput = path.join(directory, "release-gate-report.json");
-  writeFileSync(reportOutput, '{"passed":true,"stale":true}\n', { mode: 0o600 });
-
-  const result = run("bash", [
-    "scripts/run-iroh-release-gate.sh",
-    "--mode", "automatic",
-    "--tag", "prodtmp",
-    "--production",
-    "--stack-env-file", stackEnvironment,
-    "--report-output", reportOutput,
-  ], {
-    CMUX_TEST_CAPTURE_FILE: captureFile,
-    PATH: `${fakeBin}:${process.env.PATH}`,
-    TMPDIR: `${directory}/`,
+  const app = path.join(directory, "cmux.app");
+  const args = ["scripts/lib/verify-ios-release-origins.sh", "--app", app];
+  const production = {
+    CMUXAuthEnvironment: "production",
+    CMUXApiBaseURL: "https://cmux.w3dev.app",
+    CMUXIrohBrokerBaseURL: "https://cmux.w3dev.app",
+    CMUXPresenceBaseURL: "https://presence.cmux.w3dev.app",
+    CMUXDevTag: "",
+  };
+  for (const channel of ["beta", "internal", "demo"]) {
+    writeGateAppPlist(app, {
+      ...production,
+      CFBundleIdentifier: `app.w3dev.cmux.ios.${channel}`,
+      CMUXOAuthClientID: `cmux-w3dev-ios-${channel}`,
+      CMUXOAuthCallbackScheme: `cmux-w3dev-ios-${channel}`,
+    });
+    const matched = run("bash", args);
+    assert.equal(matched.status, 0, matched.stderr);
+  }
+  writeGateAppPlist(app, {
+    ...production,
+    CFBundleIdentifier: "app.w3dev.cmux.ios.beta",
+    CMUXOAuthClientID: "cmux-w3dev-ios",
+    CMUXOAuthCallbackScheme: "cmux-w3dev-ios-beta",
   });
-
-  assert.equal(result.status, 73, result.stderr);
-  const [stateFile, mode] = readFileSync(captureFile, "utf8").trimEnd().split("\n");
-  assert.equal(stateFile, path.resolve(stateFile));
-  assert.equal(path.dirname(stateFile).startsWith(`${directory}/`), true);
-  assert.equal(mode, "700");
-  assert.equal(existsSync(reportOutput), false);
+  const mismatched = run("bash", args);
+  assert.notEqual(mismatched.status, 0);
+  assert.match(mismatched.stderr, /CMUXOAuthClientID/u);
 });
 
-test("production release gate removes disposable tagged Iroh endpoint state", (t) => {
-  const directory = fixtureDirectory();
-  t.after(() => rmSync(directory, { recursive: true, force: true }));
 
-  const fakeBin = path.join(directory, "bin");
-  mkdirSync(fakeBin, { mode: 0o700 });
-  const fakeBun = path.join(fakeBin, "bun");
-  writeFileSync(fakeBun, "#!/usr/bin/env bash\nexit 73\n", { mode: 0o755 });
-  chmodSync(fakeBun, 0o755);
 
-  const stackEnvironment = path.join(directory, "stack.env");
-  writeFileSync(stackEnvironment, "unused=true\n", { mode: 0o600 });
-  chmodSync(stackEnvironment, 0o600);
-
-  const bundleID = "com.cmuxterm.app.debug.prodstate";
-  const endpointState = path.join(
-    directory,
-    "Library",
-    "Application Support",
-    "cmux",
-    "iroh-debug",
-    bundleID,
-  );
-  mkdirSync(endpointState, { recursive: true, mode: 0o700 });
-  writeFileSync(path.join(endpointState, "endpoint.key"), "disposable\n", {
-    mode: 0o600,
-  });
-
-  const result = run("bash", [
-    "scripts/run-iroh-release-gate.sh",
-    "--mode", "automatic",
-    "--tag", "prodstate",
-    "--production",
-    "--stack-env-file", stackEnvironment,
-  ], {
-    HOME: directory,
-    PATH: `${fakeBin}:${process.env.PATH}`,
-    TMPDIR: `${directory}/`,
-  });
-
-  assert.equal(result.status, 73, result.stderr);
-  assert.equal(existsSync(endpointState), false);
-});
-
-test("Mac reload documents production auth without accepting secret values", () => {
+test("Mac reload documents hosted Better Auth and retires password injection", () => {
   const result = run("bash", ["scripts/reload.sh", "--help"]);
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /--prod-auth/u);
   assert.match(result.stdout, /--credentials-file <path>/u);
-  assert.match(result.stdout, /credential values never enter argv/u);
+  assert.match(result.stdout, /Use Better Auth and Cloud APIs on cmux\.w3dev\.app/u);
+  assert.match(result.stdout, /default to local backend mode/u);
+  assert.match(result.stdout, /Retired password auto-login flags; rejected before build/u);
 });
 
 test("Mac reload accepts an immutable cmux-tui manifest pin", () => {
@@ -388,4 +247,53 @@ test("Mac reload accepts an immutable cmux-tui manifest pin", () => {
     source,
     /--manifest-url "\$CMUX_TUI_CLIENT_MANIFEST_URL_VALUE"/u,
   );
+});
+
+// Legacy password harnesses are unavailable in the fork. Executing each public
+// entrypoint must stop before sourcing credentials, creating runtime state, or
+// calling tooling that could provision identities, build, or launch an app.
+for (const script of [
+  "scripts/dev-setup.sh",
+  "scripts/setup-team-dev.sh",
+  "scripts/e2e/backend-up.sh",
+  "scripts/run-iroh-release-gate.sh",
+  "scripts/mobile-dev-launch.sh",
+]) {
+  test(`${script} refuses retired password auth before any side effect`, (t) => {
+    const directory = fixtureDirectory();
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const fakeBin = path.join(directory, "bin");
+    mkdirSync(fakeBin);
+    const contacted = path.join(directory, "contacted");
+    const credentials = path.join(directory, "credentials.env");
+    writeFileSync(credentials, `printf secret-loaded > "${contacted}"\n`, { mode: 0o600 });
+    for (const tool of ["bun", "curl", "gh", "xcrun", "xcodebuild", "defaults", "open"]) {
+      writeFileSync(path.join(fakeBin, tool), '#!/bin/sh\nprintf contacted > "$CMUX_TEST_CONTACTED"\nexit 99\n', { mode: 0o755 });
+    }
+    const result = run("bash", [script, "--tag", "retired-probe", "--production", "--credentials-file", credentials], {
+      HOME: directory,
+      TMPDIR: directory,
+      PATH: `${fakeBin}:${process.env.PATH}`,
+      CMUX_TEST_CONTACTED: contacted,
+      CMUX_CREDENTIALS_FILE: credentials,
+    });
+    assert.equal(result.status, 2, result.stderr);
+    assert.match(result.stderr, /(?:Stack auth harness|automatic password sign-in) is retired/u);
+    assert.equal(existsSync(contacted), false);
+    assert.equal(existsSync(path.join(directory, "Library")), false);
+    assert.equal(existsSync(path.join(directory, ".secrets")), false);
+    assert.doesNotMatch(`${result.stdout}\n${result.stderr}`, /secret-loaded|password=|access_token/u);
+  });
+}
+
+test("Mac reload refuses password auto-login before reading an explicit credential file", (t) => {
+  const directory = fixtureDirectory();
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const marker = path.join(directory, "sourced");
+  const credentials = path.join(directory, "credentials.env");
+  writeFileSync(credentials, `printf sourced > "${marker}"\n`, { mode: 0o600 });
+  const result = run("bash", ["scripts/reload.sh", "--tag", "password-probe", "--credentials-file", credentials, "--launch"], { HOME: directory });
+  assert.equal(result.status, 2, result.stderr);
+  assert.match(result.stderr, /password auto-login is retired/u);
+  assert.equal(existsSync(marker), false);
 });

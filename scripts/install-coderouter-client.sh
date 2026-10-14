@@ -13,7 +13,8 @@ fi
 url="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]]["url"])' "$manifest" "$target")"
 digest="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]]["sha256"])' "$manifest" "$target")"
 [[ "$digest" =~ ^[0-9a-f]{64}$ ]]
-[[ "$url" == https://github.com/manaflow-ai/coderouter-releases/releases/download/* ]]
+source "$root/scripts/lib/fork-deployment.env"
+[[ "$url" == "$CMUX_FORK_ARTIFACTS_ORIGIN"/* || "$url" == "https://github.com/$CMUX_FORK_REPOSITORY/releases/download/"* ]] || { echo "CodeRouter manifest must use an owned fork artifact URL" >&2; exit 1; }
 cache="${CMUX_CODEROUTER_CACHE:-$HOME/Library/Caches/cmux/coderouter}"
 mkdir -p "$cache" "$app/Contents/Resources/bin"
 binary="$cache/$digest"

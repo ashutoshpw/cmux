@@ -91,7 +91,7 @@ struct FileExternalOpenApplicationResolver: Sendable {
             return false
         }
         return !bundleIdentifier.hasPrefix("dev.cmux.")
-            && !bundleIdentifier.hasPrefix("com.cmuxterm.")
+            && !bundleIdentifier.hasPrefix("app.w3dev.cmux.")
     }
 }
 

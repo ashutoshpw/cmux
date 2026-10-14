@@ -1,7 +1,12 @@
 /// Validates the identity fields for a tagged Debug cmux server.
 public struct CodeRouterDebugServerIdentityPolicy {
-    /// Creates a Debug server identity policy.
-    public init() {}
+    private let expectedTeamIdentifier: String?
+
+    /// Creates a Debug server identity policy pinned to the executing fork team.
+    /// - Parameter expectedTeamIdentifier: The verified team expected on the peer.
+    public init(expectedTeamIdentifier: String? = CodeSigningTeamIdentity().currentTeamIdentifier()) {
+        self.expectedTeamIdentifier = expectedTeamIdentifier
+    }
 
     /// Tests whether the signing fields match the expected tagged cmux build.
     ///
@@ -16,12 +21,14 @@ public struct CodeRouterDebugServerIdentityPolicy {
         teamIdentifier: String?,
         expectedBundleIdentifier: String?
     ) -> Bool {
-        let taggedPrefix = "com.cmuxterm.app.debug."
+        let taggedPrefix = "app.w3dev.cmux.debug."
         guard let expectedBundleIdentifier,
               expectedBundleIdentifier.hasPrefix(taggedPrefix),
               expectedBundleIdentifier.count > taggedPrefix.count,
               identifier == expectedBundleIdentifier,
-              teamIdentifier == "7WLXT3NR37" else {
+              let expectedTeamIdentifier,
+              !expectedTeamIdentifier.isEmpty,
+              teamIdentifier == expectedTeamIdentifier else {
             return false
         }
         return true

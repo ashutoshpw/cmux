@@ -65,7 +65,7 @@ public final class UserDefaultsMobileTaskTemplateStore: MobileTaskTemplateStorin
             in: .userDomainMask
         ).first ?? FileManager.default.temporaryDirectory
         return base
-            .appendingPathComponent("cmux", isDirectory: true)
+            .appendingPathComponent("cmux-w3dev", isDirectory: true)
             .appendingPathComponent("composer-draft-attachments", isDirectory: true)
     }
 

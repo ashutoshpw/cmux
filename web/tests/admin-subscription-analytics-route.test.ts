@@ -44,7 +44,7 @@ const load = mock(async (query: AnalyticsQuery) => ({ marker: "report", filters:
 const { GET } = createSubscriptionAnalyticsHandlers({ load, now: () => NOW });
 
 function request(search = ""): NextRequest {
-  return new NextRequest(`https://cmux.com/api/admin/subscriptions/analytics${search}`);
+  return new NextRequest(`https://w3dev.app/api/admin/subscriptions/analytics${search}`);
 }
 
 describe("GET /api/admin/subscriptions/analytics", () => {
@@ -68,13 +68,13 @@ describe("GET /api/admin/subscriptions/analytics", () => {
   test("403 for a non-admin and for an unverified company email", async () => {
     currentUser = { id: "u1", primaryEmail: "someone@example.com", primaryEmailVerified: true, isAnonymous: false };
     expect((await GET(request())).status).toBe(403);
-    currentUser = { id: "u2", primaryEmail: "spoof@manaflow.ai", primaryEmailVerified: false, isAnonymous: false };
+    currentUser = { id: "u2", primaryEmail: "spoof@w3dev.app", primaryEmailVerified: false, isAnonymous: false };
     expect((await GET(request())).status).toBe(403);
     expect(load).not.toHaveBeenCalled();
   });
 
   test("admin gets the report, never cached", async () => {
-    currentUser = { id: "admin", primaryEmail: "ops@manaflow.ai", primaryEmailVerified: true, isAnonymous: false };
+    currentUser = { id: "admin", primaryEmail: "ops@w3dev.app", primaryEmailVerified: true, isAnonymous: false };
     const response = await GET(request("?source=apple&plan=pro&granularity=month"));
     expect(response.status).toBe(200);
     expect(response.headers.get("cache-control")).toBe("no-store");
@@ -89,13 +89,13 @@ describe("GET /api/admin/subscriptions/analytics", () => {
   });
 
   test("400 for an invalid filter from an admin", async () => {
-    currentUser = { id: "admin", primaryEmail: "ops@cmux.com", primaryEmailVerified: true, isAnonymous: false };
+    currentUser = { id: "admin", primaryEmail: "ops@w3dev.app", primaryEmailVerified: true, isAnonymous: false };
     expect((await GET(request("?environment=staging"))).status).toBe(400);
     expect(load).not.toHaveBeenCalled();
   });
 
   test("503 when the loader fails", async () => {
-    currentUser = { id: "admin", primaryEmail: "ops@cmux.com", primaryEmailVerified: true, isAnonymous: false };
+    currentUser = { id: "admin", primaryEmail: "ops@w3dev.app", primaryEmailVerified: true, isAnonymous: false };
     const failing = createSubscriptionAnalyticsHandlers({
       load: async () => {
         throw new Error("db down");

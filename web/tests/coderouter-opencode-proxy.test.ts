@@ -45,7 +45,7 @@ describe("coderouter OpenCode Go proxy", () => {
     expect(rewritten.go.models["model-1"].provider?.api).toBe(
       "https://cmux.example/api/coderouter/opencode/proxy/go",
     );
-    expect(JSON.stringify(rewritten)).not.toContain("coderouter.dev");
+    expect(JSON.stringify(rewritten)).not.toContain("cmux.w3dev.app");
     expect(JSON.stringify(rewritten)).not.toContain("upstream-secret");
     expect(JSON.stringify(rewritten)).not.toContain("nested-secret");
     expect(JSON.stringify(rewritten)).not.toContain("models.example.test");
@@ -461,7 +461,7 @@ describe("coderouter OpenCode with no account configured", () => {
   }
   const terminalBody = {
     error: {
-      message: "No OpenCode account is configured for this team or shared with this caller. Add one with `cr add opencode` or at coderouter.dev.",
+      message: "No OpenCode account is configured for this team or shared with this caller. Add one with `cr add opencode` or at https://cmux.w3dev.app/dashboard/coderouter.",
       type: "invalid_request_error",
       code: "no_account_configured",
     },
@@ -497,7 +497,7 @@ describe("coderouter OpenCode with no account configured", () => {
     vmRequest.headers.set("x-cmux-vm-id", "vm-1");
     const response = await openCodeClientConfig(vmRequest, noAccountDependencies(false, "vm-1").dependencies);
     expect(response.status).toBe(403);
-    expect((await response.json()).error.message).toBe("No OpenCode account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at coderouter.dev, or add one here with `cr add opencode` (accounts added on a Cloud machine are shared with its team).");
+    expect((await response.json()).error.message).toBe("No OpenCode account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at https://cmux.w3dev.app/dashboard/coderouter, or add one here with `cr add opencode` (accounts added on a Cloud machine are shared with its team).");
   });
 
   test("the provider proxy gives a Cloud machine the same sharing advice", async () => {
@@ -505,7 +505,7 @@ describe("coderouter OpenCode with no account configured", () => {
     vmRequest.headers.set("x-cmux-vm-id", "vm-1");
     const response = await proxyOpenCodeRequest(vmRequest, "go", ["chat"], noAccountDependencies(false, "vm-1").dependencies);
     expect(response.status).toBe(403);
-    expect((await response.json()).error.message).toBe("No OpenCode account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at coderouter.dev, or add one here with `cr add opencode` (accounts added on a Cloud machine are shared with its team).");
+    expect((await response.json()).error.message).toBe("No OpenCode account is shared with this Cloud machine's team. If one was added as private, the person who added it can choose Share with team at https://cmux.w3dev.app/dashboard/coderouter, or add one here with `cr add opencode` (accounts added on a Cloud machine are shared with its team).");
   });
 
   test("a caller whose accounts are all unavailable keeps a retryable 503 on both surfaces", async () => {

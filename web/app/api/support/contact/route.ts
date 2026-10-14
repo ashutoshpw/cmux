@@ -17,7 +17,7 @@ import { reportMissingRateLimitRule } from "../../../../services/rateLimitObserv
 import { checkEmailDeliverable } from "../../waitlist/email-check";
 
 
-const supportRecipient = "founders@cmux.com";
+const supportRecipient = process.env.CMUX_SUPPORT_TO_EMAIL?.trim();
 
 const supportRequestSchema = z.object({
   name: z.string().trim().max(160).optional().default(""),
@@ -103,8 +103,8 @@ export async function POST(request: Request) {
 
       const resend = new Resend(config.resendApiKey);
       const emailResult = await resend.emails.send({
-        from: `Manaflow <${config.fromEmail}>`,
-        to: [supportRecipient],
+        from: `cmux <${config.fromEmail}>`,
+        to: [supportRecipient!],
         replyTo: ticket.email,
         subject: ticket.topic
           ? `Support request (${ticket.topic}): ${ticket.email}`
@@ -155,7 +155,7 @@ function resolveSupportConfig() {
   const fromEmail = env.CMUX_FEEDBACK_FROM_EMAIL;
   // rateLimitId is optional: unset means the route runs without rate limiting.
   const rateLimitId = env.CMUX_FEEDBACK_RATE_LIMIT_ID;
-  if (!resendApiKey || !fromEmail) return null;
+  if (!resendApiKey || !fromEmail || !supportRecipient) return null;
   return {
     resendApiKey,
     fromEmail,
@@ -202,6 +202,9 @@ async function notifySlack(
 async function capturePostHog(
   ticket: SupportRequest,
 ): Promise<{ ok: true } | { ok: false; error: Error }> {
+  if (!POSTHOG_PROJECT_KEY || !POSTHOG_HOST) {
+    return { ok: false, error: new Error("PostHog is not configured") };
+  }
   try {
     const response = await fetch(`${POSTHOG_HOST}/capture/`, {
       method: "POST",

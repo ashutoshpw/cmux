@@ -1,4 +1,4 @@
-import type { StackServerApp } from "@hexclave/next";
+import type { OwnedAuthServerApp } from "../../../lib/stack";
 import { after, NextRequest, NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
@@ -63,7 +63,7 @@ import {
 import { teamPortalSession } from "../../../../services/billing/teamPortal";
 
 
-type CheckoutStackServerApp = StackServerApp<true>;
+type CheckoutStackServerApp = OwnedAuthServerApp;
 
 // Every purchase entrypoint authenticates before looking up billing or
 // creating a Stripe object. The selected plan survives the sign-in return.
@@ -119,18 +119,18 @@ type NativeCheckoutError =
 const NATIVE_CHECKOUT_ERRORS = {
   unauthorized: { actionCode: "auth_login", action: "cmux auth login", status: 401 },
   invalid_plan: { actionCode: "choose_plan", action: "cmux billing checkout --plan <go|pro|max>", status: 400 },
-  billing_unavailable: { actionCode: "open_pricing", action: "https://cmux.com/pricing", status: 503 },
+  billing_unavailable: { actionCode: "open_pricing", action: "https://cmux.w3dev.app/pricing", status: 503 },
   plan_unavailable: { actionCode: "plan_unavailable", action: "cmux billing checkout --plan pro", status: 403 },
-  team_id_required: { actionCode: "open_teams", action: "https://cmux.com/dashboard/teams", status: 400 },
+  team_id_required: { actionCode: "open_teams", action: "https://cmux.w3dev.app/dashboard/teams", status: 400 },
   // The personal entry routes to Pro/Max; Team checkout needs a real team.
   personal_team_not_upgradable_to_team: {
     actionCode: "choose_plan",
     action: "cmux billing checkout --plan <go|pro|max>",
     status: teamBillingAccessStatus("personal_team_not_upgradable_to_team"),
   },
-  team_not_found: { actionCode: "open_teams", action: "https://cmux.com/dashboard/teams", status: teamBillingAccessStatus("team_not_found") },
-  team_admin_required: { actionCode: "ask_team_admin", action: "https://cmux.com/dashboard/teams", status: teamBillingAccessStatus("team_admin_required") },
-  authorization_unavailable: { actionCode: "retry", action: "https://cmux.com/dashboard/billing", status: teamBillingAccessStatus("authorization_unavailable") },
+  team_not_found: { actionCode: "open_teams", action: "https://cmux.w3dev.app/dashboard/teams", status: teamBillingAccessStatus("team_not_found") },
+  team_admin_required: { actionCode: "ask_team_admin", action: "https://cmux.w3dev.app/dashboard/teams", status: teamBillingAccessStatus("team_admin_required") },
+  authorization_unavailable: { actionCode: "retry", action: "https://cmux.w3dev.app/dashboard/billing", status: teamBillingAccessStatus("authorization_unavailable") },
 } as const satisfies Record<NativeCheckoutError, { actionCode: string; action: string; status: number }>;
 
 function nativeCheckoutError(error: NativeCheckoutError) {

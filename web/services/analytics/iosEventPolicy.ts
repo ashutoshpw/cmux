@@ -4,10 +4,10 @@
 /** The PostHog project key. Public (already shipped in the web client bundle),
  * overridable via env so dev/preview can point at a separate project. */
 export const POSTHOG_PROJECT_KEY =
-  process.env.POSTHOG_PROJECT_KEY ?? "phc_opOVu7oFzR9wD3I6ZahFGOV2h3mqGpl5EHyQvmHciDP";
+  process.env.POSTHOG_PROJECT_KEY?.trim() ?? "";
 
 /** The PostHog capture host (no trailing slash). */
-export const POSTHOG_HOST = (process.env.POSTHOG_HOST ?? "https://r.cmux.com").replace(/\/$/, "");
+export const POSTHOG_HOST = (process.env.POSTHOG_HOST?.trim() ?? "").replace(/\/$/, "");
 
 /**
  * Test runners must never use the production PostHog transport by default.

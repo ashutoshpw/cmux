@@ -108,7 +108,7 @@ async function readCachedDashboardSessionUser(
     const requestHeaders = await headers();
     user = await withSubrouterAuthorizationDeadline((signal) =>
       verifyBrowserSessionRequest(
-        new Request("https://cmux.com/dashboard", {
+        new Request("https://cmux.w3dev.app/dashboard", {
           headers: Object.fromEntries(requestHeaders.entries()),
         }),
         signal,

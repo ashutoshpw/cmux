@@ -46,7 +46,7 @@
  * Outbound-only firewall; deleted whatever happens (unless --keep-builder).
  *
  * Daemon contract: the session daemon is cmux-tui (docs/cloud-cmux-tui-daemon.md).
- * The bake installs the pinned files.cmux.com build (sha256-verified, the same
+ * The bake installs the pinned files.cmux.w3dev.app build (sha256-verified, the same
  * install command the driver's attach-time heal uses) in the daemon user's home
  * and the cmux-tui-daemon systemd unit runs /usr/local/bin/cmux-devbox-boot,
  * which starts and supervises it. The bake proves the daemon answers on

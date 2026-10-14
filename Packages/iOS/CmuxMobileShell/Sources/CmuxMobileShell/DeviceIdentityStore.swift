@@ -137,7 +137,7 @@ struct KeychainDeviceIdentityStore: DeviceIdentityStoring {
     private let legacyService: String?
 
     init(
-        service: String = "com.cmuxterm.deviceRegistry.iosDeviceID.v1",
+        service: String = "app.w3dev.cmux.deviceRegistry.iosDeviceID.v1",
         account: String = "default",
         accessGroup: String? = nil,
         legacyService: String? = nil

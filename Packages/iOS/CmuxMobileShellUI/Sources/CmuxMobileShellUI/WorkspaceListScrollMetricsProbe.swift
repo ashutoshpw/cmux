@@ -85,7 +85,7 @@ final class WorkspaceListScrollMetricsProbeView: UIView {
         let hitchMsPerSecond: Double
     }
 
-    private static let logger = Logger(subsystem: "dev.cmux.ios", category: "scroll-metrics")
+    private static let logger = Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "scroll-metrics")
     /// ~4200 pt/s at 60 Hz: a realistic fast-flick velocity, fast enough to
     /// outrun cell materialization the way a user's flick does.
     private static let sweepStepPoints: CGFloat = 70

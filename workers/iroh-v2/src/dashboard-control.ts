@@ -189,11 +189,11 @@ export class DashboardControl {
   }
 
   private assertLive(claims: DashboardClaims): void {
-    if (claims.authority.environment !== this.env.ENVIRONMENT || claims.authority.projectId !== this.env.STACK_PROJECT_ID) throw new OperationError("environment_mismatch", 403);
+    if (claims.authority.environment !== this.env.ENVIRONMENT || claims.authority.projectId !== (this.env.CMUX_AUTH_ORIGIN ?? "https://cmux.w3dev.app")) throw new OperationError("environment_mismatch", 403);
     if (claims.expiresAt <= Math.floor(Date.now() / 1000)) throw new OperationError("ticket_expired", 401, true);
   }
   private async assertTeamAccess(broker: TeamBroker, claims: DashboardClaims): Promise<void> {
-    if (!await broker.dependencies.verifyTeamMember(claims.authority.teamId, claims.authority.userId)) {
+    if (!await broker.dependencies.verifyTeamMember(claims.authority.teamId, claims.authority.userId, claims.authority)) {
       throw new OperationError("team_access_revoked", 403);
     }
     this.assertLive(claims);

@@ -360,7 +360,7 @@ final class TabManagerChildExitCloseTests: XCTestCase {
                 relayPort: 64015,
                 relayID: String(repeating: "a", count: 16),
                 relayToken: String(repeating: "b", count: 64),
-                localSocketPath: "/tmp/cmux-debug-test.sock",
+                localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
                 terminalStartupCommand: "ssh cmux-macmini"
             ),
             autoConnect: false
@@ -399,7 +399,7 @@ final class TabManagerChildExitCloseTests: XCTestCase {
                 relayPort: 64017,
                 relayID: String(repeating: "a", count: 16),
                 relayToken: String(repeating: "b", count: 64),
-                localSocketPath: "/tmp/cmux-debug-test.sock",
+                localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
                 terminalStartupCommand: "ssh cmux-macmini"
             ),
             autoConnect: false
@@ -456,7 +456,7 @@ final class TabManagerChildExitCloseTests: XCTestCase {
                 relayPort: 64017,
                 relayID: String(repeating: "a", count: 16),
                 relayToken: String(repeating: "b", count: 64),
-                localSocketPath: "/tmp/cmux-debug-test.sock",
+                localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
                 terminalStartupCommand: startupCommand,
                 preserveAfterTerminalExit: true,
                 persistentDaemonSlot: "ssh-child-exit-test"
@@ -634,7 +634,7 @@ final class TabManagerChildExitCloseTests: XCTestCase {
                 relayPort: nil,
                 relayID: nil,
                 relayToken: nil,
-                localSocketPath: "/tmp/cmux-debug-test.sock",
+                localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
                 terminalStartupCommand: "cmux remote websocket"
             ),
             autoConnect: false
@@ -684,7 +684,7 @@ final class TabManagerChildExitCloseTests: XCTestCase {
                 relayPort: 64020,
                 relayID: String(repeating: "a", count: 16),
                 relayToken: String(repeating: "b", count: 64),
-                localSocketPath: "/tmp/cmux-debug-attach-end-test.sock",
+                localSocketPath: "/tmp/cmux-w3dev-debug-attach-end-test.sock",
                 terminalStartupCommand: SSHPTYAttachStartupCommandBuilder.command(),
                 preserveAfterTerminalExit: true,
                 persistentDaemonSlot: "ssh-child-exit-after-attach-end"
@@ -740,7 +740,7 @@ final class TabManagerChildExitCloseTests: XCTestCase {
                 relayPort: 64018,
                 relayID: String(repeating: "a", count: 16),
                 relayToken: String(repeating: "b", count: 64),
-                localSocketPath: "/tmp/cmux-debug-split-test.sock",
+                localSocketPath: "/tmp/cmux-w3dev-debug-split-test.sock",
                 terminalStartupCommand: SSHPTYAttachStartupCommandBuilder.command(),
                 preserveAfterTerminalExit: true,
                 persistentDaemonSlot: "ssh-child-exit-split-test"
@@ -815,7 +815,7 @@ final class TabManagerChildExitCloseTests: XCTestCase {
                 relayPort: nil,
                 relayID: nil,
                 relayToken: nil,
-                localSocketPath: "/tmp/cmux-debug-test.sock",
+                localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
                 terminalStartupCommand: "cmux remote websocket"
             ),
             autoConnect: false
@@ -858,7 +858,7 @@ final class TabManagerChildExitCloseTests: XCTestCase {
                 relayPort: 64016,
                 relayID: String(repeating: "a", count: 16),
                 relayToken: String(repeating: "b", count: 64),
-                localSocketPath: "/tmp/cmux-debug-test.sock",
+                localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
                 terminalStartupCommand: "ssh cmux-macmini"
             ),
             autoConnect: false
@@ -1424,7 +1424,7 @@ final class TabManagerPullRequestProbeTests: XCTestCase {
                 relayPort: 64017,
                 relayID: String(repeating: "a", count: 16),
                 relayToken: String(repeating: "b", count: 64),
-                localSocketPath: "/tmp/cmux-debug-test.sock",
+                localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
                 terminalStartupCommand: "ssh cmux-macmini"
             ),
             autoConnect: false

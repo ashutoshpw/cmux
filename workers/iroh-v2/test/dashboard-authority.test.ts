@@ -7,7 +7,7 @@ const authority = {
   projectId: "project",
   teamId: "team",
   userId: "user",
-  verifiedAt: 1000,
+   sessionId: "auth-session", verifiedAt: 1000,
 } as const;
 const directoryRequest = { schemaId: "directory.request.v1", requestId: "directory" } as const;
 

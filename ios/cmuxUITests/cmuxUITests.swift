@@ -551,19 +551,19 @@ final class cmuxUITests: XCTestCase {
     func testMockHostInstanceTagFollowsTargetBuildScope() {
         XCTAssertEqual(
             mockHostInstanceTag(
-                testBundleIdentifier: "dev.cmux.ios.spark"
+                testBundleIdentifier: "app.w3dev.cmux.ios.debug.spark"
             ),
             "spark"
         )
         XCTAssertEqual(
             mockHostInstanceTag(
-                testBundleIdentifier: "dev.cmux.ios.uitests"
+                testBundleIdentifier: "app.w3dev.cmux.ios.debug.uitests"
             ),
             "dev"
         )
         XCTAssertEqual(
             mockHostInstanceTag(
-                testBundleIdentifier: "dev.cmux.ios.uitests.xctrunner"
+                testBundleIdentifier: "app.w3dev.cmux.ios.debug.uitests.xctrunner"
             ),
             "dev"
         )
@@ -11392,7 +11392,7 @@ private final class MobileSyncMockHostServer: @unchecked Sendable {
     }
 
     private let listener: NWListener
-    private let queue = DispatchQueue(label: "dev.cmux.ios-ui-tests.mobile-sync-server")
+    private let queue = DispatchQueue(label: "app.w3dev.cmux.ios.debug-ui-tests.mobile-sync-server")
     private let createdWorkspaceTerminalDelay: TimeInterval?
     private let supportsManualAttachTicket: Bool
     private let workspaceCreateSelectsCreatedWorkspace: Bool
@@ -12167,8 +12167,8 @@ private final class MobileSyncMockHostServer: @unchecked Sendable {
             "mac_display_name": "UI Test Mac",
             "mac_instance_tag": macInstanceTag,
             "mac_client_namespace": macInstanceTag == "dev"
-                ? "mac:com.cmuxterm.app.debug"
-                : "mac:com.cmuxterm.app.debug.\(macInstanceTag)",
+                ? "mac:app.w3dev.cmux.debug"
+                : "mac:app.w3dev.cmux.debug.\(macInstanceTag)",
             "mac_app_version": "0.64.25",
             "routes": [],
             "terminal_fidelity": "render_grid",
@@ -12480,7 +12480,7 @@ private final class MobileSyncMockHostServer: @unchecked Sendable {
 /// transport while an authoritative host response remains independently gated.
 private final class AgentModelsCatalogHTTPServer: @unchecked Sendable {
     private let listener: NWListener
-    private let queue = DispatchQueue(label: "dev.cmux.ios-ui-tests.agent-model-catalog")
+    private let queue = DispatchQueue(label: "app.w3dev.cmux.ios.debug-ui-tests.agent-model-catalog")
     private let body: Data
     private var readyContinuation: CheckedContinuation<UInt16, Error>?
     private var connections: [NWConnection] = []
@@ -12598,7 +12598,7 @@ private func mockHostInstanceTag(
     let appBundleIdentifier = testBundleIdentifier.hasSuffix(runnerSuffix)
         ? String(testBundleIdentifier.dropLast(runnerSuffix.count))
         : testBundleIdentifier
-    guard appBundleIdentifier != "dev.cmux.ios.uitests" else { return "dev" }
+    guard appBundleIdentifier != "app.w3dev.cmux.ios.debug.uitests" else { return "dev" }
     return MobileIOSBuildScope.current(
         infoDictionary: nil,
         bundleIdentifier: appBundleIdentifier
@@ -12850,11 +12850,11 @@ final class IOSSetupRecoveryUITests: XCTestCase {
         guide.tap()
         let docs = app.descendants(matching: .any)["MobileDocsSafariView"]
         XCTAssertTrue(docs.waitForExistence(timeout: 10))
-        XCTAssertEqual(docs.value as? String, "https://cmux.com/docs/ios#prerequisites")
+        XCTAssertEqual(docs.value as? String, "https://cmux.w3dev.app/docs/ios#prerequisites")
         capture("setup-guide-opened-in-native-safari-sheet", in: app)
         record(
             "setup-guide-sheet-result",
-            "Tapped See Docs. cmux presented its native SFSafariViewController sheet for https://cmux.com/docs/ios#prerequisites."
+            "Tapped See Docs. cmux presented its native SFSafariViewController sheet for https://cmux.w3dev.app/docs/ios#prerequisites."
         )
     }
 }

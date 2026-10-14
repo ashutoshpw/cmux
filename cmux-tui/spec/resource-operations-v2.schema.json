@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://cmux.dev/spec/resource-operations-v2.schema.json",
+  "$id": "https://cmux.w3dev.app/spec/resource-operations-v2.schema.json",
   "title": "cmux.protocol/2 typed operation catalog",
   "type": "object",
   "additionalProperties": false,

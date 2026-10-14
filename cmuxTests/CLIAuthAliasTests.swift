@@ -433,7 +433,7 @@ struct CLICoderouterAliasTests {
     #if DEBUG
     @Test("allows only the matching company-signed tagged Debug server")
     func validatesTaggedDebugServerSigningFields() {
-        let bundleIdentifier = "com.cmuxterm.app.debug.coderouter-dogfood"
+        let bundleIdentifier = "app.w3dev.cmux.debug.coderouter-dogfood"
         #expect(
             debugIdentityPolicy.isAllowed(
                 identifier: bundleIdentifier,
@@ -450,16 +450,16 @@ struct CLICoderouterAliasTests {
         )
         #expect(
             !debugIdentityPolicy.isAllowed(
-                identifier: "com.cmuxterm.app.debug.other",
+                identifier: "app.w3dev.cmux.debug.other",
                 teamIdentifier: "7WLXT3NR37",
                 expectedBundleIdentifier: bundleIdentifier
             )
         )
         #expect(
             !debugIdentityPolicy.isAllowed(
-                identifier: "com.cmuxterm.app",
+                identifier: "app.w3dev.cmux",
                 teamIdentifier: "7WLXT3NR37",
-                expectedBundleIdentifier: "com.cmuxterm.app"
+                expectedBundleIdentifier: "app.w3dev.cmux"
             )
         )
     }

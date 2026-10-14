@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-base_url="${CODEROUTER_DOWNLOAD_BASE_URL:-https://github.com/manaflow-ai/coderouter-releases/releases/latest/download}"
+base_url="${CODEROUTER_DOWNLOAD_BASE_URL:-https://github.com/ashutoshpw/cmux/releases/latest/download}"
 install_root="${CODEROUTER_INSTALL:-$HOME/.coderouter}"
 bin_dir="$install_root/bin"
 
@@ -91,4 +91,4 @@ echo "Installed coderouter ${version:-unknown} to $bin_dir/coderouter"
 curl --proto '=https' --tlsv1.2 -fsS --max-time 2 \
   -H 'content-type: application/json' \
   -d "{\"product\":\"coderouter\",\"platform\":\"$os-$arch\",\"method\":\"curl\",\"version\":\"${version:-unknown}\"}" \
-  https://cmux.com/api/install-events >/dev/null 2>&1 || true
+  https://cmux.w3dev.app/api/install-events >/dev/null 2>&1 || true

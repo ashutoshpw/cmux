@@ -3,7 +3,7 @@ public import Foundation
 
 /// Durable home of the device-list lease, scoped to one (account, backend)
 /// pair. Release compositions back it with the Keychain
-/// (`com.cmuxterm.irx.device-list.v1`); DEBUG builds use the development file
+/// (`app.w3dev.cmux.irx.device-list.v1`); DEBUG builds use the development file
 /// store in the irx state directory, mirroring every other secure store's
 /// DEBUG/#else split.
 ///

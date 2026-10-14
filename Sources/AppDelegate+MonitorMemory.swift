@@ -13,7 +13,7 @@ private func cmuxDisplayReconfigurationCallback(
     let appDelegate = Unmanaged<AppDelegate>.fromOpaque(userInfo).takeUnretainedValue()
     let isBeginning = flags.contains(.beginConfigurationFlag)
     NotificationCenter.default.post(
-        name: Notification.Name("com.cmuxterm.app.displayReconfiguration"),
+        name: Notification.Name("app.w3dev.cmux.displayReconfiguration"),
         object: appDelegate,
         userInfo: ["isBeginning": isBeginning]
     )

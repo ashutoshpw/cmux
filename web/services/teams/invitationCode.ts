@@ -1,112 +1,141 @@
-import { stackApiBaseURL } from "../auth/stackApiBaseURL";
-import { withStackAuthSpan } from "../auth/stackTelemetry";
-
-/**
- * Stack's invitation-code endpoints, called as the signed-in user.
- *
- * The SDK's `acceptTeamInvitation(code)` runs on the app's own cookie token
- * store, so it cannot act for a native bearer request, and its
- * `getTeamInvitationDetails(code)` drops the team id that the endpoint
- * returns. Role application must know exactly which team the code joins, so
- * this calls the same endpoints the SDK calls, with the same client headers
- * and the caller's access token.
- */
-export type InvitationCodeFailure = "email_mismatch" | "invalid" | "unavailable";
-
+import { memberLimitForTeam } from "./seats";
+import { and, eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { cloudDb } from "../../db/client";
+import {
+  betterAuthInvitation,
+  betterAuthMember,
+  betterAuthOrganization,
+} from "../../db/betterAuthSchema";
+import { resolveBetterAuthPrincipal } from "../auth/betterAuthPrincipal";
+import { canonicalizeEmailForMatching } from "../billing/emailMatching";
+import { assertOrganizationMembershipAdmission } from "./organizationAdministration";
+import { withTeamAdminLock } from "./repository";
+import { TeamApiError } from "./errors";
+export type InvitationCodeFailure =
+  "email_mismatch" | "invalid" | "unavailable" | "seat_limit";
 export type InvitationCodeResult<T> =
   | { readonly ok: true; readonly value: T }
   | { readonly ok: false; readonly failure: InvitationCodeFailure };
-
 export type InvitationCodeClient = {
-  details(code: string, accessToken: string): Promise<InvitationCodeResult<{ teamId: string; teamDisplayName: string }>>;
-  accept(code: string, accessToken: string): Promise<InvitationCodeResult<null>>;
+  details(
+    code: string,
+    accessToken: string,
+  ): Promise<InvitationCodeResult<{ teamId: string; teamDisplayName: string }>>;
+  accept(
+    code: string,
+    accessToken: string,
+  ): Promise<InvitationCodeResult<null>>;
 };
-
-type Environment = Record<string, string | undefined>;
-type FetchLike = (input: string, init: RequestInit) => Promise<Response>;
-
+/** Standard organization invitation IDs are verified against the current owned principal. */
 export function createInvitationCodeClient(
-  options: { readonly environment?: Environment; readonly fetch?: FetchLike } = {},
+  _options: {
+    environment?: Record<string, string | undefined>;
+    fetch?: (input: string, init: RequestInit) => Promise<Response>;
+  } = {},
 ): InvitationCodeClient {
-  const environment = options.environment ?? process.env;
-  const fetcher = options.fetch ?? ((input, init) => fetch(input, init));
-
-  async function call(path: string, code: string, accessToken: string): Promise<InvitationCodeResult<unknown>> {
-    const projectId = environment.NEXT_PUBLIC_STACK_PROJECT_ID?.trim();
-    const publishableKey = environment.NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY?.trim();
-    if (!projectId || !publishableKey) return { ok: false, failure: "unavailable" };
-    let response: Response;
-    try {
-      response = await withStackAuthSpan("team_invitation_code", () => fetcher(`${stackApiV1BaseURL()}${path}`, {
-        method: "POST",
-        headers: stackClientHeaders(projectId, publishableKey, accessToken),
-        body: JSON.stringify({ code }),
-        signal: AbortSignal.timeout(10_000),
-      }), { "cmux.auth.flow": "team_invitation_accept" });
-    } catch {
-      return { ok: false, failure: "unavailable" };
-    }
-    return interpretResponse(response);
+  void _options;
+  async function read(code: string, token: string) {
+    if (!/^[0-9a-f-]{36}$/iu.test(code)) return null;
+    const principal = await resolveBetterAuthPrincipal(
+      new Headers({ authorization: `Bearer ${token}` }),
+    );
+    if (!principal || !principal.emailVerified || principal.isAnonymous)
+      return null;
+    const [invitation] = await cloudDb()
+      .select({
+        invitation: betterAuthInvitation,
+        name: betterAuthOrganization.name,
+      })
+      .from(betterAuthInvitation)
+      .innerJoin(
+        betterAuthOrganization,
+        eq(betterAuthOrganization.id, betterAuthInvitation.organizationId),
+      )
+      .where(eq(betterAuthInvitation.id, code))
+      .limit(1);
+    if (
+      !invitation ||
+      invitation.invitation.status !== "pending" ||
+      invitation.invitation.expiresAt <= new Date()
+    )
+      return null;
+    return { ...invitation, principal };
   }
-
   return {
-    async details(code, accessToken) {
-      const result = await call("/team-invitations/accept/details", code, accessToken);
-      if (!result.ok) return result;
-      const body = result.value as { team_id?: unknown; team_display_name?: unknown } | null;
-      if (typeof body?.team_id !== "string" || !body.team_id) return { ok: false, failure: "unavailable" };
-      return {
-        ok: true,
-        value: {
-          teamId: body.team_id,
-          teamDisplayName: typeof body.team_display_name === "string" ? body.team_display_name : "",
-        },
-      };
+    async details(code, token) {
+      try {
+        const result = await read(code, token);
+        if (!result) return { ok: false, failure: "invalid" };
+        if (
+          canonicalizeEmailForMatching(result.invitation.email) !==
+          canonicalizeEmailForMatching(result.principal.email)
+        )
+          return { ok: false, failure: "email_mismatch" };
+        return {
+          ok: true,
+          value: {
+            teamId: result.invitation.organizationId,
+            teamDisplayName: result.name,
+          },
+        };
+      } catch (error) {
+        return { ok: false, failure: error instanceof InvitationSeatLimitError ? "seat_limit" : "unavailable" };
+      }
     },
-    async accept(code, accessToken) {
-      const result = await call("/team-invitations/accept", code, accessToken);
-      return result.ok ? { ok: true, value: null } : result;
+    async accept(code, token) {
+      try {
+        const result = await read(code, token);
+        if (!result) return { ok: false, failure: "invalid" };
+        if (
+          canonicalizeEmailForMatching(result.invitation.email) !==
+          canonicalizeEmailForMatching(result.principal.email)
+        )
+          return { ok: false, failure: "email_mismatch" };
+        const accepted = await withTeamAdminLock(result.invitation.organizationId, async (tx) => {
+          const [invitation] = await tx
+            .select()
+            .from(betterAuthInvitation)
+            .where(
+              and(
+                eq(betterAuthInvitation.id, code),
+                eq(betterAuthInvitation.status, "pending"),
+              ),
+            )
+            .for("update");
+          if (!invitation || invitation.expiresAt <= new Date()) return false;
+          const [organization] = await tx.select({ clientReadOnlyMetadata: betterAuthOrganization.clientReadOnlyMetadata }).from(betterAuthOrganization).where(eq(betterAuthOrganization.id, invitation.organizationId)).limit(1);
+          if (!organization) return false;
+          await assertOrganizationMembershipAdmission(tx, invitation.organizationId, result.principal.userId);
+          const roster = await tx.select({ userId: betterAuthMember.userId }).from(betterAuthMember).where(eq(betterAuthMember.organizationId, invitation.organizationId));
+          const limit = memberLimitForTeam(organization);
+          if (!roster.some(member => member.userId === result.principal.userId) && limit !== null && roster.length >= limit) throw new InvitationSeatLimitError();
+          const role = invitation.role === "admin" ? "admin" : "member";
+          await tx
+            .insert(betterAuthMember)
+            .values({
+              id: randomUUID(),
+              organizationId: invitation.organizationId,
+              userId: result.principal.userId,
+              role,
+              createdAt: new Date(),
+            })
+            .onConflictDoNothing();
+          await tx
+            .update(betterAuthInvitation)
+            .set({ status: "accepted" })
+            .where(eq(betterAuthInvitation.id, code));
+          return true;
+        });
+        return accepted
+          ? { ok: true, value: null }
+          : { ok: false, failure: "invalid" };
+      } catch (error) {
+        if (error instanceof TeamApiError && error.code === "team_not_found") return { ok: false, failure: "invalid" };
+        return { ok: false, failure: error instanceof InvitationSeatLimitError ? "seat_limit" : "unavailable" };
+      }
     },
   };
 }
 
-function stackApiV1BaseURL(): string {
-  const base = stackApiBaseURL();
-  return /\/api\/v1$/u.test(base) ? base : `${base}/api/v1`;
-}
-
-function stackClientHeaders(projectId: string, publishableKey: string, accessToken: string): Record<string, string> {
-  return {
-    "content-type": "application/json",
-    // Hexclave names only, as in app/lib/stack.ts.
-    "x-hexclave-access-type": "client",
-    "x-hexclave-project-id": projectId,
-    "x-hexclave-publishable-client-key": publishableKey,
-    "x-hexclave-access-token": accessToken,
-    "x-hexclave-override-error-status": "true",
-  };
-}
-
-/** With override-error-status Stack answers 200 and names the real status and known error in headers. */
-async function interpretResponse(response: Response): Promise<InvitationCodeResult<unknown>> {
-  const actualStatus = Number(
-    response.headers.get("x-hexclave-actual-status") ?? response.headers.get("x-stack-actual-status") ?? response.status,
-  );
-  let body: unknown = null;
-  try {
-    body = await response.json();
-  } catch {
-    body = null;
-  }
-  const knownError = response.headers.get("x-hexclave-known-error") ??
-    response.headers.get("x-stack-known-error") ??
-    (body && typeof body === "object" && typeof (body as { code?: unknown }).code === "string"
-      ? (body as { code: string }).code
-      : null);
-  if (knownError === "TEAM_INVITATION_EMAIL_MISMATCH") return { ok: false, failure: "email_mismatch" };
-  if (knownError?.startsWith("VERIFICATION_")) return { ok: false, failure: "invalid" };
-  if (knownError || !Number.isFinite(actualStatus) || actualStatus < 200 || actualStatus >= 300) {
-    return { ok: false, failure: "unavailable" };
-  }
-  return { ok: true, value: body };
-}
+class InvitationSeatLimitError extends Error {}

@@ -666,14 +666,14 @@ function requestAuthSessionFingerprint(request: Request): string | null {
   if (!tokens) return null;
   let sessionID: unknown;
   try {
-    sessionID = decodeJwt(tokens.accessToken).refresh_token_id;
+    sessionID = decodeJwt(tokens.accessToken).sid;
   } catch {
     sessionID = null;
   }
   if (typeof sessionID !== "string" || sessionID.length === 0) return null;
   return crypto
     .createHash("sha256")
-    .update("cmux-stack-session-v1\n" + sessionID)
+    .update("cmux-owned-session-v1\n" + sessionID)
     .digest("hex");
 }
 

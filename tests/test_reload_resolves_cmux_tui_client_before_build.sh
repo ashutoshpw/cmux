@@ -99,23 +99,23 @@ before_start="${OUTPUT%%==> reload starting*}"
 echo "PASS: the cmux-tui client commit is resolved once, before the build, and logs quietly"
 
 # The shared dev backend (remote mode) starts only after the client resolves.
-run_reload fail CMUX_DEV_BACKEND_MODE=remote --
+run_reload fail CMUX_DEV_BACKEND_MODE=remote CMUX_DEV_BACKEND_URL=https://staging.cmux.w3dev.app --
 [[ "$STATUS" -ne 0 && "$(events)" == "resolve" ]] \
   || fail "a missing client must fail before the shared dev backend starts, got: $(events)"
-run_reload ok CMUX_DEV_BACKEND_MODE=remote --
-[[ "$(events)" == "resolve dev-backend" ]] \
-  || fail "expected the resolve before the shared dev backend, got: $(events)"
-echo "PASS: the cmux-tui client resolves before the shared dev backend starts"
+run_reload ok CMUX_DEV_BACKEND_MODE=remote CMUX_DEV_BACKEND_URL=https://staging.cmux.w3dev.app --
+[[ "$(events)" == "resolve ensure-ghosttykit" ]] \
+  || fail "expected the resolve before the build using the configured remote backend, got: $(events)"
+echo "PASS: the cmux-tui client resolves before building with a configured remote backend"
 
 # Overrides supply the client, so nothing is resolved (today's behavior).
 for override in "CMUX_TUI_CLIENT_LOCAL=$TMP_DIR/cmux-tui" \
-    "CMUX_TUI_CLIENT_MANIFEST_URL=https://files.cmux.com/cmux-tui/x/manifest.json" \
+    "CMUX_TUI_CLIENT_MANIFEST_URL=https://files.cmux.w3dev.app/cmux-tui/x/manifest.json" \
     "CMUX_SKIP_CMUX_TUI_CLIENT=1"; do
   run_reload fail "$override" --
   [[ "$(events)" == "ensure-ghosttykit" ]] \
     || fail "${override%%=*} should skip the early resolve, got: $(events)"
 done
-run_reload fail -- --cmux-tui-manifest-url "https://files.cmux.com/cmux-tui/x/manifest.json"
+run_reload fail -- --cmux-tui-manifest-url "https://files.cmux.w3dev.app/cmux-tui/x/manifest.json"
 [[ "$(events)" == "ensure-ghosttykit" ]] \
   || fail "--cmux-tui-manifest-url should skip the early resolve, got: $(events)"
 echo "PASS: CMUX_TUI_CLIENT_LOCAL, CMUX_TUI_CLIENT_MANIFEST_URL, --cmux-tui-manifest-url and CMUX_SKIP_CMUX_TUI_CLIENT skip it"

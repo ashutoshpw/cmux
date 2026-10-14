@@ -59,7 +59,7 @@ struct WorkspaceRecoveryReviewRegressionTests {
             appDelegate.unregisterMainWindowContextForTesting(windowId: windowId)
             window.orderOut(nil)
         }
-        let pricingURL = try #require(URL(string: "https://cmux.com/app-pricing?cmux_app=1"))
+        let pricingURL = try #require(URL(string: "https://cmux.w3dev.app/app-pricing?cmux_app=1"))
 
         let proWorkspace = try #require(appDelegate.performProUpgradeWorkspaceAction(
             title: "cmux Pro",

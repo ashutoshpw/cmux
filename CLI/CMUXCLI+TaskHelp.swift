@@ -180,7 +180,7 @@ extension CMUXCLI {
           CMUX_TAB_ID         Optional alias used by `tab-action`/`rename-tab` as default --tab.
           CMUX_SURFACE_ID     Auto-set in cmux terminals. Used as default --surface.
           CMUX_SOCKET_PATH    Override the Unix socket path. Without this, the CLI defaults
-                              to ~/.local/state/cmux/cmux.sock and auto-discovers tagged/debug sockets.
+                              to ~/.local/state/cmux-w3dev/cmux.sock and auto-discovers tagged/debug sockets.
         """
     }
 

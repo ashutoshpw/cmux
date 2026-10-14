@@ -20,7 +20,7 @@ import os
 final class CommandExecution: @unchecked Sendable {
     private static let cancellationDescription = "Command cancelled"
     private static let sigkillGraceSeconds: Double = 0.2
-    private static let timerQueue = DispatchQueue(label: "com.cmuxterm.CmuxProcess.timer")
+    private static let timerQueue = DispatchQueue(label: "app.w3dev.cmux.CmuxProcess.timer")
 
     let process: Process
     let stdoutPipe: OwnedProcessPipe

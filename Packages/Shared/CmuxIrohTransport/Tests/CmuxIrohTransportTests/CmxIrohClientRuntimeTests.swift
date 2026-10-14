@@ -1210,7 +1210,7 @@ struct CmxIrohClientRuntimeTests {
             accountID: fixture.configuration.accountID,
             deviceID: fixture.configuration.deviceID,
             appInstanceID: fixture.configuration.appInstanceID,
-            clientNamespace: "dev.cmux.app.beta",
+            clientNamespace: "app.w3dev.cmux.ios.beta",
             tag: fixture.configuration.tag,
             displayName: fixture.configuration.displayName,
             identity: fixture.configuration.identity,

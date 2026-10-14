@@ -1,3 +1,4 @@
+import { forkDeployment } from "../deployment/config";
 import { randomUUID } from "node:crypto";
 import * as Data from "effect/Data";
 import * as Effect from "effect/Effect";
@@ -54,7 +55,7 @@ export type PublicationForwardAuthConfig = {
  * wildcard DNS and certificate live; `CMUX_VM_PUBLICATION_GENERATED_DOMAIN`
  * overrides it per deployment.
  */
-export const DEFAULT_GENERATED_PUBLICATION_DOMAIN = "cmux.sh";
+export const DEFAULT_GENERATED_PUBLICATION_DOMAIN = forkDeployment.publicationDomain;
 
 export type PublicationVerificationDto = {
   readonly verificationId: string;

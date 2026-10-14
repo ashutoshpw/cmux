@@ -2,9 +2,9 @@ import Testing
 @testable import CmuxControlSocket
 
 struct ControlWorkspaceRemoteLocalSocketPathTests {
-    private let controllerSocketPath = "/Users/me/Library/Application Support/cmux/cmux.sock"
+    private let controllerSocketPath = "/Users/me/Library/Application Support/cmux-w3dev/cmux.sock"
 
-    @Test(arguments: ["/tmp/other.sock", "/tmp/cmux.sock", "/var/run/other.sock"])
+    @Test(arguments: ["/tmp/other.sock", "/tmp/cmux-w3dev.sock", "/var/run/other.sock"])
     func forwardsToTheControllerSocketWhateverPathTheClientSends(requested: String) {
         #expect(
             ControlWorkspaceRemoteLocalSocketPath(

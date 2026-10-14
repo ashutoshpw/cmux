@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# This legacy harness provisions Stack identities and is not compatible with
+# fork Better Auth. Fail before reading credentials or contacting a provider.
+echo 'error: this Stack auth harness is retired; use fork Better Auth OAuth/PKCE with an exact registered callback.' >&2
+exit 2
+
 set -euo pipefail
 
 usage() {
@@ -20,7 +25,7 @@ private host interface with relays disabled.
 
 Credentials resolve through scripts/lib/dev-secrets.sh and are never printed.
 `--production` creates a verified temporary production Stack account, runs the
-same gate against https://cmux.com, then deletes the account. Production account
+same gate against https://cmux.w3dev.app, then deletes the account. Production account
 API cleanup failures fail the gate even when direct Stack cleanup succeeds.
 EOF
 }
@@ -107,7 +112,7 @@ if [[ "$PRODUCTION" -eq 1 && "$SKIP_BUILD" -eq 1 ]]; then
   exit 2
 fi
 if [[ "$PRODUCTION" -eq 1 ]]; then
-  STAGING_BASE_URL="https://cmux.com"
+  STAGING_BASE_URL="https://cmux.w3dev.app"
   V2_BASE_URL="https://cmux-v2.debussy.workers.dev"
   V2_ENVIRONMENT="production"
   # Production clients resolve presence.cmux.dev from their auth channel.

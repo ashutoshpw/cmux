@@ -303,7 +303,7 @@ private enum CloudSidebarDebugFixture {
             MachineSnapshot(
                 id: machineID,
                 provider: "freestyle",
-                image: "cmux-debug-stress-image",
+                image: "cmux-w3dev-debug-stress-image",
                 isDesktop: true,
                 activity: .ready,
                 createdAt: Date(timeIntervalSinceNow: -86_400 * 12),
@@ -333,7 +333,7 @@ private enum CloudSidebarDebugFixture {
             MachineSnapshot(
                 id: "vm-4f2a",
                 provider: "freestyle",
-                image: "cmux-debug-base-image",
+                image: "cmux-w3dev-debug-base-image",
                 isDesktop: false,
                 activity: .ready,
                 createdAt: Date(timeIntervalSinceNow: -7_200),
@@ -397,7 +397,7 @@ private enum CloudSidebarDebugFixture {
                     id: machine,
                     name: "production-hotfix-review-machine-with-a-deliberately-very-long-name",
                     status: "running",
-                    image: "cmux-debug-stress-image",
+                    image: "cmux-w3dev-debug-stress-image",
                     hasDesktop: true,
                     memoryMb: 16_384,
                     diskMb: 102_400,

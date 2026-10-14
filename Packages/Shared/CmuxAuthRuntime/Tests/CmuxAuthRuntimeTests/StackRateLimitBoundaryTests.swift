@@ -200,7 +200,7 @@ private struct RealStackSignInHarness {
             sessionFactory: factory,
             callbackRouter: AuthCallbackRouter(),
             makeSignInURL: { URL(string: "https://example.test/handler/sign-in?cmux_auth_state=\($0)")! },
-            callbackScheme: { "cmux-dev" },
+            callbackScheme: { "cmux-w3dev-dev" },
             openExternalURL: { _ in true }
         )
         self.coordinator = coordinator
@@ -209,7 +209,7 @@ private struct RealStackSignInHarness {
     }
 
     func callbackURL(state: String) -> URL {
-        URL(string: "cmux-dev://auth-callback?stack_refresh=refresh-1&stack_access=\(accessToken)&cmux_auth_state=\(state)")!
+        URL(string: "cmux-w3dev-dev://auth-callback?stack_refresh=refresh-1&stack_access=\(accessToken)&cmux_auth_state=\(state)")!
     }
 
     func callbackState(_ session: FakeBrowserAuthSession) -> String {

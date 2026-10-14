@@ -2,7 +2,7 @@ import Foundation
 import Network
 import os
 
-nonisolated private let logger = Logger(subsystem: "com.cmuxterm.app", category: "CloudPortForward")
+nonisolated private let logger = Logger(subsystem: "app.w3dev.cmux", category: "CloudPortForward")
 
 /// Carries one accepted loopback connection to a service inside the Cloud VM
 /// network: claims the hub, runs the SOCKS5 CONNECT over the hub's socket,

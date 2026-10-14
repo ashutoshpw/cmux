@@ -7,7 +7,7 @@ import Testing
         accountID: String = "account-1",
         macDeviceID: String = "physical-device",
         macInstanceTag: String = "nightly",
-        macBuildID: String = "com.cmuxterm.app.nightly"
+        macBuildID: String = "app.w3dev.cmux.nightly"
     ) -> MobilePhonePushKeyExchangeResponse {
         MobilePhonePushKeyExchangeResponse(
             descriptor: MobilePhonePushPublicKeyDescriptor(
@@ -28,16 +28,16 @@ import Testing
         #expect(reply().mismatchedFields(
             accountID: "account-1",
             macInstanceTag: "nightly",
-            macClientNamespace: "mac:com.cmuxterm.app.nightly"
+            macClientNamespace: "mac:app.w3dev.cmux.nightly"
         ).isEmpty)
     }
 
     @Test func contradictingFieldsAreNamed() {
-        #expect(reply(accountID: "account-2", macInstanceTag: "default", macBuildID: "com.cmuxterm.app")
+        #expect(reply(accountID: "account-2", macInstanceTag: "default", macBuildID: "app.w3dev.cmux")
             .mismatchedFields(
                 accountID: "account-1",
                 macInstanceTag: "nightly",
-                macClientNamespace: "mac:com.cmuxterm.app.nightly"
+                macClientNamespace: "mac:app.w3dev.cmux.nightly"
             ) == ["account", "mac_instance_tag", "mac_namespace"])
     }
 }

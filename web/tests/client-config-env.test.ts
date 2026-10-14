@@ -7,9 +7,8 @@ const requiredEnv = {
   RESEND_API_KEY: "test-resend",
   CMUX_FEEDBACK_FROM_EMAIL: "hello@example.com",
   CMUX_FEEDBACK_RATE_LIMIT_ID: "feedback-rule",
-  STACK_SECRET_SERVER_KEY: "stack-secret",
-  NEXT_PUBLIC_STACK_PROJECT_ID: "stack-project",
-  NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY: "stack-public",
+  BETTER_AUTH_SECRET: "owned-auth-env-validation-secret-20261014",
+  BETTER_AUTH_URL: "https://cmux.w3dev.app",
 };
 
 const requiredIrohProductionEnv = {
@@ -39,7 +38,7 @@ const requiredCoderouterProductionEnv = {
 
 const requiredSubrouterDeploymentEnv = {
   SUBROUTER_ADMIN_TOKEN: "test-legacy-subrouter-admin",
-  SUBROUTER_STACK_TENANT_DELETE_TOKEN: "0123456789abcdef0123456789abcdef",
+
 };
 
 describe("client config env validation", () => {
@@ -126,6 +125,7 @@ describe("client config env validation", () => {
     // rate-limit id being deleted from the environment.
     const { CMUX_RELAY_TOKEN_RATE_LIMIT_ID: _relay, ...relayEnv } = requiredRelayProductionEnv;
     const { CMUX_FEEDBACK_RATE_LIMIT_ID: _feedback, ...baseEnv } = requiredEnv;
+    void _relay; void _feedback;
     const result = await importEnv({
       ...baseEnv,
       VERCEL: "1",
@@ -177,6 +177,7 @@ describe("client config env validation", () => {
   test("allows hosted-only production after the temporary legacy admin token is retired", async () => {
     const { SUBROUTER_ADMIN_TOKEN: _legacyToken, ...hostedSubrouterEnv } =
       requiredSubrouterDeploymentEnv;
+    void _legacyToken;
     const result = await importEnv({
       ...requiredEnv,
       VERCEL: "1",

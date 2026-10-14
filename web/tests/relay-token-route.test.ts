@@ -136,7 +136,7 @@ describe("POST /api/relay/token", () => {
     let authorizations = 0;
     let policyReads = 0;
     const response = await handleRelayTokenRequest(
-      request({ endpointId: ENDPOINT_ID }, "dev.cmux.app.beta", true),
+      request({ endpointId: ENDPOINT_ID }, "app.w3dev.cmux.ios.beta", true),
       deps({
         isVercel: () => true,
         rateLimitRuleId: () => "relay-token",
@@ -153,7 +153,7 @@ describe("POST /api/relay/token", () => {
   test("skips relay-token limits for an authorized development team", async () => {
     let checks = 0;
     const response = await handleRelayTokenRequest(
-      request({ endpointId: ENDPOINT_ID }, "dev.cmux.ios.grid", true),
+      request({ endpointId: ENDPOINT_ID }, "app.w3dev.cmux.ios.debug.grid", true),
       deps({
         isVercel: () => true,
         rateLimitRuleId: () => "relay-token",
@@ -171,7 +171,7 @@ describe("POST /api/relay/token", () => {
   test("keeps the relay-token limit for callers that are not authorized", async () => {
     let checks = 0;
     const response = await handleRelayTokenRequest(
-      request({ endpointId: ENDPOINT_ID }, "dev.cmux.ios.grid", true),
+      request({ endpointId: ENDPOINT_ID }, "app.w3dev.cmux.ios.debug.grid", true),
       deps({
         isVercel: () => true,
         rateLimitRuleId: () => "relay-token",
@@ -284,7 +284,7 @@ describe("POST /api/relay/token", () => {
   test("passes the exact app namespace into endpoint ownership checks", async () => {
     let checkedNamespace = "";
     const response = await handleRelayTokenRequest(
-      request({ endpointId: ENDPOINT_ID }, "dev.cmux.app.beta", true),
+      request({ endpointId: ENDPOINT_ID }, "app.w3dev.cmux.ios.beta", true),
       deps({
         isEndpointAuthorized: async (input) => {
           checkedNamespace = input.clientNamespace;
@@ -294,7 +294,7 @@ describe("POST /api/relay/token", () => {
     );
 
     expect(response.status).toBe(403);
-    expect(checkedNamespace).toBe("dev.cmux.app.beta");
+    expect(checkedNamespace).toBe("app.w3dev.cmux.ios.beta");
     const body = await response.json() as Record<string, unknown>;
     expect(body.error).toBe("invalid_binding_request_proof");
   });
@@ -302,7 +302,7 @@ describe("POST /api/relay/token", () => {
   test("requires binding proof before accepting a namespaced endpoint claim", async () => {
     let rateLimitChecks = 0;
     const response = await handleRelayTokenRequest(
-      request({ endpointId: ENDPOINT_ID }, "dev.cmux.app.beta"),
+      request({ endpointId: ENDPOINT_ID }, "app.w3dev.cmux.ios.beta"),
       deps({
         isVercel: () => true,
         rateLimitRuleId: () => "relay-token",

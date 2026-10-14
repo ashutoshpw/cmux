@@ -2,7 +2,7 @@ public import Foundation
 public import CmuxSettings
 internal import OSLog
 
-private let workspaceGroupLogger = Logger(subsystem: "com.cmuxterm.app", category: "WorkspaceGroupCoordinator")
+private let workspaceGroupLogger = Logger(subsystem: "app.w3dev.cmux", category: "WorkspaceGroupCoordinator")
 
 /// Sequences every workspace-group flow over the window's `WorkspacesModel`:
 /// group creation (member adoption or an empty generated anchor), member add/remove,

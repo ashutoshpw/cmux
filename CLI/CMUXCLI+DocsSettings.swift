@@ -1,11 +1,11 @@
 import Foundation
 
 extension CMUXCLI {
-    static let settingsDocsURL = "https://cmux.com/docs/configuration#cmux-json"
+    static let settingsDocsURL = "https://cmux.w3dev.app/docs/configuration#cmux-json"
     static let settingsSchemaURL = "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux.schema.json"
     static let primarySettingsDisplayPath = "~/.config/cmux/cmux.json"
     static let legacySettingsDisplayPath = "~/.config/cmux/settings.json"
-    static let fallbackSettingsDisplayPath = "~/Library/Application Support/com.cmuxterm.app/settings.json"
+    static let fallbackSettingsDisplayPath = "~/Library/Application Support/app.w3dev.cmux/settings.json"
     static let ghosttyConfigDisplayPath = "~/.config/ghostty/config"
 
     private struct DocsResource {
@@ -329,7 +329,7 @@ extension CMUXCLI {
             topic: "managed-policies",
             aliases: ["mdm", "managed", "policy", "policies", "enterprise", "managed-device-policies"],
             summary: "MDM-enforceable managed policies: disable the embedded browser, iOS remote control, and Cloud on managed Macs.",
-            webURL: "https://cmux.com/docs/managed-policies",
+            webURL: "https://cmux.w3dev.app/docs/managed-policies",
             rawResources: [
                 DocsResource(label: "managed device policies", url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/docs/managed-device-policies.md"),
             ],
@@ -341,7 +341,7 @@ extension CMUXCLI {
             topic: "shortcuts",
             aliases: ["keyboard", "keybindings", "keys"],
             summary: "cmux-owned keyboard shortcuts and two-step chord syntax.",
-            webURL: "https://cmux.com/docs/keyboard-shortcuts",
+            webURL: "https://cmux.w3dev.app/docs/keyboard-shortcuts",
             rawResources: [
                 DocsResource(label: "shortcut data", url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/data/cmux-shortcuts.ts"),
                 DocsResource(label: "settings schema", url: settingsSchemaURL),
@@ -356,7 +356,7 @@ extension CMUXCLI {
             topic: "api",
             aliases: ["cli", "socket", "automation", "handles"],
             summary: "CLI/socket API, handle model, windows, workspaces, panes, and surfaces.",
-            webURL: "https://cmux.com/docs/api",
+            webURL: "https://cmux.w3dev.app/docs/api",
             rawResources: [
                 DocsResource(label: "CLI contract", url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/docs/cli-contract.md"),
                 DocsResource(label: "cmux skill", url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/skills/cmux/SKILL.md"),
@@ -370,7 +370,7 @@ extension CMUXCLI {
             topic: "browser",
             aliases: ["browser-automation", "webview"],
             summary: "Browser panel automation commands and snapshot-driven web interaction.",
-            webURL: "https://cmux.com/docs/browser-automation",
+            webURL: "https://cmux.w3dev.app/docs/browser-automation",
             rawResources: [
                 DocsResource(label: "browser skill", url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/skills/cmux-browser/SKILL.md"),
                 DocsResource(label: "browser commands", url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/skills/cmux-browser/references/commands.md"),
@@ -384,7 +384,7 @@ extension CMUXCLI {
             topic: "capture",
             aliases: ["screenshot", "screenshots", "shot", "record", "recording", "clip", "gif"],
             summary: "Screenshot or record a cmux window from the CLI: png, jpeg, mp4 or gif, with no Screen Recording permission.",
-            webURL: "https://cmux.com/docs/api",
+            webURL: "https://cmux.w3dev.app/docs/api",
             rawResources: [
                 DocsResource(label: "capture skill", url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/skills/cmux-capture/SKILL.md"),
                 DocsResource(label: "capture commands", url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/skills/cmux-capture/references/commands.md"),
@@ -401,7 +401,7 @@ extension CMUXCLI {
             topic: "agents",
             aliases: ["integrations", "agent-integrations"],
             summary: workflowText("cli.docs.agents.summary", "Agent hook integrations, agent-to-agent messages, Feed approvals, notifications, and session restore. To reach another agent, use `cmux agent message`; never type into its terminal."),
-            webURL: "https://cmux.com/docs/agent-integrations/oh-my-codex",
+            webURL: "https://cmux.w3dev.app/docs/agent-integrations/oh-my-codex",
             rawResources: [
                 DocsResource(label: workflowText("cli.docs.agents.hooks", "agent hook docs"), url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/docs/agent-hooks.md"),
                 DocsResource(label: workflowText("cli.docs.agents.messages", "agent messages"), url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/docs/agent-messages.md"),
@@ -423,7 +423,7 @@ extension CMUXCLI {
             topic: "workflows",
             aliases: ["workflow", "templates", "template", "presets", "preset", "examples", "layouts", "reusable-layouts"],
             summary: workflowText("cli.workflow.topic.summary", "Saved layouts plus shipped customization examples for common project workflows."),
-            webURL: "https://cmux.com/docs/skills",
+            webURL: "https://cmux.w3dev.app/docs/skills",
             rawResources: [
                 DocsResource(label: workflowText("cli.workflow.resources.examples", "workflow examples"), url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/skills/cmux-customization/references/examples.md"),
                 DocsResource(label: workflowText("cli.workflow.resources.skill", "customization skill"), url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/skills/cmux-customization/SKILL.md"),
@@ -434,7 +434,7 @@ extension CMUXCLI {
             topic: "dock",
             aliases: ["doc", "controls", "right-sidebar", "dock-json"],
             summary: "Custom right-sidebar terminal controls from .cmux/dock.json or ~/.config/cmux/dock.json.",
-            webURL: "https://cmux.com/docs/dock",
+            webURL: "https://cmux.w3dev.app/docs/dock",
             rawResources: [
                 DocsResource(label: "dock docs", url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/docs/dock.md"),
                 DocsResource(label: "dock web copy", url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/web/messages/en.json"),
@@ -449,7 +449,7 @@ extension CMUXCLI {
             topic: "sidebars",
             aliases: ["sidebar", "custom-sidebar", "custom-sidebars", "vibe-sidebar"],
             summary: "Vibe-code a custom sidebar: a runtime-interpreted SwiftUI-style file in ~/.config/cmux/sidebars/ (beta).",
-            webURL: "https://cmux.com/docs/custom-sidebars",
+            webURL: "https://cmux.w3dev.app/docs/custom-sidebars",
             rawResources: [
                 DocsResource(label: "custom sidebar authoring guide", url: "https://raw.githubusercontent.com/manaflow-ai/cmux/main/docs/custom-sidebars.md"),
             ],

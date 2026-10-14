@@ -1,3 +1,4 @@
+import { assertAccountDeletionOrganizationAdmins, AccountDeletionLastOrganizationAdminError } from "../../../services/account/organizationDeletionGuard";
 import { and, asc, eq, inArray, isNotNull, isNull, lt, not, or, sql } from "drizzle-orm";
 import { deleteStackSessionRevocationsForUser } from "../../../services/vms/stackSessionRevocationStore";
 import * as Effect from "effect/Effect";
@@ -516,7 +517,8 @@ async function deleteAccount(
   progress.stage = "account_scope";
   const accountScope = await accountDeletionScopeForUser(stackUser);
   progress.stage = "configuration";
-  const hostedSubrouterDeletionRequired = hostedSubrouterServiceConfigured();
+  // Fresh fork accounts have no upstream provider tenants to retire.
+  const hostedSubrouterDeletionRequired = false;
   if (hostedSubrouterDeletionRequired) {
     hostedSubrouter.assertTenantDeletionConfigured();
   }
@@ -765,6 +767,9 @@ async function accountDeletionFailureResponse(
 ): Promise<Response> {
   const { stackUser, userId, originalStackMetadata } = context;
   const { destroyedVms } = progress;
+  if (error instanceof AccountDeletionLastOrganizationAdminError) {
+    return jsonResponse({ error: "last_team_admin", requiresAdminTransfer: true }, 409);
+  }
   if (error instanceof AccountDeletionPhonePushDeliveryInProgressError) {
     return await accountDeletionPushDeliveryInProgressResponse(context, progress, error);
   }
@@ -940,22 +945,20 @@ async function currentDeletableStackUser(request: Request): Promise<DeletableSta
   if (!isStackConfigured()) return null;
 
   const authHeader = request.headers.get("authorization");
-  const refreshHeader = request.headers.get("x-stack-refresh-token");
-  if (!authHeader?.toLowerCase().startsWith("bearer ") || !refreshHeader) return null;
+  if (!authHeader?.toLowerCase().startsWith("bearer ")) return null;
 
   const accessToken = authHeader.slice("bearer ".length).trim();
-  const refreshToken = refreshHeader.trim();
-  if (!accessToken || !refreshToken) return null;
+  if (!accessToken) return null;
 
-  const tokenStore = { accessToken, refreshToken };
+  const tokenStore = { accessToken };
   const app = getStackServerApp();
   return await withSubrouterAuthorizationDeadline(async () => {
-    const user = await app.getUser({ tokenStore });
+    const user = await app.getUser({ tokenStore, allowDeletingAccount: true });
     const candidate = user as Partial<DeletableStackUser>;
     if (!user || typeof candidate.delete !== "function" || typeof candidate.update !== "function") {
       return null;
     }
-    const authoritativeTokens = await app.getAuthJson({ tokenStore });
+    const authoritativeTokens = await app.getAuthJson({ tokenStore, allowDeletingAccount: true });
     if (!authoritativeTokens?.accessToken) return null;
     return {
       user: user as DeletableStackUser,
@@ -971,6 +974,7 @@ async function markAccountDeletionTombstonePending(userId: string): Promise<Acco
   return await db.transaction(async (tx) => {
     await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${accountDeletionAdvisoryLockKey(userId)}, 0))`);
     await assertNoAccountDeletionUserMutationInProgress(tx, userId, now);
+    await assertAccountDeletionOrganizationAdmins(tx, userId);
     // Consume any handoff lease and revoke any route token before inspecting
     // the resumable tombstone state. This also covers tombstones created by
     // an older deployment that did not yet invalidate handoff authority.

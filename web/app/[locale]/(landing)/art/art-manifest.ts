@@ -5,8 +5,8 @@ import { cacheLife } from "next/cache";
  * collection's source of truth is art/manifest.json on feat-cmux-next; its publish workflow
  * serves it here with each work's image and thumbnail URL.
  */
-export const ART_MANIFEST_URL = "https://files.cmux.com/cmux-art/manifest.json";
-const ART_ORIGIN = "https://files.cmux.com/cmux-art/";
+export const ART_MANIFEST_URL = "https://files.cmux.w3dev.app/cmux-art/manifest.json";
+const ART_ORIGIN = "https://files.cmux.w3dev.app/cmux-art/";
 const ART_MANIFEST_TIMEOUT_MS = 10_000;
 
 export const artCollections = ["darkArt", "museumIcons", "calm", "dore"] as const;
@@ -71,7 +71,7 @@ function parseWork(value: unknown): ArtWork | null {
 
 /**
  * The works a published manifest lists, in manifest order. A work missing a field the page
- * shows, or pointing anywhere but files.cmux.com and Wikimedia Commons, is left out.
+ * shows, or pointing anywhere but files.cmux.w3dev.app and Wikimedia Commons, is left out.
  */
 export function parseArtManifest(json: unknown): ArtWork[] {
   const works = (json as { works?: unknown } | null)?.works;

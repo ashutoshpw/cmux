@@ -101,8 +101,8 @@ struct ComputerUseHelperTrustTests {
     @Test func releaseCandidatesPreferNightlyAndListOnlyInstalledApps() {
         let home = URL(fileURLWithPath: "/Users/someone")
         let candidates = ComputerUseHelperTrust.releaseCandidates(home: home)
-        #expect(candidates.first?.path == "/Applications/cmux NIGHTLY.app/Contents/Library/cmux Computer Use.app")
-        #expect(candidates.contains { $0.path == "/Users/someone/Applications/cmux RC.app/Contents/Library/cmux Computer Use.app" })
+        #expect(candidates.first?.path == "/Applications/cmux W3Dev NIGHTLY.app/Contents/Library/cmux Computer Use.app")
+        #expect(candidates.contains { $0.path == "/Users/someone/Applications/cmux W3Dev RC.app/Contents/Library/cmux Computer Use.app" })
         #expect(candidates.allSatisfy { $0.path.hasPrefix("/Applications/") || $0.path.hasPrefix("/Users/someone/Applications/") })
         #expect(Set(candidates.map(\.path)).count == candidates.count)
     }

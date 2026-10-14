@@ -287,7 +287,7 @@
     },
     "foundingDesigner": {
       "metaTitle": "Founding Designer у cmux",
-      "metaDescription": "Приєднуйтеся до cmux як Founding Designer і проєктуйте майбутнє програмування з AI для macOS, TUI, Windows, Linux, iOS, Cloud, cmux.com і chatmux.",
+      "metaDescription": "Приєднуйтеся до cmux як Founding Designer і проєктуйте майбутнє програмування з AI для macOS, TUI, Windows, Linux, iOS, Cloud, cmux.w3dev.app і chatmux.",
       "section": "Вакансії",
       "eyebrow": "Про роль",
       "title": "Founding Designer",
@@ -296,7 +296,7 @@
       "hiring": "Ми шукаємо талановитого дизайнера, який допоможе нам проєктувати майбутнє програмування з AI.",
       "whatYoullDo": "Що ви робитимете",
       "whatYoullDoItems": [
-        "Проєктуєте передові інструменти для розробників у всьому стеку: cmux macOS, cmux TUI, cmux Windows/Linux, cmux iOS, cmux Cloud, cmux.com, chatmux та інші.",
+        "Проєктуєте передові інструменти для розробників у всьому стеку: cmux macOS, cmux TUI, cmux Windows/Linux, cmux iOS, cmux Cloud, cmux.w3dev.app, chatmux та інші.",
         "Допомагаєте проєктувати найкорисніший продукт для розробників, які працюють з AI.",
         "Відповідаєте за вигляд, відчуття та модель взаємодії від початку до кінця, включно зі зворотним зв’язком.",
         "Постійно використовуєте cmux, створюєте прототипи та випускаєте результат."
@@ -778,7 +778,8 @@
           "disableTitle": "Вимкнути багатофакторну автентифікацію",
           "disableBody": "Під час входу більше не запитуватиметься код із застосунку-автентифікатора.",
           "disableConfirm": "Вимкнути MFA",
-          "disableError": "Не вдалося вимкнути MFA. Спробуйте ще раз."
+          "disableError": "Не вдалося вимкнути MFA. Спробуйте ще раз.",
+          "password": "Поточний пароль"
         },
         "connected": {
           "title": "Пов’язані облікові записи",
@@ -1461,7 +1462,7 @@
       "p116": "Зіставте кожен ідентифікатор сеансу Claude Code з його поверхнею UUID через хук SessionStart, а потім відновіть точні сеанси після перезапуску cmux - підхід, керований гаком, уникає опитування та витримує швидкі перезапуски",
       "p117": "Надсилати сповіщення OSC 777 про схвалення використання інструментів і сповіщення про зупинку агента, щоб термінали, сумісні з cmux, могли виявляти активність Copilot",
       "p118": "Спеціалізується на розпізнаванні вікон контексту, на відміну від плагінів загального стану - візуалізуйте відсоток заповнення, кількість рядків і обмеження швидкості як кольорові індикатори прогресу в усіх відкритих робочих областях одночасно",
-      "p119": "Запропонуйте дві навички: самопосилання на cmux пошук документів (живий cmux -h + скопійований cmux.com) і /pane читання для інших терміналів - єдина навичка, яка динамічно очищує вихідну документацію під час виконання",
+      "p119": "Запропонуйте дві навички: самопосилання на cmux пошук документів (живий cmux -h + скопійований cmux.w3dev.app) і /pane читання для інших терміналів - єдина навичка, яка динамічно очищує вихідну документацію під час виконання",
       "p120": "Створіть або повторно використовуйте робочі області cmux для заявок і робочих дерев, зберігаючи стан завдання у відповідності з видимими сеансами cmux",
       "p121": "Перехоплюйте виклики інструментів агента за допомогою підключення PreToolUse і перенаправляйте їх на видимі розділені панелі cmux - підхід на основі підключення означає відсутність змін у власних підказках або навичках агента",
       "p122": "Створіть робочі дерева з питань GitHub і Linear: wt gh отримує заголовок, створює гілку та відкриває вкладку cmux - засіб вибору fzf для вибору з відкритих питань",
@@ -2815,7 +2816,7 @@
       "agentPromptTitle": "Попросіть агента налаштувати це",
       "agentPromptIntro": "Використовуйте цей промпт, коли хочете, щоб coding agent створив елементи Dock. Він просить агента виконати `cmux docs dock`, оглянути проєкт і запитати перед тим, як припускати.",
       "agentPromptCodeTitle": "Промпт агента",
-      "agentPrompt": "Set up cmux Dock controls for the current context.\n\nFirst, learn the feature before editing:\n1. Run `cmux docs dock` if the cmux CLI is available. If it is not, read https://cmux.com/docs/dock.\n2. Inspect the repository or current directory to understand the project type, scripts, package manager, dev servers, logs, task runners, test commands, and any existing TUI tools.\n3. If the desired Dock is ambiguous, ask the user what they want monitored or controlled before writing files.\n\nDock is cmux's right-sidebar terminal and browser control area. A Dock config is JSON with a top-level `controls` array. Terminal controls run commands in Ghostty-backed sections using the user's login shell; browser controls embed URLs. Controls are useful for project dashboards, git/status views, dev server or build status, test watchers, log tails, queues, local services, or fixed web dashboards.\n\nChoose where to write the config:\n- In a repository or project directory, create or edit `.cmux/dock.json` so teammates can share it.\n- For a personal default outside a repo, create or edit `~/.config/cmux/dock.json`.\n- If both exist, project `.cmux/dock.json` is more specific for that project. Nested project configs apply to that directory tree; use the nearest relevant project config instead of writing unrelated controls globally.\n- If there is no repo and no clear project root, use the global config only after confirming the user wants a personal Dock.\n\nSchema:\n{\n  \"controls\": [\n    {\n      \"id\": \"short-stable-id\",\n      \"title\": \"Human label\",\n      \"command\": \"safe command to run\",\n      \"cwd\": \"optional/path\",\n      \"height\": 220,\n      \"env\": { \"NAME\": \"value\" }\n    },\n    {\n      \"id\": \"dashboard\",\n      \"title\": \"Dashboard\",\n      \"type\": \"browser\",\n      \"url\": \"http://127.0.0.1:3000\",\n      \"chrome\": false\n    }\n  ]\n}\n\nRules:\n- Keep ids stable, lowercase, and unique.\n- `type` is optional: `terminal` is the default, or use `browser`.\n- Terminal controls require `command`; browser controls require `url`.\n- Browser controls default to `chrome: true`. Set `chrome: false` to hide browser chrome, including the address bar and toolbar; Focus Address Bar then does nothing for that pane, while `cmux browser goto` and `cmux browser reload` remain available.\n- Use `cwd` for subdirectories; relative paths resolve from the config base.\n- Use `height` only when a control needs a fixed amount of vertical space.\n- Use `env` only for non-secret values needed by one control.\n- Do not put secrets, tokens, or machine-specific private paths in a shared project config.\n- Prefer commands that are safe to start repeatedly and make sense in a terminal.\n- Do not invent unavailable scripts. Read package files, Makefiles, Procfiles, README docs, config files, and existing tooling first.\n- Keep shared project Docks portable for teammates. Put personal or machine-specific controls in the global Dock.\n\nDeliverable:\n- Create or update the appropriate dock.json.\n- Preserve existing useful controls unless the user asked to replace them.\n- Validate that the JSON parses.\n- Summarize what each control does and any commands the user should review before trusting the Dock config."
+      "agentPrompt": "Set up cmux Dock controls for the current context.\n\nFirst, learn the feature before editing:\n1. Run `cmux docs dock` if the cmux CLI is available. If it is not, read https://cmux.w3dev.app/docs/dock.\n2. Inspect the repository or current directory to understand the project type, scripts, package manager, dev servers, logs, task runners, test commands, and any existing TUI tools.\n3. If the desired Dock is ambiguous, ask the user what they want monitored or controlled before writing files.\n\nDock is cmux's right-sidebar terminal and browser control area. A Dock config is JSON with a top-level `controls` array. Terminal controls run commands in Ghostty-backed sections using the user's login shell; browser controls embed URLs. Controls are useful for project dashboards, git/status views, dev server or build status, test watchers, log tails, queues, local services, or fixed web dashboards.\n\nChoose where to write the config:\n- In a repository or project directory, create or edit `.cmux/dock.json` so teammates can share it.\n- For a personal default outside a repo, create or edit `~/.config/cmux/dock.json`.\n- If both exist, project `.cmux/dock.json` is more specific for that project. Nested project configs apply to that directory tree; use the nearest relevant project config instead of writing unrelated controls globally.\n- If there is no repo and no clear project root, use the global config only after confirming the user wants a personal Dock.\n\nSchema:\n{\n  \"controls\": [\n    {\n      \"id\": \"short-stable-id\",\n      \"title\": \"Human label\",\n      \"command\": \"safe command to run\",\n      \"cwd\": \"optional/path\",\n      \"height\": 220,\n      \"env\": { \"NAME\": \"value\" }\n    },\n    {\n      \"id\": \"dashboard\",\n      \"title\": \"Dashboard\",\n      \"type\": \"browser\",\n      \"url\": \"http://127.0.0.1:3000\",\n      \"chrome\": false\n    }\n  ]\n}\n\nRules:\n- Keep ids stable, lowercase, and unique.\n- `type` is optional: `terminal` is the default, or use `browser`.\n- Terminal controls require `command`; browser controls require `url`.\n- Browser controls default to `chrome: true`. Set `chrome: false` to hide browser chrome, including the address bar and toolbar; Focus Address Bar then does nothing for that pane, while `cmux browser goto` and `cmux browser reload` remain available.\n- Use `cwd` for subdirectories; relative paths resolve from the config base.\n- Use `height` only when a control needs a fixed amount of vertical space.\n- Use `env` only for non-secret values needed by one control.\n- Do not put secrets, tokens, or machine-specific private paths in a shared project config.\n- Prefer commands that are safe to start repeatedly and make sense in a terminal.\n- Do not invent unavailable scripts. Read package files, Makefiles, Procfiles, README docs, config files, and existing tooling first.\n- Keep shared project Docks portable for teammates. Put personal or machine-specific controls in the global Dock.\n\nDeliverable:\n- Create or update the appropriate dock.json.\n- Preserve existing useful controls unless the user asked to replace them.\n- Validate that the JSON parses.\n- Summarize what each control does and any commands the user should review before trusting the Dock config."
     },
     "sessionRestore": {
       "title": "Відновлення сесії",
@@ -2886,7 +2887,7 @@
       "moshTmux": "Створює Mosh-простір, який створює або приєднує іменований сеанс tmux (типово: main). Профіль tmux зберігається після перепідключення й відновлення сеансу програми. Це роумінговий термінал tmux, а не нативне дзеркало cmux ssh-tmux. --session <name> вибирає сеанс; решта параметрів відповідає cmux mosh. Без Mosh той самий профіль працює через SSH.",
       "deepLinksTitle": "Глибокі посилання SSH",
       "deepLinksDesc": "Використовуйте глибокі посилання cmux SSH, коли веб-сайт або інструмент хоче запропонувати кнопку «Відкрити в cmux». Посилання відкриває cmux, показує запит на підтвердження, а потім запускає еквівалентну команду cmux ssh після підтвердження користувача.",
-      "deepLinksWebFallbackDesc": "Використовуйте резервну URL-адресу cmux.com для кнопок веб-сайту. Він відкриває рідне посилання та показує завантаження, якщо cmux не встановлено.",
+      "deepLinksWebFallbackDesc": "Використовуйте резервну URL-адресу cmux.w3dev.app для кнопок веб-сайту. Він відкриває рідне посилання та показує завантаження, якщо cmux не встановлено.",
       "deepLinksPromptRulesDesc": "Кнопки підказок і правил використовують однакову резервну форму. Коми, двокрапки та буквальні знаки плюса зберігаються, якщо вони закодовані URL-адресою:",
       "deepLinksIconDesc": "Використовуйте піктограму SVG для кнопок панелі інструментів або логотип PNG, якщо потрібне растрове зображення:",
       "deepLinksButtonDesc": "Створіть резервну URL-адресу за допомогою URLSearchParams, щоб заголовки, псевдоніми хостів та імена користувачів були безпечно закодовані:",
@@ -2975,7 +2976,7 @@
       "data3": "Метадані сполучення та пристрою, щоб підключити ваш телефон до вашого Mac.",
       "dataNot": "Ваша інтерактивна сесія терміналу, її вміст і натискання клавіш ідуть безпосередньо між вашим телефоном і вашим Mac через вашу власну мережу і не ретранслюються через сервери cmux та не зберігаються на них. Єдиний виняток — пересиланий текст сповіщень, який проходить через cmux і push-службу Apple, щоб дістатися вашого телефона, якщо тільки ви не увімкнете Hide content (див. Сповіщення вище).",
       "enterpriseTitle": "Корпоративне та самостійне розгортання",
-      "enterpriseDesc": "Для самостійного або ізольованого розгортання зв'яжіться з <link>founders@cmux.com</link>."
+      "enterpriseDesc": "Для самостійного або ізольованого розгортання зв'яжіться з <link>cmux.w3dev.app/support</link>."
     },
     "cloudOverview": {
       "title": "cmux Cloud",
@@ -3129,11 +3130,11 @@
       "networkTitle": "Приватна мережа",
       "networkDesc": "Ваші машини не мають публічних вхідних портів. cmux надає кожному акаунту приватну мережу, і кожен Mac під’єднується власним ключем WireGuard, який ніколи не залишає цей Mac. З’єднання запускається всередині застосунку cmux і не потребує схвалення.",
       "networkPeers": "Ваші машини можуть звертатися одна до одної в тій самій приватній мережі.",
-      "networkMacs": "Сторінка Cloud Mac access на cmux.com показує комп’ютери Mac, які можуть під’єднуватися до ваших машин. Там можна перейменувати Mac або відкликати його доступ. Відкликання виконує вихід на цьому Mac і позбавляє його доступу до всіх машин.",
+      "networkMacs": "Сторінка Cloud Mac access на cmux.w3dev.app показує комп’ютери Mac, які можуть під’єднуватися до ваших машин. Там можна перейменувати Mac або відкликати його доступ. Відкликання виконує вихід на цьому Mac і позбавляє його доступу до всіх машин.",
       "vpnTitle": "Системний VPN (необов’язково)",
       "vpnDesc": "cmux vpn up додає системний маршрут, щоб інші застосунки на вашому Mac, наприклад окремий браузер або клієнт бази даних, могли під’єднуватися до ваших машин. Самому cmux він не потрібен. Під час першого запуску схваліть мережеве розширення cmux у System Settings › General › Login Items & Extensions. cmux vpn down вимикає його.",
       "publishTitle": "Публічні URL",
-      "publishDesc": "cmux cloud domains publish призначає порту на машині URL із HTTPS. Згенероване ім’я хоста закінчується на .cmux.sh.",
+      "publishDesc": "cmux cloud domains publish призначає порту на машині URL із HTTPS. Згенероване ім’я хоста закінчується на .vm.cmux.w3dev.app.",
       "accessModes": "Кожен URL має режим доступу. За замовчуванням використовується власник машини: ви або ваша команда, якщо машина належить команді.",
       "accessPersonal": "personal: відкрити URL можете лише ви.",
       "accessTeam": "team: відкрити URL можуть поточні учасники команди, якій належить машина.",
@@ -3327,7 +3328,7 @@
       "opencodeDesc": "cr opencode завантажує моделі з акаунтів OpenCode Go вашої команди й використовує першу, якщо ви не вказали --model. Значення --model має бути однією з цих моделей; для будь-якого іншого провайдера запускайте звичайний opencode.",
       "piDesc": "cr pi додає в Pi провайдера coderouter з тими самими моделями, що й у Codex, і використовує першу модель, якщо ви не вказали --model. Провайдер фіксований, тому --provider відхиляється. Підтримка Pi експериментальна.",
       "claudeTitle": "Claude Code та інші API-клієнти",
-      "claudeDesc": "У cr немає запуску для Claude Code. Щоб спрямувати через CodeRouter Claude Code на Mac або будь-який інструмент, що працює з Anthropic Messages API чи OpenAI Responses API, створіть API-ключ CodeRouter і вкажіть інструменту coderouter.dev.",
+      "claudeDesc": "У cr немає запуску для Claude Code. Щоб спрямувати через CodeRouter Claude Code на Mac або будь-який інструмент, що працює з Anthropic Messages API чи OpenAI Responses API, створіть API-ключ CodeRouter і вкажіть інструменту cmux.w3dev.app.",
       "apiKeyCreate": "Створіть ключ у розділі API keys панелі CodeRouter. Ключ починається з crk_ і показується один раз. Для створення чи відкликання ключа потрібне право керувати API-ключами в команді; в особистій команді воно у вас є завжди:",
       "apiKeyScope": "API-ключ організації використовує лише спільні акаунти команди. Ключ у вашій особистій команді може використовувати й ваші приватні акаунти. CodeRouter підтримує OpenAI Responses API, але не Chat Completions.",
       "apiKeyLogin": "На машині, де не можна відкрити браузер, cr login --api-key виконує вхід cr за ключем, а CODEROUTER_API_KEY задає ключ для однієї команди. Відкличте ключ на панелі або виконайте cr logout на машині, яка його використовує.",
@@ -3457,7 +3458,7 @@
     "afruth": "Мені подобається: за останню добу запускав його на трьох паралельних проєктах, у кожному по кілька worktree. У парі з lazygit і yazi / nvim я став трохи продуктивнішим, ніж зазвичай, і не треба ганятися за кількома вікнами ghostty / iTerm. До того ж він здається природнішим за tmux.",
     "northprint": "Спробував cmux, бо він добре виглядав — і він справді добрий",
     "indykish": "cmux досить непоганий.",
-    "kataring": "Перейшов на cmux.dev",
+    "kataring": "Перейшов на cmux.w3dev.app",
     "scottw": "Дуже корисна знахідка. Не можу рекомендувати її достатньо.",
     "johnblythe": "спробував на вихідних і дуже сподобалося. давно чекав на щось подібне.",
     "bchris91": "Це саме те, чого я хотів. Чудова робота, дякую!",
@@ -5429,7 +5430,7 @@
         "description": "Повідомляйте про баги та пропонуйте нові функції відкрито."
       },
       "email": {
-        "label": "founders@cmux.com",
+        "label": "cmux.w3dev.app/support",
         "description": "Віддаєте перевагу електронній пошті? Напишіть нам напряму."
       }
     },
@@ -5451,8 +5452,8 @@
       "privacy": "Ми використовуємо вашу електронну адресу лише для відповіді на ваше звернення. Ми не продаємо контактні дані.",
       "submit": "Надіслати повідомлення",
       "submitting": "Надсилаємо…",
-      "success": "Дякуємо. Ми отримали ваше повідомлення й відповімо вам на пошту з адреси founders@cmux.com.",
-      "error": "Щось пішло не так. Спробуйте ще раз або напишіть на founders@cmux.com."
+      "success": "Дякуємо. Ми отримали ваше повідомлення.",
+      "error": "Щось пішло не так. Спробуйте ще раз."
     }
   },
   "emails": {
@@ -5548,7 +5549,12 @@
     "errorInvalidTotp": "Цей код двофакторної автентифікації недійсний.",
     "errorSignUpNotAllowed": "Зараз не можна створювати нові облікові записи.",
     "errorPasskey": "Вхід із ключем доступу не завершено. Спробуйте ще раз або виберіть інший спосіб.",
-    "errorGeneric": "Щось пішло не так. Спробуйте ще раз."
+    "errorGeneric": "Щось пішло не так. Спробуйте ще раз.",
+    "consentTitle": "Дозволити доступ до облікового запису",
+    "consentDescription": "{application} запитує доступ до вашого облікового запису cmux.",
+    "consentScopes": "Запитаний доступ",
+    "consentAllow": "Дозволити",
+    "consentCancel": "Скасувати"
   },
   "MobileRelease106": {
     "title": "Що нового у 1.0.6",
@@ -5584,5 +5590,17 @@
     "unavailableTitle": "Не вдалося підтвердити вхід",
     "unavailableBody": "Сервіс входу перевантажено. Зачекайте кілька секунд і знову відкрийте запрошення. Повторно входити не потрібно.",
     "retry": "Спробувати ще раз"
+  },
+  "authMail": {
+    "resetSubject": "Скиньте пароль cmux",
+    "resetBody": "Скиньте пароль: {url}\n\nЯкщо ви цього не запитували, проігноруйте цей лист.",
+    "verifySubject": "Підтвердьте пошту cmux",
+    "verifyBody": "Підтвердьте пошту: {url}",
+    "otpSubject": "Ваш код підтвердження cmux",
+    "otpBody": "Ваш код підтвердження: {otp}. Він спливе через 10 хвилин.",
+    "inviteSubject": "Приєднайтеся до {organization} у cmux",
+    "inviteBody": "Прийміть запрошення: {url}",
+    "magicSubject": "Вхід у cmux",
+    "magicBody": "Увійдіть: {url}\n\nЦе посилання спливе через 15 хвилин. Якщо ви цього не запитували, проігноруйте цей лист."
   }
 }

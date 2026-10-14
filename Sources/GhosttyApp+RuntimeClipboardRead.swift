@@ -6,7 +6,7 @@ import GhosttyKit
 import os
 
 nonisolated private let runtimeClipboardLogger = Logger(
-    subsystem: Bundle.main.bundleIdentifier ?? "com.cmuxterm.app",
+    subsystem: Bundle.main.bundleIdentifier ?? "app.w3dev.cmux",
     category: "RuntimeClipboard"
 )
 

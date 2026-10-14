@@ -170,7 +170,7 @@ describe("Cloud VM resource pool policy", () => {
       used: { vcpus: 16, memoryMb: 32 * GB },
       requested: { vcpus: 8, memoryMb: 16 * GB },
       upgradePlanId: "max",
-      upgradeUrl: "https://cmux.com/api/billing/checkout?plan=max",
+      upgradeUrl: "https://cmux.w3dev.app/api/billing/checkout?plan=max",
     });
   });
 

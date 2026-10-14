@@ -26,7 +26,7 @@ import {
 const THREAD_HEADER = "X-Entity-Ref-ID";
 
 const baseParams = {
-  from: "Austin Wang <austin@manaflow.ai>",
+  from: "cmux W3Dev <support@w3dev.app>",
   customerName: "Sample Buyer",
 } as const;
 
@@ -148,7 +148,7 @@ describe("buildFoundersWelcomeEmail", () => {
       to: "customer@example.com",
       sessionRef: "cs_recovery",
     });
-    expect(email.text).toContain("https://cmux.com/billing/recover");
+    expect(email.text).toContain("https://cmux.w3dev.app/billing/recover");
     expect(email.text).toContain("reply to this message");
   });
 
@@ -212,7 +212,7 @@ describe("buildFoundersWelcomeEmail", () => {
     expect(pro.cc).toEqual(founders.cc);
     expect(pro.replyTo).toBe(founders.replyTo);
     expect(pro.text).toContain("Thanks for joining cmux Pro!");
-    expect(pro.text).toContain("Sign up for TestFlight: https://cmux.com/dashboard/testflight");
+    expect(pro.text).toContain("Sign up for TestFlight: https://cmux.w3dev.app/dashboard/testflight");
     expect(pro.headers[THREAD_HEADER]).toBe("founders-welcome/cs_pro");
   });
 
@@ -226,7 +226,7 @@ describe("buildFoundersWelcomeEmail", () => {
 
     expect(pro.subject).toBe("cmux Pro へようこそ！");
     expect(pro.text).toContain("cmux Pro にご参加いただきありがとうございます！");
-    expect(pro.text).toContain("TestFlight に登録する：https://cmux.com/dashboard/testflight");
+    expect(pro.text).toContain("TestFlight に登録する：https://cmux.w3dev.app/dashboard/testflight");
   });
 
   test("uses the selected locale's fallback name when the customer has no name", async () => {
@@ -263,7 +263,7 @@ describe("buildFoundersWelcomeEmail", () => {
     expect(email.to).toEqual(["customer@example.com"]);
     expect(email.cc).toEqual(FOUNDER_CC);
     expect(email.replyTo).toBe(REPLY_TO);
-    expect(email.from).toBe("Austin Wang <austin@manaflow.ai>");
+    expect(email.from).toBe("cmux W3Dev <support@w3dev.app>");
   });
 
   test("greets by first name and falls back to a friendly default", () => {
@@ -292,7 +292,7 @@ describe("buildFoundersWelcomeEmail", () => {
     const iosBetaParagraph =
       "cmux iOS Beta is out for cmux Founder's Edition! To connect this purchase " +
       "to your cmux account, use the email from this purchase at " +
-      "https://cmux.com/billing/recover. We will send a secure sign-in link. " +
+      "https://cmux.w3dev.app/billing/recover. We will send a secure sign-in link. " +
       "If you already use cmux with another email, reply to this message so we " +
       "can verify both addresses and move access safely.";
 
@@ -306,7 +306,7 @@ describe("buildFoundersWelcomeEmail", () => {
     expect(paragraphs).toContain(iosBetaParagraph);
 
     const contactIndex = paragraphs.findIndex((p) =>
-      p.startsWith("My number is"),
+      p.startsWith("Contact support@w3dev.app"),
     );
     const iosBetaIndex = paragraphs.indexOf(iosBetaParagraph);
     const signOffIndex = paragraphs.findIndex((p) => p.startsWith("Best,"));

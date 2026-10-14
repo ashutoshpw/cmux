@@ -15812,8 +15812,8 @@ private enum SidebarHelpMenuAction {
 }
 
 private struct SidebarHelpMenuButton: View {
-    private let docsURL = URL(string: "https://cmux.com/docs")
-    private let changelogURL = URL(string: "https://cmux.com/docs/changelog")
+    private let docsURL = URL(string: "https://cmux.w3dev.app/docs")
+    private let changelogURL = URL(string: "https://cmux.w3dev.app/docs/changelog")
     private let githubURL = URL(string: "https://github.com/manaflow-ai/cmux")
     private let githubIssuesURL = URL(string: "https://github.com/manaflow-ai/cmux/issues")
     private let discordURL = URL(string: "https://discord.gg/xsgFEVrWCZ")

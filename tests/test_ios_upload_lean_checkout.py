@@ -73,7 +73,7 @@ elif '/runs/123/artifacts' in args:
 elif sys.argv[1:3] == ['run', 'download']:
     from pathlib import Path
     target = Path(sys.argv[sys.argv.index('--dir') + 1])
-    (target / 'upload.json').write_text(json.dumps({'sha': 'head', 'app_id': '6783338052', 'build_number': '12345'}))
+    (target / 'upload.json').write_text(json.dumps({'sha': 'head', 'app_id': os.environ['ASC_APP_ID'], 'build_number': '12345'}))
 elif 'status=success' in args:
     print('previous-skipped-run')
 elif 'status=completed' in args:
@@ -89,6 +89,7 @@ else:
                 env={**os.environ, "PATH": str(root) + os.pathsep + os.environ["PATH"],
                      "GITHUB_OUTPUT": str(output), "GITHUB_STEP_SUMMARY": str(summary),
                      "RUNNER_TEMP": str(root), "REPOSITORY": "test/repo", "HEAD_SHA": "head",
+                     "ASC_APP_ID": "1234567890",
                      "EVENT_NAME": event, "BASE": baseline, "BROKEN": str(int(broken)), "RETRY": str(int(retry)),
                      "FILES": json.dumps(files if files is not None else [])},
                 capture_output=True, text=True,

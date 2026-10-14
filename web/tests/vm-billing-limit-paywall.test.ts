@@ -196,7 +196,7 @@ describe("active-limit response as the paywall moment", () => {
     expect(String(payload.action)).not.toContain("up to");
     expect(String(payload.action)).not.toContain("cmux vm rm");
     expect(payload.upgradeRequired).toBe(true);
-    expect(payload.upgradeUrl).toBe("https://cmux.com/pricing");
+    expect(payload.upgradeUrl).toBe("https://cmux.w3dev.app/pricing");
   });
 
   test("a free plan over the limit is prompted to upgrade to Pro", async () => {
@@ -210,9 +210,9 @@ describe("active-limit response as the paywall moment", () => {
     expect(payload.error).toBe("vm_active_limit_exceeded");
     expect(payload.message).toContain("free plan includes 3 Cloud VMs");
     expect(String(payload.action)).toContain("Upgrade to cmux Pro");
-    expect(String(payload.action)).toContain("https://cmux.com/pricing");
+    expect(String(payload.action)).toContain("https://cmux.w3dev.app/pricing");
     expect(payload.upgradeRequired).toBe(true);
-    expect(payload.upgradeUrl).toBe("https://cmux.com/pricing");
+    expect(payload.upgradeUrl).toBe("https://cmux.w3dev.app/pricing");
   });
 
   test("a paid plan over the limit gets operational guidance, not a paywall", async () => {
@@ -310,9 +310,9 @@ describe("free access window", () => {
     expect(payload.error).toBe("vm_access_requires_pro");
     expect(payload.message).toContain("5 days");
     expect(payload.message).toContain("preserved");
-    expect(String(payload.action)).toContain("https://cmux.com/pricing");
+    expect(String(payload.action)).toContain("https://cmux.w3dev.app/pricing");
     expect(String(payload.action)).toContain("cmux vm rm noble-wren");
     expect(payload.upgradeRequired).toBe(true);
-    expect(payload.upgradeUrl).toBe("https://cmux.com/pricing");
+    expect(payload.upgradeUrl).toBe("https://cmux.w3dev.app/pricing");
   });
 });

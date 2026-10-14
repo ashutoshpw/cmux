@@ -11,7 +11,7 @@ struct V2InboundAdmissionAuthorityTests {
                         team: String = "team", environment: String = "development",
                         project: String = "project", platform: V2Platform = .mac) -> V2DeviceDescriptor {
         V2DeviceDescriptor(endpointID: String(repeating: key, count: 64),
-            identity: V2Identity(appNamespace: platform == .mac ? "com.cmux.mac" : "dev.cmux.ios",
+            identity: V2Identity(appNamespace: platform == .mac ? "com.cmux.mac" : "app.w3dev.cmux.ios.debug",
                 buildTag: "tag", deviceID: deviceID, environment: environment, projectID: project,
                 teamID: team, userID: platform == .mac ? "host-owner" : "permitted-teammate"),
             identityGeneration: generation, metadata: V2DeviceMetadata(appVersion: "2",

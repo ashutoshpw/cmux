@@ -4,7 +4,7 @@ $ErrorActionPreference = "Stop"
 $BaseUrl = if ($env:CMUX_DOWNLOAD_BASE_URL) {
     $env:CMUX_DOWNLOAD_BASE_URL.TrimEnd("/")
 } else {
-    "https://files.cmux.com/cmux-tui/latest"
+    "https://files.cmux.w3dev.app/cmux-tui/latest"
 }
 $InstallRoot = if ($env:CMUX_INSTALL) {
     $env:CMUX_INSTALL
@@ -73,7 +73,7 @@ try {
         method = "powershell"
     } | ConvertTo-Json -Compress
     Invoke-RestMethod -Method Post `
-        -Uri "https://cmux.com/api/install-events" `
+        -Uri "https://cmux.w3dev.app/api/install-events" `
         -ContentType "application/json" `
         -Body $Telemetry `
         -TimeoutSec 2 | Out-Null

@@ -357,7 +357,7 @@ struct CloudSidebarSurfaceRegressionTests {
             ["id": "tab_docs", "pane_id": "pane_main", "content_kind": "browser", "content_id": "docs"],
             ["id": "tab_desktop", "pane_id": "pane_side", "content_kind": "display", "content_id": "display:1"]
         ]
-        document["browsers"] = [["id": "docs", "tab_id": "tab_docs", "title": "Docs", "url": "https://cmux.com/docs"]]
+        document["browsers"] = [["id": "docs", "tab_id": "tab_docs", "title": "Docs", "url": "https://cmux.w3dev.app/docs"]]
         let state = try #require(CmuxTuiSnapshotParser.state(fromSnapshot: document, machine: machine))
         publishVisibility(state, to: catalog, incremental: false)
         let before = catalog.snapshot

@@ -35,7 +35,7 @@ struct SidebarMarkdownRendererTests {
 
     @Test
     func selectedDescriptionStylesSafeLinkWithoutRemovingActivation() throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let content = SidebarWorkspaceDescriptionText(
             markdown: "Read [cmux](\(url.absoluteString))",
             isActive: true,
@@ -51,7 +51,7 @@ struct SidebarMarkdownRendererTests {
 
     @Test
     func inactiveDescriptionRetainsSystemStylingForSafeLink() throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let content = SidebarWorkspaceDescriptionText(
             markdown: "Read [cmux](\(url.absoluteString))",
             isActive: false,
@@ -67,7 +67,7 @@ struct SidebarMarkdownRendererTests {
 
     @Test
     func customDescriptionColorStylesSafeLink() throws {
-        let url = try #require(URL(string: "https://cmux.com"))
+        let url = try #require(URL(string: "https://cmux.w3dev.app"))
         let customColor = Color(red: 0.65, green: 0.89, blue: 0.63)
         let content = SidebarWorkspaceDescriptionText(
             markdown: "Read [cmux](\(url.absoluteString))",
@@ -118,7 +118,7 @@ struct SidebarMarkdownRendererTests {
 
     @Test
     func legacyMetadataBlockUsesSharedSelectedRowLinkPolicy() throws {
-        let safeURL = try #require(URL(string: "https://cmux.com"))
+        let safeURL = try #require(URL(string: "https://cmux.w3dev.app"))
         let rendered = try #require(
             SidebarMetadataMarkdownRenderer.rendered(
                 "[safe](\(safeURL.absoluteString)) [local](file:///tmp/private.txt)"

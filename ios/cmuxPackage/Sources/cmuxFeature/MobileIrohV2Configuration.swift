@@ -32,7 +32,7 @@ public struct MobileIrohV2Configuration: Sendable {
     public static func current(projectID: String, bundle: Bundle = .main,
                                environment values: [String: String] = ProcessInfo.processInfo.environment,
                                defaults: UserDefaults = .standard) -> Self {
-        let namespace = bundle.bundleIdentifier ?? "dev.cmux.ios"
+        let namespace = bundle.bundleIdentifier ?? "app.w3dev.cmux.ios.debug"
         let tag = MobileIOSBuildScope.current(infoDictionary: bundle.infoDictionary,
                                               bundleIdentifier: namespace)?.value ?? "default"
         #if DEBUG
@@ -55,9 +55,9 @@ public struct MobileIrohV2Configuration: Sendable {
         } ?? defaultEnvironment
         let origin: String
         switch environment {
-        case "production": origin = "https://cmux-v2.debussy.workers.dev"
-        case "staging": origin = "https://cmux-v2-staging.debussy.workers.dev"
-        default: origin = "https://cmux-v2-development.debussy.workers.dev"
+        case "production": origin = "https://iroh.cmux.w3dev.app"
+        case "staging": origin = "https://iroh.staging.cmux.w3dev.app"
+        default: origin = "https://iroh.staging.cmux.w3dev.app"
         }
         func validOrigin(_ candidate: String?) -> URL? {
             guard let candidate, let url = URL(string: candidate),

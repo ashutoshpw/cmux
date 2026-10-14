@@ -38,7 +38,7 @@ export function docsUrlsFromSitemapXml(xml: string): string[] {
 
 /**
  * Drops docs entries, and docs alternates, that the release docs zone does
- * not serve. cmux.com/docs is rewritten to that zone, which is built from the
+ * not serve. cmux.w3dev.app/docs is rewritten to that zone, which is built from the
  * latest release tag, so docs added on main return 404 there until the next
  * release. Non-docs entries are served by this deployment and pass through.
  */
@@ -68,7 +68,7 @@ export function keepServedDocsEntries(
 /**
  * The docs URLs the release docs zone serves, read from its own sitemap. That
  * zone generates the sitemap from the routes it was built with, so it is the
- * one record of what cmux.com/docs serves. Failures throw and are not cached.
+ * one record of what cmux.w3dev.app/docs serves. Failures throw and are not cached.
  */
 export async function releaseDocsUrls(): Promise<string[]> {
   "use cache";

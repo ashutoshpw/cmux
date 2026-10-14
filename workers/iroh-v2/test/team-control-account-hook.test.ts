@@ -30,6 +30,8 @@ function socket(session: BrokerSession): FakeSocket {
 /** One Mac metadata change, then one iOS metadata change, with the account binding behaving per variant. */
 async function run(variant: Variant) {
   const restore = deterministicRandom();
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = Object.assign(async () => Response.json({ allowed: true }), { preconnect: originalFetch.preconnect });
   try {
     const storage = sqliteStorage();
     const pending: Promise<unknown>[] = [];
@@ -45,7 +47,7 @@ async function run(variant: Variant) {
       },
     };
     const env = {
-      ENVIRONMENT, STACK_PROJECT_ID: PROJECT_ID, STACK_API_URL: "https://stack.test", STACK_PUBLISHABLE_KEY: "pk", STACK_SERVER_KEY: "sk",
+      ENVIRONMENT, CMUX_AUTH_ORIGIN: PROJECT_ID, CMUX_AUTH_SERVICE_KEY: "owned-authority-fixture",
       API_TICKET_KEYS: JSON.stringify({ k1: TICKET_KEY }), API_TICKET_CURRENT_KEY_ID: "k1", RELAY_URLS: JSON.stringify([RELAY_URL]),
       RELAY_SIGNING_KEY: await relayPem(3), RELAY_KEY_ID: "relay-1", DATABASE_URL: "postgresql://fixture:fixture@fixture.test/db",
       TEAM_CONTROL: { idFromName: () => ({}) },
@@ -73,7 +75,7 @@ async function run(variant: Variant) {
     });
     const session = (device: typeof mac): BrokerSession => ({
       sessionId: `s-${device.identity.deviceId}`, identity: device.identity, endpointId: device.endpointId, identityGeneration: 1,
-      authority: { environment: ENVIRONMENT, projectId: PROJECT_ID, teamId: "team-x", userId: "user-u", verifiedAt: now - 10 }, expiresAt: now + 3590, issueTicket: false,
+      authority: { environment: ENVIRONMENT, projectId: PROJECT_ID, teamId: "team-x", userId: "user-u",  sessionId: "auth-session", verifiedAt: now - 10 }, expiresAt: now + 3590, issueTicket: false,
     });
     const phoneSocket = socket(session(phone)), macSocket = socket(session(mac));
     sockets.push(phoneSocket, macSocket);
@@ -89,7 +91,7 @@ async function run(variant: Variant) {
       noticesAfter.push(notices.length);
     }
     return { responses, phoneFrames: phoneSocket.frames, macFrames: macSocket.frames, notices, noticesAfter, macRecordId: records[0]!.deviceRecordId };
-  } finally { restore(); }
+  } finally { restore(); globalThis.fetch = originalFetch; }
 }
 
 test("the account notice fires only for Mac rows and never changes a team response or frame", async () => {
@@ -105,7 +107,7 @@ test("the account notice fires only for Mac rows and never changes a team respon
     JSON.stringify({ schemaId: "operation.completed.v1", requestId: "metadata-iphone", revision: 5 }),
   ]);
   // One notice for the Mac change, none for the iOS change.
-  const macIdentity = { environment: ENVIRONMENT, projectId: PROJECT_ID, teamId: "team-x", userId: "user-u", deviceId: "mac-a", appNamespace: "com.cmux.app", buildTag: "release" };
+  const macIdentity = { environment: ENVIRONMENT, projectId: PROJECT_ID, teamId: "team-x", userId: "user-u", deviceId: "mac-a", appNamespace: "app.w3dev.cmux", buildTag: "release" };
   expect(notified.notices).toEqual([["user-u", "team-x", notified.macRecordId, macIdentity]]);
   expect(notified.noticesAfter).toEqual([1, 1]);
   for (const variant of ["rejects", "throws", "unbound", "flaky"] as const) {

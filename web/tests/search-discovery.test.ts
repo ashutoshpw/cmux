@@ -26,9 +26,9 @@ describe("search discovery", () => {
         },
       ],
       {
-        blogUrl: "https://cmux.com/blog",
+        blogUrl: "https://cmux.w3dev.app/blog",
         description: "News & updates",
-        feedUrl: "https://cmux.com/feed.xml",
+        feedUrl: "https://cmux.w3dev.app/feed.xml",
         language: "en",
         title: "cmux blog",
       },
@@ -40,16 +40,16 @@ describe("search discovery", () => {
     expect(feed).toContain("<description>A &lt;clear&gt; update</description>");
     expect(feed).toContain("<dc:creator>Lawrence Chen</dc:creator>");
     expect(feed).toContain('xmlns:dc="http://purl.org/dc/elements/1.1/"');
-    expect(feed).toContain("https://cmux.com/blog/test-post");
-    expect(feed).toContain('href="https://cmux.com/feed.xml" rel="self"');
+    expect(feed).toContain("https://cmux.w3dev.app/blog/test-post");
+    expect(feed).toContain('href="https://cmux.w3dev.app/feed.xml" rel="self"');
   });
 
   test("publishes locale-specific feeds with translated discovery URLs", async () => {
     const feed = await buildLocalizedBlogRssFeed("ja");
 
     expect(feed).toContain("<language>ja</language>");
-    expect(feed).toContain("<link>https://cmux.com/ja/blog</link>");
-    expect(feed).toContain('href="https://cmux.com/ja/feed.xml"');
+    expect(feed).toContain("<link>https://cmux.w3dev.app/ja/blog</link>");
+    expect(feed).toContain('href="https://cmux.w3dev.app/ja/feed.xml"');
     expect(feed).toContain("<title>30日で3670億トークンを使った方法</title>");
     expect(feed).toContain("<title>cmux Forkの紹介</title>");
     expect(feed).toContain(
@@ -67,45 +67,45 @@ describe("search discovery", () => {
   test("selects only recently modified sitemap URLs", () => {
     const urls = recentlyModifiedUrls(
       [
-        { url: "https://cmux.com/new", lastModified: "2026-07-17" },
-        { url: "https://cmux.com/recent", lastModified: "2026-07-16" },
-        { url: "https://cmux.com/old", lastModified: "2026-07-01" },
-        { url: "https://cmux.com/future", lastModified: "2026-07-18" },
+        { url: "https://cmux.w3dev.app/new", lastModified: "2026-07-17" },
+        { url: "https://cmux.w3dev.app/recent", lastModified: "2026-07-16" },
+        { url: "https://cmux.w3dev.app/old", lastModified: "2026-07-01" },
+        { url: "https://cmux.w3dev.app/future", lastModified: "2026-07-18" },
       ],
       new Date("2026-07-17T14:00:00.000Z"),
     );
 
     expect(urls).toEqual([
-      "https://cmux.com/new",
-      "https://cmux.com/recent",
+      "https://cmux.w3dev.app/new",
+      "https://cmux.w3dev.app/recent",
     ]);
   });
 
   test("anchors the lookback to sitemap changes after a delayed deployment", () => {
     const urls = recentlyModifiedUrls(
       [
-        { url: "https://cmux.com/new", lastModified: "2026-07-17" },
-        { url: "https://cmux.com/recent", lastModified: "2026-07-16" },
-        { url: "https://cmux.com/old", lastModified: "2026-07-01" },
+        { url: "https://cmux.w3dev.app/new", lastModified: "2026-07-17" },
+        { url: "https://cmux.w3dev.app/recent", lastModified: "2026-07-16" },
+        { url: "https://cmux.w3dev.app/old", lastModified: "2026-07-01" },
       ],
       new Date("2026-08-17T14:00:00.000Z"),
     );
 
     expect(urls).toEqual([
-      "https://cmux.com/new",
-      "https://cmux.com/recent",
+      "https://cmux.w3dev.app/new",
+      "https://cmux.w3dev.app/recent",
     ]);
   });
 
   test("handles a maximum-size sitemap without spreading timestamps", () => {
     const entries = Array.from({ length: 50_000 }, (_, index) => ({
-      url: `https://cmux.com/page-${index}`,
+      url: `https://cmux.w3dev.app/page-${index}`,
       lastModified: index === 49_999 ? "2026-07-17" : "2026-07-01",
     }));
 
     expect(
       recentlyModifiedUrls(entries, new Date("2026-07-17T14:00:00.000Z")),
-    ).toEqual(["https://cmux.com/page-49999"]);
+    ).toEqual(["https://cmux.w3dev.app/page-49999"]);
   });
 
   test("submits the IndexNow protocol payload", async () => {
@@ -115,7 +115,7 @@ describe("search discovery", () => {
       return new Response(null, { status: 200 });
     }) as typeof fetch;
 
-    const status = await submitIndexNowUrls(["https://cmux.com/new"], fetcher);
+    const status = await submitIndexNowUrls(["https://cmux.w3dev.app/new"], fetcher);
 
     expect(status).toBe(200);
     expect(requests).toHaveLength(1);
@@ -123,10 +123,10 @@ describe("search discovery", () => {
     expect(requests[0]?.init?.signal).toBeInstanceOf(AbortSignal);
     expect(indexNowTimeoutMs).toBe(10_000);
     expect(JSON.parse(String(requests[0]?.init?.body))).toEqual(
-      indexNowPayload(["https://cmux.com/new"]),
+      indexNowPayload(["https://cmux.w3dev.app/new"]),
     );
     expect(indexNowPayload([]).keyLocation).toBe(
-      `https://cmux.com/${indexNowKey}.txt`,
+      `https://cmux.w3dev.app/${indexNowKey}.txt`,
     );
   });
 
@@ -136,7 +136,7 @@ describe("search discovery", () => {
 
     try {
       const response = await submitIndexNowDeployment(
-        new Request("https://cmux.com/api/cron/indexnow", { method: "POST" }),
+        new Request("https://cmux.w3dev.app/api/cron/indexnow", { method: "POST" }),
       );
 
       expect(response.status).toBe(401);

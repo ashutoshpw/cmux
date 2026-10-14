@@ -40,7 +40,7 @@ export async function generateMetadata({
     },
     twitter: twitterSummary(locale, title, description),
     alternates,
-    metadataBase: new URL("https://cmux.com"),
+    metadataBase: new URL("https://cmux.w3dev.app"),
   };
 }
 
@@ -71,10 +71,10 @@ export default async function LocaleLayout({
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "cmux",
-    url: "https://cmux.com",
-    logo: "https://cmux.com/logo.png",
+    url: "https://cmux.w3dev.app",
+    logo: "https://cmux.w3dev.app/logo.png",
     sameAs: [
-      "https://github.com/manaflow-ai/cmux",
+      "https://github.com/ashutoshpw/cmux",
       "https://twitter.com/manaflowai",
     ],
   };
@@ -82,13 +82,13 @@ export default async function LocaleLayout({
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "cmux",
-    url: "https://cmux.com",
+    url: "https://cmux.w3dev.app",
     description: webSiteDescription,
     publisher: {
       "@type": "Organization",
       name: "cmux",
-      url: "https://cmux.com",
-      logo: "https://cmux.com/logo.png",
+      url: "https://cmux.w3dev.app",
+      logo: "https://cmux.w3dev.app/logo.png",
     },
     image: defaultOpenGraphImage.url,
   };

@@ -41,7 +41,7 @@ public final class UserNotificationCenterService: @unchecked Sendable {
         self.init(
             center: center,
             operationQueue: DispatchQueue(
-                label: "com.cmuxterm.user-notification-center",
+                label: "app.w3dev.cmux.user-notification-center",
                 qos: .utility
             ),
             timeout: timeout,
@@ -54,7 +54,7 @@ public final class UserNotificationCenterService: @unchecked Sendable {
     init(
         center: any UserNotificationCenterCalling,
         operationQueue: DispatchQueue = DispatchQueue(
-            label: "com.cmuxterm.user-notification-center.test",
+            label: "app.w3dev.cmux.user-notification-center.test",
             qos: .utility
         ),
         timeout: Duration,

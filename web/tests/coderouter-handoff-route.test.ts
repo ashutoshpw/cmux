@@ -41,8 +41,7 @@ const context = {
 
 function nativeHeaders(extra: Record<string, string> = {}): Record<string, string> {
   return {
-    authorization: "Bearer stack-access",
-    "x-stack-refresh-token": "stack-refresh",
+    authorization: "Bearer owned-oauth-access",
     "x-cmux-team-id": "team_1",
     ...extra,
   };
@@ -105,7 +104,7 @@ describe("CodeRouter native handoff mint", () => {
     expect(resolveContext).not.toHaveBeenCalled();
   });
 
-  test("rejects an incomplete or oversized native token pair", async () => {
+  test("rejects missing or oversized bearer credentials", async () => {
     const resolveContext = mock(async () => context);
     const POST = makeCoderouterHandoffPostHandler({
       resolveContext: resolveContext as never,
@@ -116,11 +115,11 @@ describe("CodeRouter native handoff mint", () => {
     });
 
     const incomplete = await POST(mintRequest({
-      headers: { "x-stack-refresh-token": "" },
+      headers: { authorization: "" },
     }));
     const oversized = await POST(mintRequest({
       headers: {
-        "x-stack-refresh-token": "x".repeat(16 * 1024 + 1),
+        authorization: `Bearer ${"x".repeat(16 * 1024 + 1)}`,
       },
     }));
 
@@ -293,7 +292,7 @@ describe("CodeRouter native handoff exchange", () => {
       hasActiveEntitlement,
       hostedProRequired: () => true,
       rateLimit: allowedRateLimit(),
-      publicOrigin: () => "https://coderouter.dev",
+      publicOrigin: () => "https://cmux.w3dev.app",
     });
 
     const response = await POST(exchangeRequest());
@@ -326,7 +325,7 @@ describe("CodeRouter native handoff exchange", () => {
     await expect(response.json()).resolves.toMatchObject({
       teamId: "team_1",
       token: "crt_route_token_value",
-      openaiBaseUrl: "https://coderouter.dev/v1",
+      openaiBaseUrl: "https://cmux.w3dev.app/v1",
     });
   });
 
@@ -490,13 +489,13 @@ describe("CodeRouter handoff secret representation", () => {
     const request = new Request(
       "https://attacker.example/api/coderouter/handoff/exchange",
     );
-    expect(coderouterOpenaiBaseUrl(request, "https://coderouter.dev"))
-      .toBe("https://coderouter.dev/v1");
+    expect(coderouterOpenaiBaseUrl(request, "https://cmux.w3dev.app"))
+      .toBe("https://cmux.w3dev.app/v1");
 
     const previousVercel = process.env.VERCEL;
     process.env.VERCEL = "1";
     try {
-      expect(coderouterOpenaiBaseUrl(request, "https://coderouter.dev/path"))
+      expect(coderouterOpenaiBaseUrl(request, "https://cmux.w3dev.app/path"))
         .toBeNull();
       expect(coderouterOpenaiBaseUrl(request)).toBeNull();
     } finally {

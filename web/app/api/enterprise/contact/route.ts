@@ -17,7 +17,7 @@ import {
 import { checkEmailDeliverable } from "../../waitlist/email-check";
 
 
-const enterpriseRecipient = "founders@cmux.com";
+const enterpriseRecipient = process.env.CMUX_ENTERPRISE_TO_EMAIL?.trim();
 
 const enterpriseContactSchema = z.object({
   firstName: z.string().trim().min(1).max(80),
@@ -110,8 +110,8 @@ export async function POST(request: Request) {
 
       const resend = new Resend(config.resendApiKey);
       const emailResult = await resend.emails.send({
-        from: `Manaflow <${config.fromEmail}>`,
-        to: [enterpriseRecipient],
+        from: `cmux <${config.fromEmail}>`,
+        to: [enterpriseRecipient!],
         replyTo: lead.businessEmail,
         subject: `Enterprise inquiry: ${lead.companyName}`,
         text: enterpriseLeadText(lead),
@@ -160,7 +160,7 @@ function resolveEnterpriseConfig() {
   const fromEmail = env.CMUX_FEEDBACK_FROM_EMAIL;
   // rateLimitId is optional: unset means the route runs without rate limiting.
   const rateLimitId = env.CMUX_FEEDBACK_RATE_LIMIT_ID;
-  if (!resendApiKey || !fromEmail) return null;
+  if (!resendApiKey || !fromEmail || !enterpriseRecipient) return null;
   return {
     resendApiKey,
     fromEmail,
@@ -208,6 +208,9 @@ async function notifySlack(
 async function capturePostHog(
   lead: EnterpriseLead,
 ): Promise<{ ok: true } | { ok: false; error: Error }> {
+  if (!POSTHOG_PROJECT_KEY || !POSTHOG_HOST) {
+    return { ok: false, error: new Error("PostHog is not configured") };
+  }
   try {
     const response = await fetch(`${POSTHOG_HOST}/capture/`, {
       method: "POST",

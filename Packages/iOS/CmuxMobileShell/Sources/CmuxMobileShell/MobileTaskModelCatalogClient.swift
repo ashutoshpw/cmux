@@ -174,7 +174,7 @@ public nonisolated struct MobileTaskModelCatalogClient: Sendable {
     }
 
     private static let productionEndpoint = URL(
-        string: "https://cmux.com/api/agent-models"
+        string: "https://cmux.w3dev.app/api/agent-models"
     )!
 
     private struct Catalog: Decodable {

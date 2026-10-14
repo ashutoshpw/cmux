@@ -33,9 +33,9 @@ final class SimulatorAXSettingsAdapter {
         self.sourceURL = sourceURL
         self.cacheDirectoryURL = cacheDirectoryURL
             ?? fileManager.urls(for: .cachesDirectory, in: .userDomainMask).first?
-                .appendingPathComponent("com.cmuxterm.simulator-tools", isDirectory: true)
+                .appendingPathComponent("app.w3dev.cmux.simulator-tools", isDirectory: true)
             ?? fileManager.temporaryDirectory
-                .appendingPathComponent("com.cmuxterm.simulator-tools", isDirectory: true)
+                .appendingPathComponent("app.w3dev.cmux.simulator-tools", isDirectory: true)
         self.fileManager = fileManager
         self.temporaryName = temporaryName
         self.runner = runner ?? { descriptor in

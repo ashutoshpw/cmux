@@ -62,7 +62,7 @@ struct WorkspaceDetailDelayedTerminalPreviewView: View {
                         browserStreamStore.replacePanels(in: Self.workspaceID.rawValue, with: [
                             MobileBrowserPanelDescriptor(
                                 panelID: "browser-refresh", workspaceID: Self.workspaceID.rawValue,
-                                url: "https://cmux.com", title: "Browser refresh \(generation)",
+                                url: "https://cmux.w3dev.app", title: "Browser refresh \(generation)",
                                 pageWidth: 800, pageHeight: 600,
                                 canGoBack: false, canGoForward: false, isLoading: false
                             ),

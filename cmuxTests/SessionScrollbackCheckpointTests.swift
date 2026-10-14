@@ -403,7 +403,7 @@ struct SessionScrollbackCheckpointStoreTests {
         SessionScrollbackCheckpointStore(
             primarySnapshotURL: FileManager.default.temporaryDirectory
                 .appendingPathComponent("cmux-scrollback-checkpoint-tests-\(UUID().uuidString)", isDirectory: true)
-                .appendingPathComponent("session-com.cmuxterm.test.json", isDirectory: false)
+                .appendingPathComponent("session-app.w3dev.cmux.test.json", isDirectory: false)
         )
     }
 
@@ -426,9 +426,9 @@ struct SessionScrollbackCheckpointStoreTests {
 
     @Test func checkpointDirectorySitsNextToPrimarySnapshot() {
         let store = SessionScrollbackCheckpointStore(
-            primarySnapshotURL: URL(fileURLWithPath: "/tmp/cmux/session-com.cmuxterm.app.json")
+            primarySnapshotURL: URL(fileURLWithPath: "/tmp/cmux/session-app.w3dev.cmux.json")
         )
-        #expect(store.directoryURL.path == "/tmp/cmux/session-com.cmuxterm.app-scrollback")
+        #expect(store.directoryURL.path == "/tmp/cmux/session-app.w3dev.cmux-scrollback")
     }
 
     @Test func writesTruncatesRemovesAndPrunes() throws {

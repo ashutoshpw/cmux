@@ -1,6 +1,10 @@
 import * as Exit from "effect/Exit";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, mock, test } from "bun:test";
-import manifestJson from "../services/vms/images/manifest.json";
+import validatedImageFixture from "../services/vms/images/upstream-manifest.json";
+import type { VmImageManifestEntry } from "../services/vms/images/resolver";
+const manifestJson: { schemaVersion: number; images: VmImageManifestEntry[] } = {
+  ...validatedImageFixture, images: validatedImageFixture.images as VmImageManifestEntry[],
+};
 import { pickVmImageSizeForMemory } from "../services/vms/images/sizes";
 import { vmCapabilitiesFor } from "../services/vms/drivers";
 
@@ -28,7 +32,7 @@ function manifestDefault(kind: "desktop" | "base"): ManifestTestEntry {
 const MANIFEST_DESKTOP_DEFAULT = manifestDefault("desktop");
 const MANIFEST_BASE_DEFAULT = manifestDefault("base");
 
-const getUser = mock(async () => null);
+const getUser = mock(async (_input?: unknown) => null);
 const runVmWorkflow = mock(async () => {
   throw new Error("unauthenticated VM routes must not reach the VM workflow");
 });
@@ -112,6 +116,22 @@ const realCloseCloudDbForTests = dbClientModule.closeCloudDbForTests;
 const realCreateAwsRdsIamPool = dbClientModule.createAwsRdsIamPool;
 
 let useWorkflowStubs = false;
+// Select from a separately constructed validated test catalog. The active fork
+// catalog stays empty, and the originals serve every caller outside this suite.
+const realImageResolverModule = await import("../services/vms/images/resolver");
+const realImageResolverValues = { ...realImageResolverModule };
+const testImageCatalog = realImageResolverModule.createVmImageCatalog(manifestJson);
+mock.module("../services/vms/images/resolver", () => ({
+  ...realImageResolverValues,
+  ...Object.fromEntries(Object.entries(testImageCatalog).map(([name, implementation]) => [
+    name,
+    (...args: unknown[]) => callMock(
+      useWorkflowStubs ? implementation : realImageResolverValues[name as keyof typeof realImageResolverValues],
+      args,
+    ),
+  ])),
+}));
+
 let useStubDb = false;
 let authTombstoneRows: Array<{ userIdHash: string; status: string; updatedAt: Date | null }> = [];
 
@@ -126,6 +146,42 @@ function rejectRunVmWorkflowWith(error: unknown): void {
     });
 }
 
+type OwnedRouteFixtureTeam = { id: string; displayName?: string | null; clientReadOnlyMetadata?: unknown };
+type OwnedRouteFixtureUser = { id: string; displayName?: string | null; primaryEmail?: string | null; isAnonymous?: boolean; clientReadOnlyMetadata?: unknown; selectedTeam?: OwnedRouteFixtureTeam | null; listTeams?: (options?: { cursor?: string; limit?: number }) => Promise<OwnedRouteFixtureTeam[] & { nextCursor?: string | null }> };
+async function fixtureOrganizations(user: OwnedRouteFixtureUser): Promise<OwnedRouteFixtureTeam[]> {
+  const rows: OwnedRouteFixtureTeam[] = [];
+  let cursor: string | undefined;
+  const seen = new Set<string>();
+  for (let index = 0; index < 100; index++) {
+    const listed = user.listTeams ? await user.listTeams(cursor ? { cursor, limit: 100 } : { limit: 100 }) : [];
+    rows.push(...listed);
+    if (!listed.nextCursor) break;
+    if (seen.has(listed.nextCursor)) throw new Error("Membership fixture has repeated cursor");
+    seen.add(listed.nextCursor);
+    cursor = listed.nextCursor;
+  }
+  const selected = user.selectedTeam;
+  if (selected && !user.listTeams && !rows.some((team) => team.id === selected.id)) rows.push(selected);
+  return rows;
+}
+const realPrincipalModule = await import("../services/auth/betterAuthPrincipal");
+mock.module("../services/auth/betterAuthPrincipal", () => ({
+  ...realPrincipalModule,
+  resolveBetterAuthPrincipal: async (_headers: Headers, options?: { allowDeletingAccount?: boolean }) => {
+    const bearer = _headers.get("authorization");
+    const tokenStore = bearer?.toLowerCase().startsWith("bearer ") ? { accessToken: bearer.slice(7), refreshToken: _headers.get("x-stack-refresh-token") ?? "" } : { headers: _headers };
+    const value: unknown = await getUser({ tokenStore });
+    if (!value || typeof value !== "object" || !("id" in value)) return null;
+    const user = value as OwnedRouteFixtureUser;
+    if (!options?.allowDeletingAccount && authTombstoneRows.some((row) => isBlockingAccountDeletionTombstone(row))) return null;
+    const rows = await fixtureOrganizations(user);
+    const selected = user.selectedTeam;
+    return { userId: user.id, displayName: user.displayName ?? "", email: user.primaryEmail ?? "", emailVerified: true, image: null, createdAt: new Date(0), isAnonymous: user.isAnonymous === true,
+      clientReadOnlyMetadata: user.clientReadOnlyMetadata ?? {}, sessionId: "owned-route-session", sessionCreatedAt: new Date(1700000000000), activeOrganizationId: rows.some((team) => team.id === selected?.id) ? selected?.id ?? null : null, authentication: "oauth", scopes: ["cmux:api"],
+      organizations: rows.map((team) => ({ id: team.id, name: team.displayName ?? "", slug: team.id, role: "member", image: null, clientReadOnlyMetadata: team.clientReadOnlyMetadata ?? {} })),
+    };
+  },
+}));
 mock.module("../app/lib/stack", () => ({
   getStackServerApp: () => ({ getUser }),
   isStackConfigured: () => true,
@@ -240,7 +296,7 @@ const {
 } = await import("../services/vms/errors");
 const { verifyRequest, clearNativeAuthCacheForTests } = await import("../services/vms/auth");
 const { withAuthedVmApiRoute } = await import("../services/vms/routeHelpers");
-const { accountDeletionUserHash } = await import("../services/account/deletionLock");
+const { accountDeletionUserHash, isBlockingAccountDeletionTombstone } = await import("../services/account/deletionLock");
 const { VmPublicationProviderError } = await import(
   "../services/vm-publications/provider"
 );
@@ -547,7 +603,7 @@ describe("VM REST auth", () => {
       idempotencyKey: "idem-1",
       memoryMb: 8192,
     }));
-    expect(listTeams).not.toHaveBeenCalled();
+    expect(listTeams).toHaveBeenCalled();
     expect(runVmWorkflow).toHaveBeenCalled();
   });
 
@@ -619,7 +675,7 @@ describe("VM REST auth", () => {
       selectedTeamId: "team-1",
       teams: [{ id: "team-1", displayName: "Paid team", billingPlanId: "team", billingSeats: 4 }],
     });
-    expect(listTeams).toHaveBeenCalledWith({ query: "team-1", limit: 100 });
+    expect(listTeams).toHaveBeenCalledWith({ limit: 100 });
     expect(listTeams).toHaveBeenCalledTimes(1);
   });
 
@@ -640,8 +696,8 @@ describe("VM REST auth", () => {
     });
 
     expect(user).toMatchObject({ billingTeamId: "team-1", billingPlanId: "team", billingSeats: 4 });
-    expect(listTeams).toHaveBeenNthCalledWith(1, { query: "team-other", limit: 100 });
-    expect(listTeams).toHaveBeenNthCalledWith(2, { query: "team-1", limit: 100 });
+    expect(listTeams).toHaveBeenCalledWith({ limit: 100 });
+    expect(listTeams).toHaveBeenCalledTimes(1);
   });
 
   test("paginates complete membership when hydrating an ID-only selected team", async () => {
@@ -657,32 +713,8 @@ describe("VM REST auth", () => {
     expect(listTeams).toHaveBeenNthCalledWith(2, { cursor: "page-2", limit: 100 });
   });
 
-  test("falls back to the user plan when complete team pagination is incomplete", async () => {
-    const listTeams = mock(async (options?: { cursor?: string }) => Object.assign([
-      {
-        id: options?.cursor ? "team-other" : "team-first",
-        clientReadOnlyMetadata: { cmuxPlan: "team", cmuxSeats: 4 },
-      },
-    ], { nextCursor: "stuck" }));
-    getUser.mockResolvedValue({
-      ...authedStackUser(),
-      clientReadOnlyMetadata: { cmuxPlan: "free" },
-      selectedTeam: { id: "team-1" },
-      listTeams,
-    });
 
-    const user = await verifyRequest(new Request("https://cmux.test/api/vm"));
-
-    expect(user).toMatchObject({
-      billingTeamId: "team-1",
-      billingPlanId: "free",
-      billingSeats: null,
-    });
-    expect(listTeams).toHaveBeenNthCalledWith(1, { cursor: undefined, limit: 100 });
-    expect(listTeams).toHaveBeenNthCalledWith(2, { cursor: "stuck", limit: 100 });
-  });
-
-  test("does not borrow another paid team's details when the selected team is absent from the lookup", async () => {
+  test("drops a revoked selected organization and resolves billing from current membership", async () => {
     getUser.mockResolvedValue({
       ...authedStackUser(),
       clientReadOnlyMetadata: { cmuxPlan: "free" },
@@ -692,7 +724,7 @@ describe("VM REST auth", () => {
 
     const user = await verifyRequest(new Request("https://cmux.test/api/vm"));
 
-    expect(user).toMatchObject({ billingTeamId: "team-1", billingPlanId: "free", billingSeats: null });
+    expect(user).toMatchObject({ selectedTeamId: null, teamIds: ["team-other"], billingTeamId: "team-other", billingPlanId: "team", billingSeats: 4 });
   });
 
   test("tunnel POST and GET forward the complete fresh membership, not only the selected team", async () => {
@@ -723,7 +755,7 @@ describe("VM REST auth", () => {
     expect(readInput.teamIdsComplete).toBe(true);
   });
 
-  test("tunnel POST marks the team list incomplete when the fresh membership listing fails", async () => {
+  test("tunnel enrollment fails closed when current membership cannot be established", async () => {
     let listCalls = 0;
     getUser.mockResolvedValue({
       ...authedStackUser(),
@@ -743,11 +775,9 @@ describe("VM REST auth", () => {
       method: "POST", headers,
       body: JSON.stringify({ deviceId: "device-test", deviceFingerprint: "device-test", tunnelPurpose: "browser", clientPublicKey: Buffer.alloc(32, 1).toString("base64") }),
     }));
-    expect(posted.status).toBe(200);
+    expect(posted.status).toBe(503);
     expect(listCalls).toBeGreaterThan(0);
-    const enrollInput = (enrollVmTunnel as unknown as { mock: { calls: unknown[][] } }).mock.calls[0]?.[0] as { teamIds?: readonly string[]; teamIdsComplete?: boolean };
-    expect(enrollInput.teamIds).toEqual(["team-1"]);
-    expect(enrollInput.teamIdsComplete).toBe(false);
+    expect(enrollVmTunnel).not.toHaveBeenCalled();
   });
 
   test("tunnel POST and GET forward authenticated team membership", async () => {
@@ -1091,7 +1121,7 @@ describe("VM REST auth", () => {
       error: "vm_memory_requires_plan",
       upgradeRequired: true,
       upgradePlanId: "max",
-      upgradeUrl: "https://cmux.com/api/billing/checkout?plan=max&cmux_source=vm_memory_limit",
+      upgradeUrl: "https://cmux.w3dev.app/api/billing/checkout?plan=max&cmux_source=vm_memory_limit",
       memoryMb: 65536,
       maxMemoryMb: 16384,
     });
@@ -1217,8 +1247,8 @@ describe("VM REST auth", () => {
     expect(payload.error).toBe("vm_requires_pro");
     expect(payload.message).toBe("Cloud VM を利用するには cmux Pro プランが必要です。");
     expect(payload.ui.title).toBe("cmux Pro が必要です");
-    expect(payload.action).toContain("https://cmux.com/pricing");
-    expect(payload.upgradeUrl).toBe("https://cmux.com/pricing");
+    expect(payload.action).toContain("https://cmux.w3dev.app/pricing");
+    expect(payload.upgradeUrl).toBe("https://cmux.w3dev.app/pricing");
     expect(createVm).not.toHaveBeenCalled();
   });
 
@@ -1479,7 +1509,7 @@ describe("VM REST auth", () => {
         };
         expect(payload.error).toBe("vm_requires_pro");
         expect(payload.upgradeRequired).toBe(true);
-        expect(payload.upgradeUrl).toBe("https://cmux.com/pricing");
+        expect(payload.upgradeUrl).toBe("https://cmux.w3dev.app/pricing");
         for (const constructor of provisioningConstructors) {
           expect(constructor).not.toHaveBeenCalled();
         }
@@ -1818,8 +1848,8 @@ describe("VM REST auth", () => {
     );
 
     expect(response.status).toBe(200);
-    // initial auth + team-mismatch re-verify + pro-plan reconcile user fetch
-    expect(getUser).toHaveBeenCalledTimes(3);
+    // The current principal already contains the complete organization view.
+    expect(getUser).toHaveBeenCalledTimes(2);
     expect(listTeams).toHaveBeenCalledTimes(1);
     expect(createVm).toHaveBeenCalledWith(expect.objectContaining({
       billingCustomerType: "team",

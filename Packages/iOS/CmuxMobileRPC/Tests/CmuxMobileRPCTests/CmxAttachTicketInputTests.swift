@@ -9,7 +9,7 @@ import Testing
 /// iOS Simulator without a host app. This is the untagged development scheme,
 /// the same value the host fallback produced.
 private let pairingScheme = CmxPairingURLScheme(
-    rawValue: "cmux-ios-dev.cmux.ios"
+    rawValue: "cmux-w3dev-ios-app.w3dev.cmux.ios.debug"
 )
 
 
@@ -246,7 +246,7 @@ private let pairingScheme = CmxPairingURLScheme(
 
     @Test func decodesPairingCodeFromAnyChannelScheme() throws {
         // Cross-channel pairing from inside the app: the decoder accepts both
-        // the release scheme (cmux-ios) and the dev scheme (cmux-ios-dev), so a
+        // the release scheme (cmux-ios) and the dev scheme (cmux-w3dev-ios-dev), so a
         // phone on either channel pairs from a QR minted by either channel.
         for scheme in CmxPairingURLScheme.all {
             let decoded = try CmxAttachTicketInput.decode(

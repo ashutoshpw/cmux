@@ -1,3 +1,4 @@
+import { forkDeployment } from "./services/deployment/config";
 import "./app/env";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
@@ -26,7 +27,7 @@ const nightlyDocsOrigin = configuredNightlyDocsOrigin();
 const directDevBackendAllowedHost = directDevBackendHost();
 const developmentPublicationOrigins = [
   ...(directDevBackendAllowedHost ? [directDevBackendAllowedHost] : []),
-  "*.cmux.sh",
+  `*.${forkDeployment.publicationDomain}`,
 ];
 
 // Agent landing pages moved under /agents/<agent>. Keep the old top-level
@@ -113,6 +114,13 @@ const nextConfig: NextConfig = {
         ],
       };
     }
+    if (!releaseDocsOrigin || !nightlyDocsOrigin) return {
+      beforeFiles: [
+        { source: "/docs/nightly/:path*", destination: "/docs/:path*" },
+        { source: "/:locale/docs/nightly/:path*", destination: "/:locale/docs/:path*" },
+        { source: "/_docs-search/:channel/:path*", destination: "/pagefind/:path*" },
+      ],
+    };
     return {
       beforeFiles: [
         {

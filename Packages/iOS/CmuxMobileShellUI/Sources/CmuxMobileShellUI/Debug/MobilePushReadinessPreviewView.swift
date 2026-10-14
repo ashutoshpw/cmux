@@ -225,7 +225,7 @@ struct MobilePushReadinessPreviewView: View {
         }
     }
 
-    private static let apiOrigin = "https://cmux.com"
+    private static let apiOrigin = "https://cmux.w3dev.app"
     private static let registered = PushRegistrationSnapshot(
         isEnabled: true,
         hasDeviceToken: true,

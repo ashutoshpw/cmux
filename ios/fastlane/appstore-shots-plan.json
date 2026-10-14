@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "app_id": "6783338052",
-  "bundle_id": "com.cmux.app",
+  "app_id_env": "ASC_APP_ID",
+  "bundle_id": "app.w3dev.cmux.ios",
   "locale": "en-US",
   "notes": "Truth manifest for the cmux iOS App Store screenshot set. SnapshotUITests captures the sources deterministically from in-app preview fixtures; ios/scripts/appstore-shots.sh post-processes captures to these exact ASC pixel sizes, stages final/<DISPLAY_TYPE>/, verifies, and uploads. ASC allows at most 10 screenshots per display type.",
   "display_types": {

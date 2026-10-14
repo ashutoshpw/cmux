@@ -27,12 +27,14 @@ test("only canonical production and staging targets are deployable", () => {
   expect(() => assertTarget(foreignEnvironment, "production")).toThrow("Durable Object");
 });
 
-test("audited legacy v6 can receive the reader-first rollout but cannot receive a v7 writer", () => {
-  const legacy = version("bd1538b8-b29f-430f-a33f-119bd41e4118");
-  assertRollout(config, legacy, {}, 404, "production");
-  expect(() => assertRollout(config, legacy, {}, 404, "production", {maxSchemaVersion: 7, writeSchemaVersion: 7})).toThrow("rollback reader");
+test("a verified owned v6 reader supports a reader-first rollout without trusting upstream deployment IDs", () => {
+  const owned = version("owned-reader-v6");
+  const receipt = { ...health(), storage: { maxSchemaVersion: 6, writeSchemaVersion: 6 } };
+  assertRollout(config, owned, receipt, 200, "production");
+  expect(() => assertRollout(config, owned, receipt, 200, "production", { maxSchemaVersion: 7, writeSchemaVersion: 7 })).toThrow("rollback reader");
   expect(() => assertRollout(config, version("unknown"), {}, 404, "production")).toThrow("No verified");
-  expect(() => assertRollout(config, legacy, {}, 503, "production")).toThrow("No verified");
+  expect(() => assertRollout(config, version("bd1538b8-b29f-430f-a33f-119bd41e4118"), {}, 404, "production")).toThrow("No verified");
+  expect(() => assertRollout(config, owned, {}, 503, "production")).toThrow("No verified");
 });
 
 test("a verified v7 reader permits a later writer without allowing reader downgrades", () => {

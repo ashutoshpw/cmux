@@ -144,7 +144,7 @@ public enum VMRequestFailureSeverity: String, Sendable {
 
 /// Client-side telemetry for the Cloud VM control plane. Sinks:
 ///
-/// - `os.log` (subsystem `com.cmuxterm.app`, category `CloudVM`) for every
+/// - `os.log` (subsystem `app.w3dev.cmux`, category `CloudVM`) for every
 ///   request, readable from release builds with `log show`;
 /// - a Sentry breadcrumb for every request and a Sentry event for failures
 ///   (5xx and transport failures are `error`, 4xx are `warning`);
@@ -167,7 +167,7 @@ public final class VMClientTelemetry: @unchecked Sendable {
     public typealias SentryCapture = @Sendable (String, VMRequestFailureSeverity, [String: Any]) -> Void
     public typealias Breadcrumb = @Sendable (String, [String: Any]) -> Void
 
-    private let logger = Logger(subsystem: "com.cmuxterm.app", category: "CloudVM")
+    private let logger = Logger(subsystem: "app.w3dev.cmux", category: "CloudVM")
     private let capturePostHog: Capture
     private let captureSentry: SentryCapture
     private let addBreadcrumb: Breadcrumb

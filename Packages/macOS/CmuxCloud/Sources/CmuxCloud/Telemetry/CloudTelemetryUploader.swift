@@ -17,7 +17,7 @@ public actor CloudTelemetryUploader: CloudTelemetrySending {
                environment: ProcessInfo.processInfo.environment,
                isDebugBuild: true
            ) != .production {
-            return URL(string: "https://cmux-staging.vercel.app")!
+            return URL(string: "https://staging.cmux.w3dev.app")!
         }
         #endif
         return AuthEnvironment.vmAPIBaseURL
@@ -40,7 +40,7 @@ public actor CloudTelemetryUploader: CloudTelemetrySending {
     private let client: CloudTelemetryClient
     private let queueURL: URL
     private let batchDelay: Duration
-    private let logger = Logger(subsystem: "com.cmuxterm.app", category: "CloudDiagnostics")
+    private let logger = Logger(subsystem: "app.w3dev.cmux", category: "CloudDiagnostics")
     private var entries: [Entry] = []
     private var loaded = false
     private var uploadTask: Task<Void, Never>?
@@ -61,7 +61,7 @@ public actor CloudTelemetryUploader: CloudTelemetrySending {
         self.session = session
         self.batchDelay = batchDelay
         self.queueURL = queueURL ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent(Bundle.main.bundleIdentifier ?? "com.cmuxterm.app")
+            .appendingPathComponent(Bundle.main.bundleIdentifier ?? "app.w3dev.cmux")
             .appendingPathComponent("cloud-diagnostics.json")
     }
 
@@ -129,7 +129,6 @@ public actor CloudTelemetryUploader: CloudTelemetrySending {
                 request.timeoutInterval = 15
                 request.setValue("application/json", forHTTPHeaderField: "Content-Type")
                 request.setValue("Bearer \(tokens.accessToken)", forHTTPHeaderField: "Authorization")
-                request.setValue(tokens.refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
                 request.httpBody = try JSONEncoder().encode(Batch(client: first.client, spans: batchEntries.map(\.span)))
                 let (data, response) = try await session.data(for: request)
                 guard generation == currentGeneration, await auth.isAuthenticatedSessionIdentityCurrent(identity) else { return }

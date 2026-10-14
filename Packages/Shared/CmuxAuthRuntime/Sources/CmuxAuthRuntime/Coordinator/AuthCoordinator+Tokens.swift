@@ -88,8 +88,7 @@ extension AuthCoordinator {
         #endif
     }
 
-    /// The current refresh token, if any. Native API calls authenticate with
-    /// `Authorization: Bearer <access>` + `X-Stack-Refresh-Token: <refresh>`.
+    /// The locally held refresh token, used only for issuer renewal and revocation.
     public func refreshToken() async -> String? {
         await client.refreshToken()
     }

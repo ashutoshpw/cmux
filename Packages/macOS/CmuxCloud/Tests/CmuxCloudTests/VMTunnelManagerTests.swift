@@ -175,8 +175,8 @@ struct VMTunnelManagerTests {
 
     @Test
     func interfaceNameAndStateHaveALegacyDeploymentFallback() {
-        #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://cmux.com")!) == "cmux")
-        #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://cmux-staging.vercel.app")!) == "cmux-staging")
+        #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://cmux.w3dev.app")!) == "cmux")
+        #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://staging.cmux.w3dev.app")!) == "cmux-staging")
         #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "http://localhost:9170")!) == "cmux-local")
         #expect(VMTunnelManager.interfaceName(forAPIBaseURL: URL(string: "https://dev.example.invalid")!) == "cmux-dev")
 
@@ -189,15 +189,15 @@ struct VMTunnelManagerTests {
     func buildScopesDoNotShareCredentialsOrConfigFiles() throws {
         let home = try temporaryHome()
         defer { try? FileManager.default.removeItem(at: home) }
-        let productionURL = URL(string: "https://cmux.com")!
+        let productionURL = URL(string: "https://cmux.w3dev.app")!
         let nightly = VMTunnelManager(
             home: home,
-            bundleIdentifier: "com.cmuxterm.app.nightly",
+            bundleIdentifier: "app.w3dev.cmux.nightly",
             apiBaseURL: productionURL
         )
         let dev = VMTunnelManager(
             home: home,
-            bundleIdentifier: "com.cmuxterm.app.debug.all.agents",
+            bundleIdentifier: "app.w3dev.cmux.debug.all.agents",
             apiBaseURL: productionURL
         )
 
@@ -216,7 +216,7 @@ struct VMTunnelManagerTests {
 
         let devRestart = VMTunnelManager(
             home: home,
-            bundleIdentifier: "com.cmuxterm.app.debug.all.agents",
+            bundleIdentifier: "app.w3dev.cmux.debug.all.agents",
             apiBaseURL: URL(string: "http://localhost:9170")!
         )
         #expect(devRestart.interfaceName == dev.interfaceName)
@@ -227,15 +227,15 @@ struct VMTunnelManagerTests {
     @Test
     func stableProductionKeepsLegacyCredentialPathsWhileOtherBuildsAreScoped() {
         let home = URL(fileURLWithPath: "/tmp/cmux-tunnel-path-tests", isDirectory: true)
-        let productionURL = URL(string: "https://cmux.com")!
+        let productionURL = URL(string: "https://cmux.w3dev.app")!
         let stable = VMTunnelManager(
             home: home,
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "app.w3dev.cmux",
             apiBaseURL: productionURL
         )
         let nightly = VMTunnelManager(
             home: home,
-            bundleIdentifier: "com.cmuxterm.app.nightly",
+            bundleIdentifier: "app.w3dev.cmux.nightly",
             apiBaseURL: productionURL
         )
 
@@ -252,16 +252,16 @@ struct VMTunnelManagerTests {
     @Test
     func rcBuildOwnsItsOwnInterfaceAndCredentialPaths() {
         let home = URL(fileURLWithPath: "/tmp/cmux-tunnel-path-tests", isDirectory: true)
-        let productionURL = URL(string: "https://cmux.com")!
+        let productionURL = URL(string: "https://cmux.w3dev.app")!
         let rc = VMTunnelManager(
             home: home,
-            bundleIdentifier: "com.cmuxterm.app.rc",
+            bundleIdentifier: "app.w3dev.cmux.rc",
             apiBaseURL: productionURL
         )
 
         let nightlyManager = VMTunnelManager(
             home: home,
-            bundleIdentifier: "com.cmuxterm.app.nightly",
+            bundleIdentifier: "app.w3dev.cmux.nightly",
             apiBaseURL: productionURL
         )
         // RC is a non-legacy channel like nightly: same credential file shape,
@@ -276,15 +276,15 @@ struct VMTunnelManagerTests {
         #expect(rc.privateKeyURL.lastPathComponent != "private.key")
 
         let taggedRC = VMTunnelManager.interfaceName(
-            bundleIdentifier: "com.cmuxterm.app.rc.candidate1",
+            bundleIdentifier: "app.w3dev.cmux.rc.candidate1",
             apiBaseURL: productionURL
         )
         let stable = VMTunnelManager.interfaceName(
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "app.w3dev.cmux",
             apiBaseURL: productionURL
         )
         let nightly = VMTunnelManager.interfaceName(
-            bundleIdentifier: "com.cmuxterm.app.nightly",
+            bundleIdentifier: "app.w3dev.cmux.nightly",
             apiBaseURL: productionURL
         )
         #expect(taggedRC != rc.interfaceName)
@@ -297,22 +297,22 @@ struct VMTunnelManagerTests {
 
     @Test
     func taggedBuildIdentityWinsOverItsBackendOrigin() {
-        let productionURL = URL(string: "https://cmux.com")!
+        let productionURL = URL(string: "https://cmux.w3dev.app")!
         let localURL = URL(string: "http://localhost:9170")!
         let taggedDev = VMTunnelManager.interfaceName(
-            bundleIdentifier: "com.cmuxterm.app.debug.all.agents",
+            bundleIdentifier: "app.w3dev.cmux.debug.all.agents",
             apiBaseURL: productionURL
         )
         let sameTaggedDevOnLocalAPI = VMTunnelManager.interfaceName(
-            bundleIdentifier: "com.cmuxterm.app.debug.all.agents",
+            bundleIdentifier: "app.w3dev.cmux.debug.all.agents",
             apiBaseURL: localURL
         )
         let anotherTaggedDev = VMTunnelManager.interfaceName(
-            bundleIdentifier: "com.cmuxterm.app.debug.cloud-notify",
+            bundleIdentifier: "app.w3dev.cmux.debug.cloud-notify",
             apiBaseURL: localURL
         )
         let nightly = VMTunnelManager.interfaceName(
-            bundleIdentifier: "com.cmuxterm.app.nightly",
+            bundleIdentifier: "app.w3dev.cmux.nightly",
             apiBaseURL: productionURL
         )
 
@@ -327,14 +327,14 @@ struct VMTunnelManagerTests {
 
     @Test
     func baseDebugBundleUsesItsLaunchTag() {
-        let productionURL = URL(string: "https://cmux.com")!
+        let productionURL = URL(string: "https://cmux.w3dev.app")!
         let first = VMTunnelManager.interfaceName(
-            bundleIdentifier: "com.cmuxterm.app.debug",
+            bundleIdentifier: "app.w3dev.cmux.debug",
             environment: ["CMUX_TAG": "all-agents"],
             apiBaseURL: productionURL
         )
         let second = VMTunnelManager.interfaceName(
-            bundleIdentifier: "com.cmuxterm.app.debug",
+            bundleIdentifier: "app.w3dev.cmux.debug",
             environment: ["CMUX_TAG": "cloud-notify"],
             apiBaseURL: productionURL
         )
@@ -388,18 +388,18 @@ struct VMTunnelManagerTests {
     func terminalAndBrowserRolesUseSeparateKeysAndConfigs() throws {
         let home = try temporaryHome()
         defer { try? FileManager.default.removeItem(at: home) }
-        let productionURL = URL(string: "https://cmux.com")!
+        let productionURL = URL(string: "https://cmux.w3dev.app")!
         let browser = VMTunnelManager(
             home: home,
             purpose: .browser,
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "app.w3dev.cmux",
             environment: [:],
             apiBaseURL: productionURL
         )
         let terminal = VMTunnelManager(
             home: home,
             purpose: .terminal,
-            bundleIdentifier: "com.cmuxterm.app",
+            bundleIdentifier: "app.w3dev.cmux",
             environment: [:],
             apiBaseURL: productionURL
         )

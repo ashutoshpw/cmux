@@ -29,7 +29,11 @@ permissions:
 # a miss and every save prints "nothing saved", so the package and
 # compilation caches from #14180 never filled (09-24/25: 0 hits, 344 misses).
 env:
-  CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+  ASC_APP_ID: ${{ vars.IOS_APPSTORE_APP_ID }}
+  CMUX_APPLE_TEAM_ID: ${{ vars.CMUX_APPLE_TEAM_ID }}
+  IOS_DEVELOPMENT_TEAM: ${{ vars.CMUX_APPLE_TEAM_ID }}
+  IOS_APPSTORE_TEAM_ID: ${{ vars.CMUX_APPLE_TEAM_ID }}
+  CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
 
 jobs:
   decide:
@@ -72,10 +76,10 @@ jobs:
               MARKER_DIR="$(mktemp -d)"
               gh run download "$RUN_ID" --repo "$REPOSITORY" --name cmux-app-testflight-upload --dir "$MARKER_DIR"
               BUILD_NUMBER="$(python3 - "$MARKER_DIR/upload.json" "$HEAD_SHA" <<'PYCODE'
-          import json, re, sys
+          import json, os, re, sys
           with open(sys.argv[1]) as f:
               marker = json.load(f)
-          assert marker['sha'] == sys.argv[2] and marker['app_id'] == '6783338052'
+          assert marker['sha'] == sys.argv[2] and marker['app_id'] == os.environ['ASC_APP_ID']
           assert re.fullmatch(r'[0-9]+', marker['build_number'])
           print(marker['build_number'])
           PYCODE
@@ -196,7 +200,7 @@ jobs:
             --summary "$GITHUB_STEP_SUMMARY"
 
   upload:
-    name: Upload to App Store Connect (com.cmux.app)
+    name: Upload to App Store Connect (app.w3dev.cmux.ios)
     # Only ever publish from main: the ASC secrets ship reviewed main, and a
     # dispatch against a feature branch must not upload arbitrary code.
     needs: decide
@@ -216,7 +220,7 @@ jobs:
       # a different run_attempt, so the download must not re-derive it.
       notes_artifact_name: testflight-notes-${{ github.run_id }}-${{ github.run_attempt }}
     env:
-      ASC_APP_ID: "6783338052"
+      ASC_APP_ID: ${{ vars.IOS_APPSTORE_APP_ID }}
       ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
       ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
     steps:
@@ -347,13 +351,14 @@ jobs:
           security set-key-partition-list -S apple-tool:,apple: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
           security list-keychains -d user -s "$KEYCHAIN_NAME"
           security find-identity -v -p codesigning "$KEYCHAIN_NAME"
+          [[ "$CMUX_APPLE_TEAM_ID" =~ ^[A-Z0-9]{10}$ ]] || { echo "Set CMUX_APPLE_TEAM_ID to the fork signing team" >&2; exit 1; }
           IOS_DISTRIBUTION_IDENTITY="$(
             security find-identity -v -p codesigning "$KEYCHAIN_NAME" |
-              sed -n 's/.*"\(.* Distribution: .* (7WLXT3NR37)\)".*/\1/p' |
+              awk -F'"' -v team="$CMUX_APPLE_TEAM_ID" '/ Distribution:/ && index($2, "(" team ")") { print $2; exit }'  |
               head -n 1
           )"
           if [ -z "$IOS_DISTRIBUTION_IDENTITY" ]; then
-            echo "No Apple Distribution identity for team 7WLXT3NR37 was found in the imported certificate" >&2
+            echo "No Apple Distribution identity for team $CMUX_APPLE_TEAM_ID was found in the imported certificate" >&2
             exit 1
           fi
           echo "IOS_DISTRIBUTION_IDENTITY=$IOS_DISTRIBUTION_IDENTITY" >> "$GITHUB_ENV"
@@ -555,7 +560,7 @@ jobs:
           if not re.fullmatch(r'[0-9]+', build_number):
               print(f'No numeric build number ({build_number!r}); not recording an upload.')
               raise SystemExit(0)
-          marker = {'sha': os.environ['GITHUB_SHA'], 'app_id': '6783338052', 'build_number': build_number}
+          marker = {'sha': os.environ['GITHUB_SHA'], 'app_id': os.environ['ASC_APP_ID'], 'build_number': build_number}
           Path(os.environ['RUNNER_TEMP'], 'cmux-app-upload-marker', 'upload.json').write_text(json.dumps(marker))
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output:
               output.write('recorded=true\n')
@@ -593,7 +598,7 @@ jobs:
         run: |
           {
             echo '### cmux.app internal TestFlight'
-            echo '- App: 6783338052 (com.cmux.app)'
+            echo "- App: $ASC_APP_ID (app.w3dev.cmux.ios)"
             echo "- Revision: $GITHUB_SHA"
             echo "- Build: $BUILD_NUMBER"
             echo '- Group: cmux release internal'
@@ -666,6 +671,6 @@ jobs:
       - name: Wait for processing and assign the official internal group
         run: |
           python3 ios/scripts/asc_assign_internal_testflight_group.py \
-            --bundle-id com.cmux.app \
+            --bundle-id app.w3dev.cmux.ios \
             --build-number "$BUILD_NUMBER" \
             --group-id ac3d6e62-36ce-4669-88e1-7ee489aac612

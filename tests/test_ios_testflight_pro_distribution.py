@@ -41,9 +41,9 @@ def workflow_job(text: str, name: str) -> str:
 def test_distribution_helper_resolves_automatic_internal_upload() -> None:
     helper = load_distribution_helper()
 
-    decision = helper.resolve_distribution("internal", "")
+    decision = helper.resolve_distribution("internal", "", "FORKTEAM12")
 
-    assert decision.bundle_id == "dev.cmux.app.internal"
+    assert decision.bundle_id == "app.w3dev.cmux.ios.internal"
     assert decision.display_name == "cmux INTERNAL"
     assert decision.profile_type == "internal"
     assert decision.assign_external_group is False
@@ -54,9 +54,9 @@ def test_distribution_helper_resolves_automatic_internal_upload() -> None:
 def test_distribution_helper_resolves_demo_upload() -> None:
     helper = load_distribution_helper()
 
-    decision = helper.resolve_distribution("demo", "")
+    decision = helper.resolve_distribution("demo", "", "FORKTEAM12")
 
-    assert decision.bundle_id == "dev.cmux.app.demo"
+    assert decision.bundle_id == "app.w3dev.cmux.ios.demo"
     assert decision.display_name == "cmux DEMO"
     assert decision.profile_type == "demo"
     assert decision.assign_external_group is False
@@ -67,9 +67,9 @@ def test_distribution_helper_resolves_demo_upload() -> None:
 def test_distribution_helper_resolves_manual_external_override() -> None:
     helper = load_distribution_helper()
 
-    decision = helper.resolve_distribution("internal", "1.2.3")
+    decision = helper.resolve_distribution("internal", "1.2.3", "FORKTEAM12")
 
-    assert decision.bundle_id == "dev.cmux.app.beta"
+    assert decision.bundle_id == "app.w3dev.cmux.ios.beta"
     assert decision.display_name == "cmux BETA"
     assert decision.profile_type == "beta"
     assert decision.assign_external_group is True

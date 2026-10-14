@@ -216,14 +216,14 @@ extension CMUXCLI {
         switch name {
         case "cmux.sock":
             return Self.cmuxThemeOverrideBundleIdentifier
-        case "cmux-debug.sock":
-            return "com.cmuxterm.app.debug"
-        case "cmux-nightly.sock":
-            return "com.cmuxterm.app.nightly"
-        case "cmux-rc.sock":
-            return "com.cmuxterm.app.rc"
-        case "cmux-staging.sock":
-            return "com.cmuxterm.app.staging"
+        case "cmux-w3dev-debug.sock":
+            return "app.w3dev.cmux.debug"
+        case "cmux-w3dev-nightly.sock":
+            return "app.w3dev.cmux.nightly"
+        case "cmux-w3dev-rc.sock":
+            return "app.w3dev.cmux.rc"
+        case "cmux-w3dev-staging.sock":
+            return "app.w3dev.cmux.staging"
         default:
             break
         }
@@ -232,17 +232,17 @@ extension CMUXCLI {
             return Self.cmuxThemeOverrideBundleIdentifier
         }
 
-        if let slug = themeReloadSocketSlug(name, prefix: "cmux-debug-", suffix: ".sock") {
-            return "com.cmuxterm.app.debug.\(slug)"
+        if let slug = themeReloadSocketSlug(name, prefix: "cmux-w3dev-debug-", suffix: ".sock") {
+            return "app.w3dev.cmux.debug.\(slug)"
         }
-        if let slug = themeReloadSocketSlug(name, prefix: "cmux-nightly-", suffix: ".sock") {
-            return "com.cmuxterm.app.nightly.\(slug)"
+        if let slug = themeReloadSocketSlug(name, prefix: "cmux-w3dev-nightly-", suffix: ".sock") {
+            return "app.w3dev.cmux.nightly.\(slug)"
         }
-        if let slug = themeReloadSocketSlug(name, prefix: "cmux-rc-", suffix: ".sock") {
-            return "com.cmuxterm.app.rc.\(slug)"
+        if let slug = themeReloadSocketSlug(name, prefix: "cmux-w3dev-rc-", suffix: ".sock") {
+            return "app.w3dev.cmux.rc.\(slug)"
         }
-        if let slug = themeReloadSocketSlug(name, prefix: "cmux-staging-", suffix: ".sock") {
-            return "com.cmuxterm.app.staging.\(slug)"
+        if let slug = themeReloadSocketSlug(name, prefix: "cmux-w3dev-staging-", suffix: ".sock") {
+            return "app.w3dev.cmux.staging.\(slug)"
         }
         return nil
     }

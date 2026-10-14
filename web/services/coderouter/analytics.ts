@@ -577,7 +577,7 @@ function boundedNumber(value: unknown, maximum: number): number | null {
 /** The main cmux project, same key and capture host as every other server sink. */
 export function coderouterAnalyticsConfig(): CoderouterAnalyticsConfig | null {
   const projectKey = POSTHOG_PROJECT_KEY?.trim();
-  if (!projectKey) return null;
+  if (!projectKey || !POSTHOG_HOST) return null;
   return { projectKey, ingestHost: POSTHOG_HOST };
 }
 

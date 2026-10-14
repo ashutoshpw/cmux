@@ -357,7 +357,7 @@ struct CloudCreateMachineSheet: View {
         }
     }
 
-    private static let pricingURL = URL(string: "https://cmux.com/pricing")!
+    private static let pricingURL = URL(string: "https://cmux.w3dev.app/pricing")!
     private static let fallbackMemoryMb = 8192
 
     private var machineKind: CloudMachineKind {

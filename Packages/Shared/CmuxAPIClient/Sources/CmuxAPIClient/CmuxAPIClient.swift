@@ -97,7 +97,6 @@ private struct StackAuthMiddleware: ClientMiddleware {
     ) async throws -> (HTTPResponse, HTTPBody?) {
         var request = request
         request.headerFields[.authorization] = "Bearer \(accessToken)"
-        request.headerFields[HTTPField.Name("X-Stack-Refresh-Token")!] = refreshToken
         return try await next(request, body, baseURL)
     }
 }

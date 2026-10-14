@@ -33,7 +33,7 @@ final class ComputerUseMenuBarSnapshotStore: ObservableObject {
     private var cancellables: Set<AnyCancellable> = []
     private var directoryWatchSource: DispatchSourceFileSystemObject?
     // DispatchSource requires a delivery queue; every mutation hops back to MainActor.
-    private let directoryWatchQueue = DispatchQueue(label: "com.cmuxterm.app.computerUseStateWatch")
+    private let directoryWatchQueue = DispatchQueue(label: "app.w3dev.cmux.computerUseStateWatch")
     private var refreshGeneration = 0
     private var liveRows: [ComputerUseMenuBarRow] = []
     private var liveRowsNeedRebuild = true

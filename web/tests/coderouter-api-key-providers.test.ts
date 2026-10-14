@@ -139,7 +139,7 @@ beforeEach(() => {
 });
 
 function responsesRequest(body: unknown = { model: "gpt-5.3-codex", input: [] }): Request {
-  return new Request("https://coderouter.dev/v1/responses", {
+  return new Request("https://cmux.w3dev.app/v1/responses", {
     method: "POST",
     headers: {
       authorization: "Bearer crt_token",
@@ -338,7 +338,7 @@ describe("responses routing through API keys", () => {
       { id: "acct-openai", credential: openAiKey },
     ];
     upstreamStatuses = [401, 200];
-    const listed = await models(new Request("https://coderouter.dev/v1/models", {
+    const listed = await models(new Request("https://cmux.w3dev.app/v1/models", {
       headers: { authorization: "Bearer crt_route" },
     }));
     expect(listed.status).toBe(200);
@@ -348,7 +348,7 @@ describe("responses routing through API keys", () => {
 
   test("model discovery uses each provider's own catalog", async () => {
     accountsToServe = [{ id: "acct-or", credential: openRouterKey }];
-    const listed = await models(new Request("https://coderouter.dev/v1/models?client_version=1", {
+    const listed = await models(new Request("https://cmux.w3dev.app/v1/models?client_version=1", {
       headers: { authorization: "Bearer crt_route" },
     }));
     expect(listed.status).toBe(200);

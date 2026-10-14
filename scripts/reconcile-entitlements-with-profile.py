@@ -34,7 +34,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import fnmatch
 import plistlib
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -88,7 +90,54 @@ def load_profile_entitlements(path: Path) -> tuple[dict, str | None]:
     return entitlements, app_id if isinstance(app_id, str) else None
 
 
-def profile_grants_tunnel(profile_entitlements: dict | None) -> bool:
+def resolve_identity(entitlements: dict, profile: dict | None, bundle_id: str | None, signing_team: str | None) -> dict:
+    """Resolve build variables from the exact profile; reject foreign identity grants."""
+    if profile is None:
+        if "$(" in repr(entitlements):
+            raise ValueError("identity templates require an embedded provisioning profile")
+        return dict(entitlements)
+    app_id = profile.get("com.apple.application-identifier")
+    team = profile.get("com.apple.developer.team-identifier")
+    if not isinstance(app_id, str) or not isinstance(team, str) or not re.fullmatch(r"[A-Z0-9]{10}", team):
+        raise ValueError("profile must grant an exact application identifier and a valid signing team")
+    prefix, separator, profile_bundle = app_id.partition(".")
+    if not separator or not re.fullmatch(r"[A-Z0-9]{10}", prefix) or "*" in profile_bundle:
+        raise ValueError("profile must grant an exact application identifier")
+    if bundle_id is not None and profile_bundle != bundle_id:
+        raise ValueError(f"profile bundle {profile_bundle} does not match built bundle {bundle_id}")
+    if signing_team is not None and team != signing_team:
+        raise ValueError(f"profile team {team} does not match signing team {signing_team}")
+
+    def resolve(value):
+        if isinstance(value, str):
+            value = value.replace("$(AppIdentifierPrefix)", prefix + ".").replace("$(DEVELOPMENT_TEAM)", team)
+            value = value.replace("$(PRODUCT_BUNDLE_IDENTIFIER)", profile_bundle)
+            if "$(" in value:
+                raise ValueError(f"unresolved entitlement variable: {value}")
+            return value
+        if isinstance(value, list):
+            return [resolve(item) for item in value]
+        return value
+
+    effective = {key: resolve(value) for key, value in entitlements.items()}
+    for key, expected in (("com.apple.application-identifier", app_id), ("com.apple.developer.team-identifier", team)):
+        if key in effective and effective[key] != expected:
+            raise ValueError(f"desired {key} does not match embedded profile identity")
+    for key in ("keychain-access-groups", APP_GROUPS_KEY):
+        if key not in effective:
+            continue
+        grants = profile.get(key, [])
+        if not isinstance(grants, list) or not isinstance(effective[key], list):
+            raise ValueError(f"invalid profile grants for {key}")
+        for group in effective[key]:
+            if not isinstance(group, str) or "*" in group or not any(
+                isinstance(grant, str) and fnmatch.fnmatchcase(group, grant) for grant in grants
+            ):
+                raise ValueError(f"profile does not authorize exact {key} group {group}")
+    return effective
+
+
+def profile_grants_tunnel(profile_entitlements: dict | None, *, requires_install: bool = True) -> bool:
     if profile_entitlements is None:
         return False
     capabilities = profile_entitlements.get(NETWORK_EXTENSION_KEY)
@@ -96,13 +145,15 @@ def profile_grants_tunnel(profile_entitlements: dict | None) -> bool:
         capabilities = [capabilities]
     if not isinstance(capabilities, list) or PACKET_TUNNEL_SYSTEM_EXTENSION not in capabilities:
         return False
-    return profile_entitlements.get(SYSTEM_EXTENSION_INSTALL_KEY) is True
+    return not requires_install or profile_entitlements.get(SYSTEM_EXTENSION_INSTALL_KEY) is True
 
 
 def reconcile(entitlements: dict, profile_entitlements: dict | None) -> tuple[dict, dict]:
     """Return (effective entitlements, summary)."""
     wants_tunnel = NETWORK_EXTENSION_KEY in entitlements or SYSTEM_EXTENSION_INSTALL_KEY in entitlements
-    supported = wants_tunnel and profile_grants_tunnel(profile_entitlements)
+    supported = wants_tunnel and profile_grants_tunnel(
+        profile_entitlements, requires_install=SYSTEM_EXTENSION_INSTALL_KEY in entitlements
+    )
     effective = dict(entitlements)
     dropped: list[str] = []
     dropped_for_system_extension: list[str] = []
@@ -139,6 +190,8 @@ def main(argv: list[str]) -> int:
     source.add_argument("--profile", type=Path, help="embedded.provisionprofile or decoded plist")
     source.add_argument("--no-profile", action="store_true", help="signing run without a provisioning profile")
     parser.add_argument("--output", required=True, type=Path, help="where to write the effective entitlements plist")
+    parser.add_argument("--bundle-identifier", help="exact CFBundleIdentifier of the bundle being signed")
+    parser.add_argument("--team-identifier", help="team of the selected Developer ID signing certificate")
     parser.add_argument("--json", action="store_true", help="print a JSON summary on stdout")
     args = parser.parse_args(argv)
 
@@ -161,7 +214,14 @@ def main(argv: list[str]) -> int:
             print(exc, file=sys.stderr)
             return 1
 
+    # Drop unavailable tunnel keys before checking their group grants, so the
+    # existing no-tunnel report remains useful. Identity keys always fail closed.
     effective, summary = reconcile(entitlements, profile_entitlements)
+    try:
+        effective = resolve_identity(effective, profile_entitlements, args.bundle_identifier, args.team_identifier)
+    except ValueError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
     summary["profile_app_id"] = profile_app_id
     with args.output.open("wb") as handle:
         plistlib.dump(effective, handle, fmt=plistlib.FMT_XML, sort_keys=False)

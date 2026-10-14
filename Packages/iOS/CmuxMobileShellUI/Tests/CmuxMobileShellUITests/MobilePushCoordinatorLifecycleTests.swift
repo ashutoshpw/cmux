@@ -270,7 +270,7 @@ private final class LifecyclePushURLProtocol: URLProtocol,
         defaults.set(true, forKey: "cmux.notifications.pushEnabled")
         let coordinator = MobilePushCoordinator(
             registration: registration,
-            phoneAPIOrigin: "https://cmux.com",
+            phoneAPIOrigin: "https://cmux.w3dev.app",
             defaults: defaults,
             authorizationStatus: { .authorized }
         )
@@ -280,7 +280,7 @@ private final class LifecyclePushURLProtocol: URLProtocol,
             mode: .always,
             admission: .allowed,
             queuePersistence: .healthy,
-            apiOrigin: "https://cmux.com",
+            apiOrigin: "https://cmux.w3dev.app",
             accountScope: .verifiedSameAccount
         )
 
@@ -581,7 +581,7 @@ private final class LifecyclePushURLProtocol: URLProtocol,
         let registration = PushRegistrationService(
             tokenProvider: LifecycleTokenProvider(),
             apiBaseURL: "https://push-lifecycle.test",
-            bundleID: "dev.cmux.ios.push-lifecycle",
+            bundleID: "app.w3dev.cmux.ios.debug.push-lifecycle",
             apnsEnvironment: "sandbox",
             suiteName: suiteName,
             session: URLSession(configuration: configuration),

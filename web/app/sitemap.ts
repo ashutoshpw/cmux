@@ -20,7 +20,7 @@ import {
   changelogVersionPath,
 } from "./lib/changelog";
 import { changelogStore } from "./lib/changelog-store";
-import { isDocsZoneDeployment } from "./lib/docs-channel";
+import { isDocsZoneDeployment, releaseDocsOrigin } from "./lib/docs-channel";
 import { keepServedDocsEntries, releaseDocsUrls } from "./lib/release-docs-sitemap";
 
 /**
@@ -31,7 +31,7 @@ import { keepServedDocsEntries, releaseDocsUrls } from "./lib/release-docs-sitem
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries = sitemapEntries();
-  if (isDocsZoneDeployment()) return entries;
+  if (isDocsZoneDeployment() || !releaseDocsOrigin()) return entries;
   try {
     return keepServedDocsEntries(entries, new Set(await releaseDocsUrls()));
   } catch (error) {
@@ -42,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
 /** Builds localized sitemap entries, excluding unreleased download pages. */
 export function sitemapEntries(): MetadataRoute.Sitemap {
-  const base = "https://cmux.com";
+  const base = "https://cmux.w3dev.app";
   const changelog = changelogStore.versions();
   const latestChangelogDate = changelog[0]?.date ?? "2026-03-18";
 

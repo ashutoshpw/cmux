@@ -16,10 +16,10 @@ describe("billing links", () => {
   test("preserves existing query strings and hash fragments", () => {
     expect(
       withCheckoutExternalBrowserIntent(
-        "https://cmux.com/api/billing/checkout?plan=pro#pay",
+        "https://cmux.w3dev.app/api/billing/checkout?plan=pro#pay",
       ),
     ).toBe(
-      "https://cmux.com/api/billing/checkout?plan=pro&cmux_external_browser=1#pay",
+      "https://cmux.w3dev.app/api/billing/checkout?plan=pro&cmux_external_browser=1#pay",
     );
   });
 
@@ -27,8 +27,11 @@ describe("billing links", () => {
     expect(appPricingCheckoutURL("pro", "http://localhost:9210")).toBe(
       "http://localhost:9210/api/billing/checkout?plan=pro&cmux_external_browser=1",
     );
+    expect(appPricingCheckoutURL("team", "https://cmux.w3dev.app")).toBe(
+      "https://cmux.w3dev.app/api/billing/checkout?plan=team&cmux_external_browser=1",
+    );
     expect(appPricingCheckoutURL("team", "https://cmux.com")).toBe(
-      "https://cmux.com/api/billing/checkout?plan=team&cmux_external_browser=1",
+      "https://cmux.w3dev.app/api/billing/checkout?plan=team&cmux_external_browser=1",
     );
   });
 

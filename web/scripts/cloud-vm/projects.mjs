@@ -3,22 +3,22 @@ import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import path from "node:path";
 
+const deployment = JSON.parse(readFileSync(new URL("../../../config/fork-deployment.json", import.meta.url), "utf8"));
+
 export const projects = {
   staging: {
-    projectId: "prj_804LTAUdOwulMvEfcmfnU8bvGo3T",
-    orgId: "team_KndpHsJ15gO2OoAP2SO0thYn",
-    projectName: "cmux-staging",
+    projectId: deployment.vercel.stagingProjectID,
+    orgId: deployment.vercel.orgID,
+    projectName: deployment.vercel.stagingProjectID,
     label: "staging",
-    url: "https://cmux-staging.vercel.app",
-    stackLabel: "staging",
+    url: deployment.stagingOrigin,
   },
   production: {
-    projectId: "prj_kH8qcuoliyJ2TLI4vMM03rnNVzr4",
-    orgId: "team_KndpHsJ15gO2OoAP2SO0thYn",
-    projectName: "cmux",
+    projectId: deployment.vercel.projectID,
+    orgId: deployment.vercel.orgID,
+    projectName: deployment.vercel.projectID,
     label: "production",
-    url: "https://cmux.com",
-    stackLabel: "prod",
+    url: deployment.productionOrigin,
   },
 };
 
@@ -52,10 +52,11 @@ export const requiredRuntimeEnvKeys = [
   "CLICKHOUSE_USER",
   "CODEROUTER_KMS_KEY_ID",
   "FREESTYLE_API_KEY",
-  "NEXT_PUBLIC_STACK_PROJECT_ID",
-  "NEXT_PUBLIC_STACK_PUBLISHABLE_CLIENT_KEY",
+  "BETTER_AUTH_SECRET",
+  "BETTER_AUTH_URL",
+  "RESEND_API_KEY",
+  "CMUX_AUTH_FROM_EMAIL",
   "DATABASE_URL",
-  "STACK_SECRET_SERVER_KEY",
 ];
 
 // Some providers expose more than one supported credential form. Keep the
@@ -173,6 +174,7 @@ export function resolveProject(targetArg, usage) {
     console.error(usage);
     process.exit(2);
   }
+  if (!project.projectId) throw new Error(`Fork ${target} Vercel project is not configured in config/fork-deployment.json`);
   return { target, project };
 }
 
@@ -224,12 +226,12 @@ export function pullProductionEnv(project) {
 export function pullProductionEnvWithMetadata(project) {
   return withLinkedVercelProject(project, (scratch) => {
     const envFile = path.join(scratch, `${project.projectName}.env`);
-    runVercel(["env", "pull", envFile, "--environment=production", "--scope", "manaflow", "--cwd", scratch], {
+    runVercel(["env", "pull", envFile, "--environment=production", "--scope", project.orgId, "--cwd", scratch], {
       stdio: ["ignore", "pipe", "inherit"],
     });
     const env = loadEnv(envFile);
     const metadataOutput = runVercel(
-      ["env", "ls", "production", "--format", "json", "--scope", "manaflow", "--cwd", scratch],
+      ["env", "ls", "production", "--format", "json", "--scope", project.orgId, "--cwd", scratch],
       { stdio: ["ignore", "pipe", "inherit"] },
     );
     let metadata;

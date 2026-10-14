@@ -4,7 +4,7 @@
 #
 # The `cmux-tui artifacts` workflow publishes one client build per main commit that
 # touches cmux-tui or its build inputs, at
-# https://files.cmux.com/cmux-tui/<commit>/manifest.json. The app workflows bundle the
+# https://files.cmux.w3dev.app/cmux-tui/<commit>/manifest.json. The app workflows bundle the
 # client of the newest such commit in the checked-out history.
 #
 # A bare `git log -1 -- <paths>` is wrong on CI: actions/checkout clones with depth 1,
@@ -27,7 +27,7 @@
 #                       manifest yet (artifacts run failed or still running). Default 0: a
 #                       commit with HEAD's exact inputs must be published, or this fails.
 #   --head <rev>        history to search (default HEAD).
-# Env: CMUX_TUI_CLIENT_MANIFEST_BASE (default https://files.cmux.com/cmux-tui),
+# Env: CMUX_TUI_CLIENT_MANIFEST_BASE (default https://files.cmux.w3dev.app/cmux-tui),
 #      CMUX_TUI_CLIENT_REMOTE (default origin; where a shallow clone deepens from),
 #      CMUX_TUI_CLIENT_FETCH_ATTEMPTS (default 5; tries per deepen before giving up),
 #      CMUX_TUI_CLIENT_FETCH_RETRY_SECONDS (default 2; first backoff, doubles per try),
@@ -35,9 +35,11 @@
 #      a transient failure; a 404 never waits).
 # The chosen 40-hex commit is the only stdout line; diagnostics go to stderr.
 set -euo pipefail
+ROOT_FORK_CONFIG="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)/scripts/lib/fork-deployment.env"
+source "$ROOT_FORK_CONFIG"
 
 PATHS=(cmux-tui ghostty .github/workflows/cmux-tui-artifacts.yml .github/workflows/cmux-tui-build-package.yml)
-BASE="${CMUX_TUI_CLIENT_MANIFEST_BASE:-https://files.cmux.com/cmux-tui}"
+BASE="${CMUX_TUI_CLIENT_MANIFEST_BASE:-${CMUX_FORK_ARTIFACTS_ORIGIN}/cmux-tui}"
 REMOTE="${CMUX_TUI_CLIENT_REMOTE:-origin}"
 MAX_FALLBACK=0
 HEAD_REV=HEAD

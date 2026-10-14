@@ -316,7 +316,6 @@ private final class NativePricingPlanStore: ObservableObject {
 
         if let billingTokens {
             request.setValue("Bearer \(billingTokens.accessToken)", forHTTPHeaderField: "Authorization")
-            request.setValue(billingTokens.refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         }
 
         do {

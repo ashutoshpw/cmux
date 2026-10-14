@@ -26,7 +26,7 @@ struct WorkspaceRemoteDaemonRecoveryTests {
             relayPort: 64_021,
             relayID: String(repeating: "c", count: 16),
             relayToken: String(repeating: "d", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh dev@example.com",
             preserveAfterTerminalExit: true,
             skipDaemonBootstrap: true
@@ -79,7 +79,7 @@ struct WorkspaceRemoteDaemonRecoveryTests {
             relayPort: 64_022,
             relayID: String(repeating: "e", count: 16),
             relayToken: String(repeating: "f", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test-bootstrap.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test-bootstrap.sock",
             terminalStartupCommand: "ssh dev@example.com",
             preserveAfterTerminalExit: true,
             skipDaemonBootstrap: true
@@ -147,7 +147,7 @@ struct WorkspaceRemoteDaemonRecoveryTests {
             relayPort: 64_023,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test-ssh-error.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test-ssh-error.sock",
             terminalStartupCommand: "ssh dev@example.com",
             preserveAfterTerminalExit: true,
             skipDaemonBootstrap: true
@@ -221,7 +221,7 @@ struct WorkspaceRemoteDaemonRecoveryTests {
             relayPort: 64_024,
             relayID: String(repeating: "1", count: 16),
             relayToken: String(repeating: "2", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test-suspended.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test-suspended.sock",
             terminalStartupCommand: "ssh dev@example.com",
             preserveAfterTerminalExit: true,
             skipDaemonBootstrap: true

@@ -18,7 +18,7 @@ private let authLog = Logger(subsystem: "ai.manaflow.cmux", category: "auth")
 ///
 /// ```swift
 /// let coordinator = AuthCoordinator(
-///     client: StackAuthClient(config: config, tokenStore: .keychain),
+///     client: client, // BetterAuthClient configured at the composition root.
 ///     sessionCache: CMUXAuthSessionCache(keyValueStore: defaults, key: "auth_has_tokens"),
 ///     userCache: CMUXAuthIdentityStore(keyValueStore: defaults, key: "auth_cached_user"),
 ///     teamSelection: CMUXAuthTeamSelectionStore(keyValueStore: defaults, key: "auth_selected_team"),
@@ -191,7 +191,7 @@ public final class AuthCoordinator {
     /// Creates an auth coordinator.
     ///
     /// - Parameters:
-    ///   - client: The auth backend seam (production: ``StackAuthClient``).
+    ///   - client: The auth backend seam (production: ``BetterAuthClient``).
     ///   - sessionCache: Persists the "has tokens" flag (injected key-value store).
     ///   - userCache: Persists the cached user (injected key-value store).
     ///   - teamSelection: Persists the selected team id (injected key-value store).
@@ -380,6 +380,19 @@ public final class AuthCoordinator {
     /// Sign in with GitHub.
     public func signInWithGitHub() async throws { try await signInWithOAuth(provider: "github") }
 
+    /// Signs in through the registered public client in the system browser.
+    public func signInWithBrowser() async throws { try await signInWithOAuth(provider: "") }
+
+    /// Prepares storage ownership before a host-managed browser attempt starts.
+    public func prepareBrowserSignIn() async throws -> UInt64? {
+        try await client.prepareBrowserSignIn()
+    }
+
+    /// Invalidates only the pending browser attempt owning the supplied receipt.
+    public func cancelBrowserSignIn(attemptGeneration: UInt64) async {
+        await client.cancelBrowserSignIn(attemptGeneration: attemptGeneration)
+    }
+
     private func signInWithOAuth(provider: String) async throws {
         // Captured before the first await so a sign-out landing anywhere in
         // this flow (connectivity probe, OAuth exchange, user fetch) wins.
@@ -396,7 +409,8 @@ public final class AuthCoordinator {
             let client = self.client
             let anchor = self.anchor
             try await runExchange(.oauth, flow: flow, timeout: timeouts.interactiveFlow) {
-                try await client.signInWithOAuth(provider: provider, anchor: anchor)
+                let generation = try await client.prepareBrowserSignIn()
+                try await client.signInWithOAuth(provider: provider, anchor: anchor, attemptGeneration: generation)
             }
             try await completeSignIn(flow: flow)
         } catch {

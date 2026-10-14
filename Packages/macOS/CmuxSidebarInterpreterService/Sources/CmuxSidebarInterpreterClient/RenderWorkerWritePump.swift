@@ -55,11 +55,11 @@ final class RenderWorkerWritePump: @unchecked Sendable {
             Double(components.seconds) + Double(components.attoseconds) / 1e18
         )
         writerQueue = DispatchQueue(
-            label: "com.cmuxterm.sidebar-render-writer.\(generation)",
+            label: "app.w3dev.cmux.sidebar-render-writer.\(generation)",
             qos: .userInitiated
         )
         deadlineQueue = DispatchQueue(
-            label: "com.cmuxterm.sidebar-render-writer-deadline.\(generation)",
+            label: "app.w3dev.cmux.sidebar-render-writer-deadline.\(generation)",
             qos: .userInitiated
         )
     }

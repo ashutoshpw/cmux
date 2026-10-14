@@ -1,3 +1,4 @@
+import CMUXAuthCore
 import CmuxAuthRuntime
 import CmuxCloud
 import CmuxFoundation
@@ -89,11 +90,11 @@ enum CodeRouterHandoffClientError: Error, Equatable, Sendable, CustomStringConve
 /// Mints a hosted CodeRouter handoff lease with the native Stack session.
 ///
 /// This actor owns an ephemeral, cookie-free URLSession. It sends the
-/// coherent Stack access/refresh pair only to the configured cmux VM API
+/// a fresh OAuth access token only to the configured cmux VM API
 /// origin, and it refuses to return a lease if the account or selected team
 /// changes while the request is in flight.
 actor CodeRouterHandoffClient {
-    private static let hostedOrigin = URL(string: "https://coderouter.dev")!
+    private static let hostedOrigin = URL(string: ForkDeployment.productionOrigin)!
     /// Maximum time for the hosted mint HTTP request. The socket worker and
     /// CLI layers use longer bounded deadlines around this value.
     nonisolated static let httpTimeoutSeconds: TimeInterval = 18
@@ -111,7 +112,7 @@ actor CodeRouterHandoffClient {
         ) {
             // The handoff endpoint must never redirect a credential-bearing
             // request. Returning nil also prevents URLSession from forwarding
-            // Stack headers to another origin.
+            // credentials to another origin.
             completionHandler(nil)
         }
     }
@@ -252,7 +253,7 @@ actor CodeRouterHandoffClient {
               components.path.isEmpty || components.path == "/" else {
             return nil
         }
-        if host == "coderouter.dev" {
+        if [URL(string: ForkDeployment.productionOrigin)?.host, URL(string: ForkDeployment.stagingOrigin)?.host].contains(host) {
             guard components.scheme == "https",
                   components.port == nil else {
                 return nil
@@ -307,7 +308,6 @@ actor CodeRouterHandoffClient {
         // defense in depth for compliant caches.
         request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
         request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
-        request.setValue(refreshToken, forHTTPHeaderField: "X-Stack-Refresh-Token")
         if let teamID {
             request.setValue(teamID, forHTTPHeaderField: "X-Cmux-Team-Id")
         }

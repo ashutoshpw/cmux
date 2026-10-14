@@ -1,12 +1,11 @@
 const OFFICIAL_IOS_NAMESPACES = new Set([
-  "com.cmux.app",
-  "com.cmuxterm.app",
-  "dev.cmux.app.beta",
-  "dev.cmux.app.internal",
-  "dev.cmux.app.demo",
+  "app.w3dev.cmux.ios",
+  "app.w3dev.cmux.ios.beta",
+  "app.w3dev.cmux.ios.internal",
+  "app.w3dev.cmux.ios.demo",
 ]);
-const DEVELOPMENT_IOS_NAMESPACE_PREFIX = "dev.cmux.ios.";
-const DEVELOPMENT_MAC_NAMESPACE_PREFIX = "mac:com.cmuxterm.app.debug";
+const DEVELOPMENT_IOS_NAMESPACE_PREFIX = "app.w3dev.cmux.ios.debug.";
+const DEVELOPMENT_MAC_NAMESPACE_PREFIX = "mac:app.w3dev.cmux.debug";
 const NON_DEVELOPMENT_MAC_TAGS = new Set(["default", "nightly", "rc", "staging"]);
 
 type BuildBinding = {

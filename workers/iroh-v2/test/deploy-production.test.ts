@@ -12,7 +12,7 @@ const MOCK_HEAD = "0123456789abcdef0123456789abcdef01234567";
 
 async function probe(scenario: string, options: { missingCurl?: boolean; dirtyTree?: boolean; environment?: "production" | "staging";
   /** The active version predates the account migration; staging may already have applied it. */
-  preAccount?: boolean; stagingMigrated?: boolean; allowMigration?: string } = {}) {
+  preAccount?: boolean; stagingMigrated?: boolean; allowMigration?: string; accountId?: string; declaredAccountId?: string } = {}) {
   const directory = await mkdtemp(join(tmpdir(), "iroh-deploy-test-"));
   const state = join(directory, "state.json");
   const calls = join(directory, "calls.log");
@@ -51,6 +51,7 @@ def status(annotations, created='2026-09-15T00:00:00.000Z', version='old-version
             'versions': [{'version_id': version, 'percentage': 100}]}
 
 if args[:2] == ['deployments', 'status']:
+    if os.environ['PROBE_SCENARIO'] == 'fresh-worker': sys.exit(1)
     print(state_path.read_text())
 elif args[:2] == ['versions', 'view']:
     migration_tag = 'older-tag' if os.environ['PROBE_SCENARIO'] == 'pending-migration' else 'iroh-v2-account-control-1'
@@ -58,7 +59,7 @@ elif args[:2] == ['versions', 'view']:
                 {'name':'USER_USAGE','type':'durable_object_namespace','class_name':'UserUsage','namespace_id':'user-ns'},
                 {'name':'ACCOUNT_CONTROL','type':'durable_object_namespace','class_name':'AccountControl','namespace_id':'account-ns'},
                 {'name':'CMUX_SOURCE_REVISION','type':'plain_text','text':'${MOCK_HEAD}'}]
-    staging_view = 'cmux-v2-staging' in args and os.environ['PROBE_ENVIRONMENT'] == 'production'
+    staging_view = 'w3dev-cmux-v2-staging' in args and os.environ['PROBE_ENVIRONMENT'] == 'production'
     if os.environ.get('PROBE_PRE_ACCOUNT') == '1' and args[2] == 'old-version' and not (staging_view and os.environ.get('PROBE_STAGING_MIGRATED') == '1'):
         migration_tag = 'iroh-v2-fresh-storage-1'
         bindings = [binding for binding in bindings if binding['name'] != 'ACCOUNT_CONTROL']
@@ -85,17 +86,17 @@ for flag, expected in [('--connect-timeout', '10'), ('--max-time', '30'), ('--ma
     except (ValueError, IndexError):
         sys.exit(28)
 url = next(value for value in args if value.startswith('https://'))
-if os.environ['PROBE_SCENARIO'] == 'canonical-target' and not any(url.startswith(origin) for origin in ('https://cmux-v2.debussy.workers.dev/v2/', 'https://cmux-v2-staging.debussy.workers.dev/v2/')): sys.exit(97)
+if os.environ['PROBE_SCENARIO'] == 'canonical-target' and not any(url.startswith(origin) for origin in ('https://iroh.cmux.w3dev.app/v2/', 'https://iroh.staging.cmux.w3dev.app/v2/')): sys.exit(97)
 if args[-1].endswith('/v2/health'):
     deployment=json.loads(pathlib.Path(os.environ['MOCK_STATE']).read_text())
     deployed=deployment.get('annotations',{}).get('workers/message','') != 'old'
-    health={'schemaId':'health.v1','environment':('staging' if 'cmux-v2-staging' in url else 'production'),'sourceRevision':'${MOCK_HEAD}','rules':['cmux.mac-peer-inbound.v1'],'storage':{'maxSchemaVersion':7,'writeSchemaVersion':6}}
+    health={'schemaId':'health.v1','environment':('staging' if 'iroh.staging.cmux.w3dev.app' in url else 'production'),'sourceRevision':'${MOCK_HEAD}','rules':['cmux.mac-peer-inbound.v1'],'storage':{'maxSchemaVersion':7,'writeSchemaVersion':6}}
     scenario=os.environ['PROBE_SCENARIO']
     status='200'
     if scenario=='unknown-storage' and not deployed: health.pop('storage')
-    if scenario=='staging-mismatch' and 'cmux-v2-staging' in url: health['sourceRevision']='f'*40
+    if scenario=='staging-mismatch' and 'iroh.staging.cmux.w3dev.app' in url: health['sourceRevision']='f'*40
     if scenario=='post-health-failure' and deployed: health['rules']=[]
-    if scenario in ('late-pre-change','late-post-change') and 'cmux-v2-staging' not in url and deployed == (scenario=='late-post-change'):
+    if scenario in ('late-pre-change','late-post-change') and 'iroh.staging.cmux.w3dev.app' not in url and deployed == (scenario=='late-post-change'):
         deployment['created_on']='2026-09-15T04:00:00.000Z'
         deployment['annotations']={'workers/message':'someone-else'}
         pathlib.Path(os.environ['MOCK_STATE']).write_text(json.dumps(deployment))
@@ -106,8 +107,8 @@ payload = json.loads(pathlib.Path(payload_path).read_text())
 name = pathlib.Path(args[args.index('-o') + 1]).name.split('.')[0]
 identity = payload['device']['identity']
 expected = {
-    'production': ('production', '9790718f-14cd-4f7e-824d-eaf527a82b82') if os.environ['PROBE_ENVIRONMENT']=='production' else ('staging', '454ecd03-1db2-4050-845e-4ce5b0cd9895'),
-    'development': ('development', '454ecd03-1db2-4050-845e-4ce5b0cd9895') if os.environ['PROBE_ENVIRONMENT']=='production' else ('production', '9790718f-14cd-4f7e-824d-eaf527a82b82'),
+    'production': ('production', 'https://cmux.w3dev.app') if os.environ['PROBE_ENVIRONMENT']=='production' else ('staging', 'https://staging.cmux.w3dev.app'),
+    'development': ('development', 'https://staging.cmux.w3dev.app') if os.environ['PROBE_ENVIRONMENT']=='production' else ('production', 'https://cmux.w3dev.app'),
 }[name]
 if (identity['environment'], identity['projectId']) != expected: sys.exit(97)
 calls = pathlib.Path(os.environ['MOCK_CURL_CALLS'])
@@ -139,7 +140,8 @@ print(status, end='')
         ...cleanEnvironment,
         PATH: directory,
         REAL_BUN: process.execPath,
-        CLOUDFLARE_ACCOUNT_ID: "0c1675e0def6de1ab3a50a4e17dc5656",
+        CLOUDFLARE_ACCOUNT_ID: options.accountId ?? "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        CMUX_FORK_CLOUDFLARE_ACCOUNT_ID: options.declaredAccountId ?? "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
         PROBE_SCENARIO: scenario,
         PROBE_ENVIRONMENT: options.environment ?? "production",
         MOCK_STATE: state,
@@ -158,6 +160,28 @@ print(status, end='')
     };
   } finally { await rm(directory, { recursive: true, force: true }); }
 }
+
+test("missing or mismatched declared owned accounts stop before any provider command", async () => {
+  for (const options of [{ declaredAccountId: "" }, { declaredAccountId: "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb" }]) {
+    const result = await probe("valid", options);
+    expect(result.exit).toBe(2);
+    expect(result.calls).toBe("");
+    expect(result.output).toContain("explicit owned Cloudflare account configuration is required");
+  }
+});
+
+test("an upstream account cannot be made a fork target by declaring it twice", async () => {
+  const result = await probe("valid", { accountId: "0c1675e0def6de1ab3a50a4e17dc5656", declaredAccountId: "0c1675e0def6de1ab3a50a4e17dc5656" });
+  expect(result.exit).toBe(2);
+  expect(result.calls).toBe("");
+});
+
+test("a fresh Worker without an owned deployment receipt requires separate provisioning", async () => {
+  const result = await probe("fresh-worker");
+  expect(result.exit).not.toBe(0);
+  expect(result.calls).not.toContain("wrangler deploy ");
+  expect(result.calls).not.toContain("wrangler rollback ");
+});
 
 test("expected scope failures pass the production configuration check", async () => {
   const result = await probe("valid");
@@ -237,7 +261,7 @@ test("missing curl is rejected before running checks or deployment", async () =>
 test("deployment scope checks reach the canonical Worker, never its forwarding alias", async () => {
   const result = await probe("canonical-target");
   expect(result.exit).toBe(0);
-  expect(result.calls).toContain("--name cmux-v2");
+  expect(result.calls).toContain("--name w3dev-cmux-v2");
   expect(result.calls).not.toContain("--name cmux-iroh-v2");
 });
 
@@ -245,7 +269,7 @@ test("deployment scope checks reach the canonical Worker, never its forwarding a
 test("staging uses the same guards with its own environment and project", async () => {
   const result = await probe("valid", {environment: "staging"});
   expect(result.exit).toBe(0);
-  expect(result.calls).toContain("--name cmux-v2-staging");
+  expect(result.calls).toContain("--name w3dev-cmux-v2-staging");
   expect(result.calls).toContain("wrangler deploy --env staging --keep-vars --strict");
 });
 

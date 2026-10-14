@@ -362,7 +362,7 @@ struct RemoteDisconnectLifecycleTests {
             relayPort: 64007,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: "ssh cmux-macmini"
         )
     }

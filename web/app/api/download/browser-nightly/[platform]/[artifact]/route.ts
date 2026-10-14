@@ -40,6 +40,9 @@ export async function handleBrowserNightlyDownloadRequest(
     });
   } catch (error) {
     if (error instanceof BrowserNightlyDownloadError) {
+      if (error.code === "not_configured") {
+        return jsonError("browser_download_not_configured", 503);
+      }
       if (error.code === "not_found") {
         return jsonError("browser_download_not_found", 404);
       }

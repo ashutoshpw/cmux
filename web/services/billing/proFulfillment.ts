@@ -15,9 +15,9 @@ import {
   withAccountDeletionUserMutation,
 } from "../account/deletionLock";
 
-export const DEFAULT_PRO_FROM_EMAIL = "pro@cmux.com";
-export const PRO_REPLY_TO_EMAIL = "pro@cmux.com";
-export const PRO_TESTFLIGHT_SIGNUP_URL = "https://cmux.com/dashboard/testflight";
+export const DEFAULT_PRO_FROM_EMAIL = "";
+export const PRO_REPLY_TO_EMAIL = "support@w3dev.app";
+export const PRO_TESTFLIGHT_SIGNUP_URL = "https://cmux.w3dev.app/dashboard/testflight";
 const PRO_WELCOME_ATTEMPT_LEASE_MS = 2 * 60 * 1000;
 // Resend retains idempotency keys for 24 hours. Stop ambiguous retries one
 // hour earlier so a delayed webhook cannot duplicate an accepted email.
@@ -61,7 +61,7 @@ const defaultDependencies: ProFulfillmentDependencies = {
     const resend = new Resend(env.RESEND_API_KEY);
     return resend.emails.send(payload, options);
   },
-  fromEmail: () => env.CMUX_PRO_FROM_EMAIL ?? DEFAULT_PRO_FROM_EMAIL,
+  fromEmail: () => { const from = env.CMUX_PRO_FROM_EMAIL?.trim(); if (!from) throw new Error("CMUX_PRO_FROM_EMAIL must use an owned verified sender"); return from; },
   fulfillmentStore: {
     deliverOnce: async (input, deliver) => {
       const db = cloudDb();

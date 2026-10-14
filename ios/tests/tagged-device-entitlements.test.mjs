@@ -241,7 +241,7 @@ test("App Group fallback is narrow and preserves capable signing paths", () => {
 
   for (const entitlements of [appEntitlements, extensionEntitlements]) {
     assert.match(entitlements, /com\.apple\.security\.application-groups/u);
-    assert.match(entitlements, /group\.dev\.cmux\.ios/u);
+    assert.match(entitlements, /group\.app\.w3dev\.cmux\.ios\.debug/u);
   }
 
   const renderer = extractShellFunction(
@@ -251,7 +251,7 @@ test("App Group fallback is narrow and preserves capable signing paths", () => {
   assert.match(renderer, /Config\/cmux\.entitlements/u);
   assert.match(renderer, /Config\/NotificationService\.entitlements/u);
   assert.doesNotMatch(renderer, /release/i);
-  assert.match(renderer, /expected_group = \["group\.dev\.cmux\.ios"\]/u);
+  assert.match(renderer, /expected_group = \["group\.app\.w3dev\.cmux\.ios\.debug"\]/u);
 });
 
 test("tagged Simulator builds keep the existing full entitlement selection", () => {
@@ -265,7 +265,8 @@ test("tagged Simulator builds keep the existing full entitlement selection", () 
     sharedConfig,
     /CMUX_NOTIFICATION_SERVICE_CODE_SIGN_ENTITLEMENTS = Config\/NotificationService\.entitlements/u,
   );
-  assert.match(simulator, /CODE_SIGNING_ALLOWED=NO/u);
+  assert.match(simulator, /CODE_SIGNING_ALLOWED=YES/u);
+  assert.match(simulator, /CODE_SIGN_IDENTITY=-/u);
   assert.doesNotMatch(simulator, /fallback_entitlements|no-app-group/u);
 });
 
@@ -287,7 +288,7 @@ test("Release and TestFlight entitlement behavior stays on the production lane",
     /CODE_SIGN_ENTITLEMENTS = "\$\(CMUX_NOTIFICATION_SERVICE_CODE_SIGN_ENTITLEMENTS\)";/gu,
   ) ?? [];
   assert.equal(extensionSelectorMatches.length, 2);
-  assert.match(extensionEntitlements, /group\.dev\.cmux\.ios/u);
+  assert.match(extensionEntitlements, /group\.app\.w3dev\.cmux\.ios\.debug/u);
 
   assert.doesNotMatch(releaseConfig, /fallback_entitlements|no-app-group/u);
   assert.doesNotMatch(uploadTestFlight, /fallback_entitlements|no-app-group/u);

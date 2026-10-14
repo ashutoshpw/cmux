@@ -11,7 +11,7 @@ mock.module("../services/admin/routeAuth", () => ({
   ...realRouteAuth,
   requireAdmin: async () => ({
     ok: true,
-    admin: { id: "admin-1", primaryEmail: "admin@manaflow.ai" },
+    admin: { id: "admin-1", primaryEmail: "admin@w3dev.app" },
   }),
 }));
 mock.module("../services/admin/auditLog", () => ({
@@ -33,11 +33,11 @@ const { POST } = await import("../app/api/admin/email-grants/route");
 describe("admin email grants conflict", () => {
   test("a grant that loses the account mutation lease returns 409", async () => {
     const response = await POST(
-      new NextRequest("https://cmux.com/api/admin/email-grants", {
+      new NextRequest("https://w3dev.app/api/admin/email-grants", {
         method: "POST",
         headers: {
           "content-type": "application/json",
-          origin: "https://cmux.com",
+          origin: "https://w3dev.app",
           "sec-fetch-site": "same-origin",
         },
         body: JSON.stringify({ email: "pat@example.com", plan: "pro" }),

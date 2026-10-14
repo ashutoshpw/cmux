@@ -1,9 +1,9 @@
 name: Nightly macOS build
 
 # One workflow, two publish channels. A push to `main` publishes cmux NIGHTLY
-# (bundle id com.cmuxterm.app.nightly, GitHub release `nightly`, feed
-# files.cmux.com/nightly). A push to an `rc/**` branch publishes cmux RC
-# (com.cmuxterm.app.rc, release `rc`, feed files.cmux.com/rc). The two channels
+# (bundle id app.w3dev.cmux.nightly, GitHub release `nightly`, feed
+# files.cmux.w3dev.app/nightly). A push to an `rc/**` branch publishes cmux RC
+# (app.w3dev.cmux.rc, release `rc`, feed files.cmux.w3dev.app/rc). The two channels
 # install side by side with each other and with stable, and each Sparkle feed
 # only ever advances within its own channel. Everything channel-specific is
 # resolved once in `decide`; every later job reads it from there.
@@ -101,8 +101,9 @@ concurrency:
 permissions: {}
 
 env:
+  CMUX_APPLE_TEAM_ID: ${{ vars.CMUX_APPLE_TEAM_ID }}
   CREATE_DMG_VERSION: 8.0.0
-  CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL || 'https://ci-cache.cmux.com' }}
+  CI_CACHE_R2_PUBLIC_URL: ${{ vars.CI_CACHE_R2_PUBLIC_URL }}
 
 jobs:
   decide:
@@ -200,24 +201,24 @@ jobs:
             const channel = isRcRef ? 'rc' : 'nightly';
             const channelIdentity = {
               nightly: {
-                bundleId: 'com.cmuxterm.app.nightly',
-                appName: 'cmux NIGHTLY',
-                urlScheme: 'cmux-nightly',
+                bundleId: 'app.w3dev.cmux.nightly',
+                appName: 'cmux W3Dev NIGHTLY',
+                urlScheme: 'cmux-w3dev-nightly',
                 dmgPrefix: 'cmux-nightly-macos',
                 releaseTag: 'nightly',
                 releaseName: 'Nightly',
-                feedBase: 'https://files.cmux.com/nightly',
+                feedBase: 'https://files.cmux.w3dev.app/nightly',
                 entitlements: 'cmux.nightly.entitlements',
                 iconName: 'AppIcon-Nightly',
               },
               rc: {
-                bundleId: 'com.cmuxterm.app.rc',
-                appName: 'cmux RC',
-                urlScheme: 'cmux-rc',
+                bundleId: 'app.w3dev.cmux.rc',
+                appName: 'cmux W3Dev RC',
+                urlScheme: 'cmux-w3dev-rc',
                 dmgPrefix: 'cmux-rc-macos',
                 releaseTag: 'rc',
                 releaseName: 'Release Candidate',
-                feedBase: 'https://files.cmux.com/rc',
+                feedBase: 'https://files.cmux.w3dev.app/rc',
                 entitlements: 'cmux.rc.entitlements',
                 iconName: 'AppIcon-RC',
               },
@@ -706,6 +707,7 @@ jobs:
             COMPILATION_CACHE_ENABLE_CACHING=YES \
             COMPILATION_CACHE_LIMIT_SIZE=3221225472 \
             COMPILER_INDEX_STORE_ENABLE=NO \
+            "CMUX_TEAM_ID_PREFIX=${CMUX_APPLE_TEAM_ID}." \
             CODE_SIGNING_ALLOWED=NO ASSETCATALOG_COMPILER_APPICON_NAME=AppIcon-Nightly build
 
       - name: Bound Xcode compilation cache size
@@ -1309,6 +1311,7 @@ jobs:
             COMPILATION_CACHE_ENABLE_CACHING=YES \
             COMPILATION_CACHE_LIMIT_SIZE=3221225472 \
             COMPILER_INDEX_STORE_ENABLE=NO \
+            "CMUX_TEAM_ID_PREFIX=${CMUX_APPLE_TEAM_ID}." \
             CODE_SIGNING_ALLOWED=NO ASSETCATALOG_COMPILER_APPICON_NAME="$CHANNEL_ICON_NAME" build
 
       - name: Bound Xcode compilation cache size
@@ -1384,7 +1387,7 @@ jobs:
         if: env.NIGHTLY_FAST_BUILD == 'true'
         run: |
           set -euo pipefail
-          app="build-universal/Build/Products/Release/cmux.app"
+          app="build-universal/Build/Products/Release/cmux W3Dev.app"
           local_client="$GITHUB_WORKSPACE/cmux-tui/target/aarch64-apple-darwin/release/cmux-tui"
           test -x "$local_client"
           CMUX_TUI_CLIENT_LOCAL="$local_client" \
@@ -1396,7 +1399,7 @@ jobs:
         id: remote_daemon
         run: |
           set -euo pipefail
-          app="build-universal/Build/Products/Release/cmux.app"
+          app="build-universal/Build/Products/Release/cmux W3Dev.app"
           base_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")"
           build="${GITHUB_RUN_ID}$(printf '%02d' "${GITHUB_RUN_ATTEMPT:-1}")"
           version="${base_version}-${{ needs.decide.outputs.channel }}.${build}"
@@ -1425,12 +1428,12 @@ jobs:
         run: |
           set -euo pipefail
           products="build-universal/Build/Products/Release"
-          ./scripts/strip-release-bundle.sh "$products/cmux.app"
+          ./scripts/strip-release-bundle.sh "$products/cmux W3Dev.app"
 
       - name: Verify Cloud tunnel engine before transfer
         run: |
           set -euo pipefail
-          app="build-universal/Build/Products/Release/cmux.app"
+          app="build-universal/Build/Products/Release/cmux W3Dev.app"
           sysext="$(find "$app/Contents/Library/SystemExtensions" -mindepth 1 -maxdepth 1 -name '*.systemextension' -print -quit 2>/dev/null || true)"
           if [[ -z "$sysext" ]]; then
             echo "::error::Cloud tunnel system extension is missing"
@@ -1445,11 +1448,11 @@ jobs:
         run: |
           set -euo pipefail
           products="build-universal/Build/Products/Release"
-          if [ ! -d "$products/cmux.app" ]; then
-            echo "Built app not found at $products/cmux.app" >&2
+          if [ ! -d "$products/cmux W3Dev.app" ]; then
+            echo "Built app not found at $products/cmux W3Dev.app" >&2
             exit 1
           fi
-          tar -C "$products" -czf "$RUNNER_TEMP/cmux-nightly-unsigned.tar.gz" cmux.app
+          tar -C "$products" -czf "$RUNNER_TEMP/cmux-nightly-unsigned.tar.gz" "cmux W3Dev.app"
 
       - name: Upload unsigned nightly app
         if: needs.decide.outputs.build_only != 'true'
@@ -1466,8 +1469,8 @@ jobs:
         if: needs.decide.outputs.build_only != 'true'
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: manaflow
-          SENTRY_PROJECT: cmuxterm-macos
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         # Retried, and only a warning when Sentry stays down: a nightly is never lost to symbolication.
         run: ./scripts/upload-sentry-dsyms.sh build-universal/Build/Products/Release/
 
@@ -1695,7 +1698,7 @@ jobs:
       - name: Inject universal Ghostty CLI helper
         run: |
           set -euo pipefail
-          APP_DIR="build-universal/Build/Products/Release/cmux.app"
+          APP_DIR="build-universal/Build/Products/Release/cmux W3Dev.app"
           if [ ! -d "$APP_DIR" ]; then
             echo "Built app not found at $APP_DIR" >&2
             exit 1
@@ -1718,12 +1721,12 @@ jobs:
           CMUX_TUI_CLIENT_CACHE: ${{ runner.temp }}/cmux-tui-client
         run: |
           set -euo pipefail
-          app="build-universal/Build/Products/Release/cmux.app"
+          app="build-universal/Build/Products/Release/cmux W3Dev.app"
           cmux_tui_commit="$CMUX_TUI_CLIENT_COMMIT"
           [[ "$cmux_tui_commit" =~ ^[0-9a-f]{40}$ ]] || { echo "resolve-nightly-cmux-tui-client produced no commit" >&2; exit 1; }
           ./scripts/install-cmux-tui-client.sh \
             "$app" \
-            --manifest-url "https://files.cmux.com/cmux-tui/${cmux_tui_commit}/manifest.json" \
+            --manifest-url "https://files.cmux.w3dev.app/cmux-tui/${cmux_tui_commit}/manifest.json" \
             --expected-commit "$cmux_tui_commit" \
             --require-capability wireguard-hub
           # The client and its SSH payloads arrive after the build job's strip, so
@@ -1733,13 +1736,13 @@ jobs:
       - name: Run bundled Ghostty theme picker helper regression
         run: |
           set -euo pipefail
-          CMUX_APP_PATH="build-universal/Build/Products/Release/cmux.app" \
+          CMUX_APP_PATH="build-universal/Build/Products/Release/cmux W3Dev.app" \
             ./tests/test_bundled_ghostty_theme_picker_helper.sh
 
       - name: Run CLI version memory guard regression
         run: |
           set -euo pipefail
-          CLI_BINARY="build-universal/Build/Products/Release/cmux.app/Contents/Resources/bin/cmux"
+          CLI_BINARY="build-universal/Build/Products/Release/cmux W3Dev.app/Contents/Resources/bin/cmux"
           [ -x "$CLI_BINARY" ] || { echo "cmux CLI binary not found at $CLI_BINARY" >&2; exit 1; }
           CMUX_CLI_BIN="$CLI_BINARY" python3 tests/test_cli_version_memory_guard.py
 
@@ -1750,14 +1753,14 @@ jobs:
         if: matrix.variant != 'universal'
         run: |
           set -euo pipefail
-          ./scripts/thin-app-bundle.sh build-universal/Build/Products/Release/cmux.app "$NIGHTLY_VARIANT"
+          ./scripts/thin-app-bundle.sh "build-universal/Build/Products/Release/cmux W3Dev.app" "$NIGHTLY_VARIANT"
 
       - name: Verify nightly binary architectures
         run: |
           set -euo pipefail
-          APP="build-universal/Build/Products/Release/cmux.app"
+          APP="build-universal/Build/Products/Release/cmux W3Dev.app"
           for binary in \
-            "$APP/Contents/MacOS/cmux" \
+            "$APP/Contents/MacOS/cmux W3Dev" \
             "$APP/Contents/Resources/bin/cmux" \
             "$APP/Contents/Resources/bin/ghostty" \
             "$APP/Contents/Resources/bin/cmux-tui" \
@@ -1818,7 +1821,7 @@ jobs:
             local app_dir="$1"
             local bundle_id="$2"
             local feed_url="$3"
-            local app_plist="$app_dir/cmux.app/Contents/Info.plist"
+            local app_plist="$app_dir/cmux W3Dev.app/Contents/Info.plist"
 
             /usr/libexec/PlistBuddy -c "Set :CFBundleName ${CHANNEL_APP_NAME}" "$app_plist"
             /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName ${CHANNEL_APP_NAME}" "$app_plist"
@@ -1841,16 +1844,16 @@ jobs:
             # The bundled Cloud tunnel extension follows the app's identity:
             # <bundle id>.tunnel, team-prefixed mach service, same version.
             local sysext
-            sysext="$(find "$app_dir/cmux.app/Contents/Library/SystemExtensions" -mindepth 1 -maxdepth 1 -name '*.systemextension' -print -quit 2>/dev/null || true)"
+            sysext="$(find "$app_dir/cmux W3Dev.app/Contents/Library/SystemExtensions" -mindepth 1 -maxdepth 1 -name '*.systemextension' -print -quit 2>/dev/null || true)"
             if [[ -n "$sysext" ]]; then
               local sysext_plist="$sysext/Contents/Info.plist"
               /usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier ${bundle_id}.tunnel" "$sysext_plist"
-              /usr/libexec/PlistBuddy -c "Set :NetworkExtension:NEMachServiceName 7WLXT3NR37.${bundle_id}.tunnel" "$sysext_plist"
+              /usr/libexec/PlistBuddy -c "Set :NetworkExtension:NEMachServiceName ${CMUX_APPLE_TEAM_ID}.${bundle_id}.tunnel" "$sysext_plist"
               /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${NIGHTLY_MARKETING_VERSION}" "$sysext_plist"
               /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${NIGHTLY_BUILD}" "$sysext_plist"
-              ./scripts/normalize-system-extension-bundle.sh "$app_dir/cmux.app" "${bundle_id}.tunnel"
+              ./scripts/normalize-system-extension-bundle.sh "$app_dir/cmux W3Dev.app" "${bundle_id}.tunnel"
             fi
-            mv "$app_dir/cmux.app" "$app_dir/${CHANNEL_APP_NAME}.app"
+            mv "$app_dir/cmux W3Dev.app" "$app_dir/${CHANNEL_APP_NAME}.app"
           }
 
           prepare_variant \
@@ -1943,7 +1946,7 @@ jobs:
           security cms -D -i "$TMP_PROFILE" > "$TMP_PLIST"
 
           APP_ID="$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.application-identifier" "$TMP_PLIST")"
-          if [ "$APP_ID" != "7WLXT3NR37.${CHANNEL_BUNDLE_ID}" ]; then
+          if [ "$APP_ID" != "${CMUX_APPLE_TEAM_ID}.${CHANNEL_BUNDLE_ID}" ]; then
             echo "$CHANNEL provisioning profile targets unexpected app ID: $APP_ID" >&2
             exit 1
           fi
@@ -1979,7 +1982,7 @@ jobs:
           set -euo pipefail
           ./scripts/ci/embed-tunnel-extension-profile.sh \
             "$CHANNEL_APP_PATH" \
-            "7WLXT3NR37.${CHANNEL_BUNDLE_ID}.tunnel" \
+            "${CMUX_APPLE_TEAM_ID}.${CHANNEL_BUNDLE_ID}.tunnel" \
             "${TUNNEL_PROVISIONING_PROFILE_BASE64:-}"
 
       - name: Codesign apps
@@ -2473,7 +2476,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 ./scripts/prune_nightly_release_assets.py \
-            --repo manaflow-ai/cmux \
+            --repo "$GITHUB_REPOSITORY" \
             --release-tag "$CHANNEL_RELEASE_TAG" \
             --name-prefix "${CHANNEL_DMG_PREFIX}-" \
             --keep-builds 100 \
@@ -2525,6 +2528,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
           R2_ENDPOINT: "https://${{ secrets.CF_R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+          CMUX_ARTIFACTS_R2_BUCKET: ${{ vars.CMUX_ARTIFACTS_R2_BUCKET }}
         run: |
           set -euo pipefail
           # Upload after the GitHub Release publish so no appcast references a
@@ -2536,7 +2540,7 @@ jobs:
             python3 scripts/ci/upload-r2-object.py \
               --file "nightly-out/$appcast" \
               --endpoint-url "$R2_ENDPOINT" \
-              --bucket cmux-binaries \
+              --bucket "${CMUX_ARTIFACTS_R2_BUCKET:?CMUX_ARTIFACTS_R2_BUCKET is required}" \
               --key "${CHANNEL_RELEASE_TAG}/$appcast" \
               --content-type "application/xml" \
               --cache-control "no-cache, no-store, must-revalidate"
@@ -2673,7 +2677,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/ci/fetch-previous-nightly-dmgs.py \
-            --repo manaflow-ai/cmux \
+            --repo "$GITHUB_REPOSITORY" \
             --release-tag "$CHANNEL_RELEASE_TAG" \
             --name-prefix "${CHANNEL_DMG_PREFIX}-" \
             --variant "$NIGHTLY_VARIANT" \
@@ -2789,6 +2793,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
           R2_ENDPOINT: "https://${{ secrets.CF_R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+          CMUX_ARTIFACTS_R2_BUCKET: ${{ vars.CMUX_ARTIFACTS_R2_BUCKET }}
         run: |
           set -euo pipefail
           for feed in nightly-deltas/appcast*.xml; do
@@ -2797,7 +2802,7 @@ jobs:
             python3 scripts/ci/upload-r2-object.py \
               --file "$feed" \
               --endpoint-url "$R2_ENDPOINT" \
-              --bucket cmux-binaries \
+              --bucket "${CMUX_ARTIFACTS_R2_BUCKET:?CMUX_ARTIFACTS_R2_BUCKET is required}" \
               --key "${CHANNEL_RELEASE_TAG}/$name" \
               --content-type "application/xml" \
               --cache-control "no-cache, no-store, must-revalidate"

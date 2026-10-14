@@ -2,7 +2,7 @@ public import Foundation
 public import Observation
 import OSLog
 
-private let cloudLinkLog = Logger(subsystem: "dev.cmux.ios", category: "cloud-link")
+private let cloudLinkLog = Logger(subsystem: "app.w3dev.cmux.ios.debug", category: "cloud-link")
 
 private enum CloudMachineConnectionError: Error, Sendable, CustomStringConvertible {
     case invitationExpired

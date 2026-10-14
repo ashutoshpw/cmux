@@ -11,7 +11,7 @@ function fixture() {
   const calls = { stack: 0, open: 0, team: 0, account: [] as string[] };
   const dependencies: RoutingDependencies = {
     environment: device.identity.environment, projectId: device.identity.projectId, ticketKeys: { test: key }, now: () => 100,
-    stack: { verify: async () => { calls.stack++; throw new Error("account routes never call Stack"); } },
+    stack: { verifyTeamMember: async () => true, verify: async () => { calls.stack++; throw new Error("account routes never call Stack"); } },
     chargeOpen: async () => { calls.open++; },
     dispatchTeam: async () => { calls.team++; return new Response("team"); },
     dispatchAccount: async (userId, request) => {
@@ -34,7 +34,7 @@ test("account routes accept only a ticket and dispatch to the ticket's user", as
   const bearer = await routeControl(post("Bearer stack-token"), dependencies);
   expect(bearer.status).toBe(401);
   expect(await bearer.json()).toMatchObject({ code: "unauthorized" });
-  const ticket = await issueTicket(device, "test", key, 99);
+  const ticket = await issueTicket(device, "test", key, 99, "auth-session");
   const accepted = await routeControl(post("IrohTicket " + ticket.token), dependencies);
   expect(accepted.status).toBe(200);
   expect(await accepted.json() as unknown).toEqual({ path: "/request", userId: device.identity.userId, issueTicket: false, input: { schemaId: "account.directory.v1", requestId: "request" } });
@@ -47,7 +47,7 @@ test("account routes accept only a ticket and dispatch to the ticket's user", as
 
 test("a setup naming another user than the ticket is refused before any object", async () => {
   const { calls, dependencies } = fixture();
-  const ticket = await issueTicket(device, "test", key, 99);
+  const ticket = await issueTicket(device, "test", key, 99, "auth-session");
   const tampered = encode({ ...setup, device: { ...device, identity: { ...device.identity, userId: "victim" } } });
   const result = await routeControl(post("IrohTicket " + ticket.token, tampered), dependencies);
   expect(result.status).toBe(403);
@@ -64,7 +64,7 @@ test("unknown account paths, queries and wrong methods keep the existing 404/405
     new Request("https://api.example/v2/account/requests"),
   ]) statuses.push((await routeControl(request, dependencies)).status);
   expect(statuses).toEqual([404, 404, 404, 405]);
-  const ticket = await issueTicket(device, "test", key, 99);
+  const ticket = await issueTicket(device, "test", key, 99, "auth-session");
   const team = await routeControl(new Request("https://api.example/v2/requests", {
     method: "POST", headers: { "content-type": "application/json", authorization: "IrohTicket " + ticket.token, [SETUP_HEADER]: encode(setup) },
     body: JSON.stringify({ schemaId: "relay.request.v1", requestId: "request" }),

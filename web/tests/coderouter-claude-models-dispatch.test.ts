@@ -9,7 +9,7 @@ import { isAnthropicRequest } from "../services/coderouter/claudeProxy";
 describe("/v1/models dispatch", () => {
   test("serves Anthropic clients from the Claude leg", async () => {
     const response = await GET(
-      new Request("https://coderouter.dev/v1/models", {
+      new Request("https://cmux.w3dev.app/v1/models", {
         headers: { "anthropic-version": "2023-06-01", "x-api-key": "cmux-vm-edge-placeholder" },
       }),
     );
@@ -22,7 +22,7 @@ describe("/v1/models dispatch", () => {
 
   test("keeps Codex clients on the OpenAI leg", async () => {
     const response = await GET(
-      new Request("https://coderouter.dev/v1/models?client_version=0.146.0"),
+      new Request("https://cmux.w3dev.app/v1/models?client_version=0.146.0"),
     );
     expect(response.status).toBe(401);
     expect(await response.json()).toMatchObject({ error: "unauthorized" });

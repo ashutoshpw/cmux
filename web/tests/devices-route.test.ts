@@ -1,3 +1,4 @@
+import { ownedPrincipal } from "./helpers/owned-principal";
 import { afterAll, beforeAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import postgres, { type Sql } from "postgres";
 
@@ -17,6 +18,10 @@ const getUser = mock(async () => ({
   primaryEmail: `${currentUserId}@example.com`,
   selectedTeam: { id: "team-a" },
   listTeams: async () => [{ id: "team-a" }, { id: "team-b" }],
+}));
+
+mock.module("../services/auth/betterAuthPrincipal", () => ({
+  resolveBetterAuthPrincipal: async (headers: Headers) => ownedPrincipal(await getUser(), headers),
 }));
 
 mock.module("../app/lib/stack", () => ({

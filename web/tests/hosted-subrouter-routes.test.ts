@@ -1,3 +1,4 @@
+import { ownedPrincipal } from "./helpers/owned-principal";
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 
 const modifiedEnvironment = [
@@ -35,6 +36,10 @@ const getAuthJson = mock(async () => {
 const signOut = mock(async () => {});
 let hostedCutoverReady = true;
 const hostedSubrouterCutoverReadyForTeam = mock(async () => hostedCutoverReady);
+
+mock.module("../services/auth/betterAuthPrincipal", () => ({
+  resolveBetterAuthPrincipal: async (headers: Headers) => ownedPrincipal(await getUser(), headers),
+}));
 
 mock.module("../app/lib/stack", () => ({
   getStackServerApp: () => ({ getUser, getAuthJson, getTeam, createTeam }),
@@ -780,7 +785,7 @@ describe("hosted Subrouter account routes", () => {
     expect(invalid.status).toBe(400);
   });
 
-  test("persists a selected member team in Stack Auth", async () => {
+  test("persists a selected member organization through the owned facade", async () => {
     currentUser = { ...stackUser(), update: updateUser };
     const response = await teamsRoute.PATCH(
       request("/api/subrouter/teams", {
@@ -791,7 +796,7 @@ describe("hosted Subrouter account routes", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ selectedTeamId: "team-b" });
     expect(updateUser).toHaveBeenCalledWith({ selectedTeamId: "team-b" });
-    expect(listTeamQueries).toEqual(["team-b", "team-a"]);
+    expect(listTeamQueries).toEqual([]);
 
     const unauthorized = await teamsRoute.PATCH(
       request("/api/subrouter/teams", {

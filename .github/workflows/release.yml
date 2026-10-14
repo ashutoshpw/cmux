@@ -13,6 +13,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  CMUX_APPLE_TEAM_ID: ${{ vars.CMUX_APPLE_TEAM_ID }}
   CREATE_DMG_VERSION: 8.0.0
 
 jobs:
@@ -284,13 +285,14 @@ jobs:
             -clonedSourcePackagesDirPath .spm-cache \
             ARCHS="arm64 x86_64" \
             ONLY_ACTIVE_ARCH=NO \
+            "CMUX_TEAM_ID_PREFIX=${CMUX_APPLE_TEAM_ID}." \
             CODE_SIGNING_ALLOWED=NO build
 
       - name: Build and embed verified SSH daemon assets
         if: steps.guard_release_assets.outputs.skip_all != 'true'
         run: |
           set -euo pipefail
-          app="build-universal/Build/Products/Release/cmux.app"
+          app="build-universal/Build/Products/Release/cmux W3Dev.app"
           version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")"
           ./scripts/build_remote_daemon_release_assets.sh \
             --version "$version" --release-tag "$GITHUB_REF_NAME" \
@@ -342,7 +344,7 @@ jobs:
           rm -f "$state"
           ./scripts/ci/notarize-computer-use-helper.sh \
             --start "$state" \
-            "build-universal/Build/Products/Release/cmux.app" \
+            "build-universal/Build/Products/Release/cmux W3Dev.app" \
             cmux.release.entitlements \
             "$APPLE_SIGNING_IDENTITY"
 
@@ -363,14 +365,14 @@ jobs:
           set -euo pipefail
           ./scripts/install-prebuilt-ghostty-cli-helper.sh \
             ghostty-cli-helper/ghostty \
-            build-universal/Build/Products/Release/cmux.app
+            "build-universal/Build/Products/Release/cmux W3Dev.app"
           # actions/checkout is depth 1 here, so a bare `git log -1 -- cmux-tui` would answer
           # HEAD. A release bundles the exact client of the newest cmux-tui commit or fails.
           cmux_tui_commit="$(./scripts/ci/resolve-cmux-tui-client-commit.sh)"
           test -n "$cmux_tui_commit"
           ./scripts/install-cmux-tui-client.sh \
-            build-universal/Build/Products/Release/cmux.app \
-            --manifest-url "https://files.cmux.com/cmux-tui/${cmux_tui_commit}/manifest.json" \
+            "build-universal/Build/Products/Release/cmux W3Dev.app" \
+            --manifest-url "https://files.cmux.w3dev.app/cmux-tui/${cmux_tui_commit}/manifest.json" \
             --expected-commit "$cmux_tui_commit" \
             --require-capability wireguard-hub
 
@@ -378,16 +380,16 @@ jobs:
         if: steps.guard_release_assets.outputs.skip_all != 'true'
         run: |
           set -euo pipefail
-          APP="build-universal/Build/Products/Release/cmux.app"
-          # The Release build's tunnel extension is com.cmuxterm.app.tunnel: the
+          APP="build-universal/Build/Products/Release/cmux W3Dev.app"
+          # The Release build's tunnel extension is app.w3dev.cmux.tunnel: the
           # bundle identifier carries no team prefix (only NEMachServiceName and
           # the profile's App ID do), exactly as nightly ships <bundle id>.tunnel.
           # tests/test_ci_release_tunnel_identifiers.sh pins this to the project.
-          ./scripts/normalize-system-extension-bundle.sh "$APP" "com.cmuxterm.app.tunnel"
-          APP_BINARY="build-universal/Build/Products/Release/cmux.app/Contents/MacOS/cmux"
-          CLI_BINARY="build-universal/Build/Products/Release/cmux.app/Contents/Resources/bin/cmux"
-          HELPER_BINARY="build-universal/Build/Products/Release/cmux.app/Contents/Resources/bin/ghostty"
-          DIFF_SIDECAR="build-universal/Build/Products/Release/cmux.app/Contents/Resources/bin/cmux-diff-sidecar"
+          ./scripts/normalize-system-extension-bundle.sh "$APP" "app.w3dev.cmux.tunnel"
+          APP_BINARY="build-universal/Build/Products/Release/cmux W3Dev.app/Contents/MacOS/cmux W3Dev"
+          CLI_BINARY="build-universal/Build/Products/Release/cmux W3Dev.app/Contents/Resources/bin/cmux"
+          HELPER_BINARY="build-universal/Build/Products/Release/cmux W3Dev.app/Contents/Resources/bin/ghostty"
+          DIFF_SIDECAR="build-universal/Build/Products/Release/cmux W3Dev.app/Contents/Resources/bin/cmux-diff-sidecar"
           APP_ARCHS="$(lipo -archs "$APP_BINARY")"
           CLI_ARCHS="$(lipo -archs "$CLI_BINARY")"
           HELPER_ARCHS="$(lipo -archs "$HELPER_BINARY")"
@@ -399,7 +401,7 @@ jobs:
           [[ "$APP_ARCHS" == *arm64* && "$APP_ARCHS" == *x86_64* ]]
           [[ "$CLI_ARCHS" == *arm64* && "$CLI_ARCHS" == *x86_64* ]]
           [[ "$HELPER_ARCHS" == *arm64* && "$HELPER_ARCHS" == *x86_64* ]]
-          TUNNEL_BINARY="$APP/Contents/Library/SystemExtensions/com.cmuxterm.app.tunnel.systemextension/Contents/MacOS/cmuxTunnel"
+          TUNNEL_BINARY="$APP/Contents/Library/SystemExtensions/app.w3dev.cmux.tunnel.systemextension/Contents/MacOS/cmuxTunnel"
           [ -x "$TUNNEL_BINARY" ] || { echo "Cloud tunnel extension binary not found at $TUNNEL_BINARY" >&2; exit 1; }
           TUNNEL_ARCHS="$(lipo -archs "$TUNNEL_BINARY")"
           echo "Tunnel extension architectures: $TUNNEL_ARCHS"
@@ -412,7 +414,7 @@ jobs:
         if: steps.guard_release_assets.outputs.skip_all != 'true'
         run: |
           set -euo pipefail
-          CLI_BINARY="build-universal/Build/Products/Release/cmux.app/Contents/Resources/bin/cmux"
+          CLI_BINARY="build-universal/Build/Products/Release/cmux W3Dev.app/Contents/Resources/bin/cmux"
           [ -x "$CLI_BINARY" ] || { echo "cmux CLI binary not found at $CLI_BINARY" >&2; exit 1; }
           CMUX_CLI_BIN="$CLI_BINARY" python3 tests/test_cli_version_memory_guard.py
 
@@ -420,19 +422,19 @@ jobs:
         if: steps.guard_release_assets.outputs.skip_all != 'true'
         run: |
           set -euo pipefail
-          HELPER_BINARY="build-universal/Build/Products/Release/cmux.app/Contents/Resources/bin/ghostty"
+          HELPER_BINARY="build-universal/Build/Products/Release/cmux W3Dev.app/Contents/Resources/bin/ghostty"
           [ -x "$HELPER_BINARY" ] || { echo "Ghostty theme picker helper not found at $HELPER_BINARY" >&2; exit 1; }
 
       - name: Inject Sparkle keys into Info.plist
         if: steps.guard_release_assets.outputs.skip_all != 'true'
         run: |
-          APP_PLIST="build-universal/Build/Products/Release/cmux.app/Contents/Info.plist"
+          APP_PLIST="build-universal/Build/Products/Release/cmux W3Dev.app/Contents/Info.plist"
           /usr/libexec/PlistBuddy -c "Delete :SUPublicEDKey" "$APP_PLIST" >/dev/null 2>&1 || true
           /usr/libexec/PlistBuddy -c "Delete :SUFeedURL" "$APP_PLIST" >/dev/null 2>&1 || true
           echo "Adding SUPublicEDKey to Info.plist..."
           /usr/libexec/PlistBuddy -c "Add :SUPublicEDKey string ${SPARKLE_PUBLIC_KEY}" "$APP_PLIST"
           echo "Adding SUFeedURL to Info.plist..."
-          /usr/libexec/PlistBuddy -c "Add :SUFeedURL string https://github.com/manaflow-ai/cmux/releases/latest/download/appcast.xml" "$APP_PLIST"
+          /usr/libexec/PlistBuddy -c "Add :SUFeedURL string https://github.com/ashutoshpw/cmux/releases/latest/download/appcast.xml" "$APP_PLIST"
           echo "Verifying:"
           /usr/libexec/PlistBuddy -c "Print :SUPublicEDKey" "$APP_PLIST"
           /usr/libexec/PlistBuddy -c "Print :SUFeedURL" "$APP_PLIST"
@@ -446,7 +448,7 @@ jobs:
             echo "Missing APPLE_RELEASE_PROVISIONING_PROFILE_BASE64 secret" >&2
             exit 1
           fi
-          APP_PATH="build-universal/Build/Products/Release/cmux.app"
+          APP_PATH="build-universal/Build/Products/Release/cmux W3Dev.app"
           PROFILE_PATH="$APP_PATH/Contents/embedded.provisionprofile"
           TMP_PROFILE="$(mktemp /tmp/cmux-release-profile.XXXXXX)"
           TMP_PLIST="$(mktemp /tmp/cmux-release-profile.XXXXXX.plist)"
@@ -454,7 +456,7 @@ jobs:
           echo "$APPLE_RELEASE_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$TMP_PROFILE"
           security cms -D -i "$TMP_PROFILE" > "$TMP_PLIST"
           APP_ID="$(/usr/libexec/PlistBuddy -c "Print :Entitlements:com.apple.application-identifier" "$TMP_PLIST")"
-          if [ "$APP_ID" != "7WLXT3NR37.com.cmuxterm.app" ]; then
+          if [ "$APP_ID" != "${CMUX_APPLE_TEAM_ID}.app.w3dev.cmux" ]; then
             echo "Release provisioning profile targets unexpected app ID: $APP_ID" >&2
             exit 1
           fi
@@ -477,19 +479,19 @@ jobs:
         run: |
           set -euo pipefail
           ./scripts/ci/embed-tunnel-extension-profile.sh \
-            "build-universal/Build/Products/Release/cmux.app" \
-            "7WLXT3NR37.com.cmuxterm.app.tunnel" \
+            "build-universal/Build/Products/Release/cmux W3Dev.app" \
+            "${CMUX_APPLE_TEAM_ID}.app.w3dev.cmux.tunnel" \
             "${APPLE_RELEASE_TUNNEL_PROVISIONING_PROFILE_BASE64:-}"
 
       - name: Strip release binaries
         if: steps.guard_release_assets.outputs.skip_all != 'true'
-        run: ./scripts/strip-release-bundle.sh "build-universal/Build/Products/Release/cmux.app"
+        run: ./scripts/strip-release-bundle.sh "build-universal/Build/Products/Release/cmux W3Dev.app"
 
       - name: Verify Cloud tunnel engine before signing
         if: steps.guard_release_assets.outputs.skip_all != 'true'
         run: |
           set -euo pipefail
-          app="build-universal/Build/Products/Release/cmux.app"
+          app="build-universal/Build/Products/Release/cmux W3Dev.app"
           sysext="$(find "$app/Contents/Library/SystemExtensions" -mindepth 1 -maxdepth 1 -name '*.systemextension' -print -quit 2>/dev/null || true)"
           if [[ -z "$sysext" ]]; then
             echo "::error::Cloud tunnel system extension is missing"
@@ -506,15 +508,15 @@ jobs:
           # Stable ships thin arm64 and x86_64 DMGs, cut from the stripped
           # universal app the way nightly does, next to the universal
           # cmux-macos.dmg that the website and Homebrew links keep pointing at.
-          universal="build-universal/Build/Products/Release/cmux.app"
+          universal="build-universal/Build/Products/Release/cmux W3Dev.app"
           for arch in arm64 x86_64; do
-            app="variants/$arch/cmux.app"
+            app="variants/$arch/cmux W3Dev.app"
             rm -rf "variants/$arch"
             mkdir -p "variants/$arch"
             ditto "$universal" "$app"
-            ./scripts/thin-app-bundle.sh "variants/$arch/cmux.app" "$arch"
+            ./scripts/thin-app-bundle.sh "variants/$arch/cmux W3Dev.app" "$arch"
             for binary in \
-              "$app/Contents/MacOS/cmux" \
+              "$app/Contents/MacOS/cmux W3Dev" \
               "$app/Contents/Resources/bin/cmux" \
               "$app/Contents/Resources/bin/ghostty" \
               "$app/Contents/Resources/bin/cmux-tui" \
@@ -550,7 +552,7 @@ jobs:
             rm -f "$state"
             ./scripts/ci/notarize-computer-use-helper.sh \
               --start "$state" \
-              "variants/$arch/cmux.app" \
+              "variants/$arch/cmux W3Dev.app" \
               cmux.release.entitlements \
               "$APPLE_SIGNING_IDENTITY"
           done
@@ -565,9 +567,9 @@ jobs:
             exit 1
           fi
           for APP_PATH in \
-            "build-universal/Build/Products/Release/cmux.app" \
-            "variants/arm64/cmux.app" \
-            "variants/x86_64/cmux.app"
+            "build-universal/Build/Products/Release/cmux W3Dev.app" \
+            "variants/arm64/cmux W3Dev.app" \
+            "variants/x86_64/cmux W3Dev.app"
           do
             CMUX_SIGN_MODE=all-except-computer-use \
               ./scripts/sign-cmux-bundle.sh \
@@ -580,7 +582,7 @@ jobs:
         if: steps.guard_release_assets.outputs.skip_all != 'true'
         run: |
           set -euo pipefail
-          for app in "build-universal/Build/Products/Release/cmux.app" "variants/arm64/cmux.app" "variants/x86_64/cmux.app"; do
+          for app in "build-universal/Build/Products/Release/cmux W3Dev.app" "variants/arm64/cmux W3Dev.app" "variants/x86_64/cmux W3Dev.app"; do
             ./scripts/verify-bundle-load-commands.sh "$app"
           done
 
@@ -588,7 +590,7 @@ jobs:
         if: steps.guard_release_assets.outputs.skip_all != 'true'
         run: |
           set -euo pipefail
-          for app in "build-universal/Build/Products/Release/cmux.app" "variants/arm64/cmux.app" "variants/x86_64/cmux.app"; do
+          for app in "build-universal/Build/Products/Release/cmux W3Dev.app" "variants/arm64/cmux W3Dev.app" "variants/x86_64/cmux W3Dev.app"; do
             python3 scripts/verify_remote_daemon_release.py \
               --manifest remote-daemon-assets/cmuxd-remote-manifest.json \
               --assets-dir remote-daemon-assets \
@@ -601,7 +603,7 @@ jobs:
           set -euo pipefail
           # Catch macOS policy failures before the Apple ticket wait and DMG
           # work. Direct execution is isolated from the runner's Dock state.
-          for app in "build-universal/Build/Products/Release/cmux.app" "variants/arm64/cmux.app" "variants/x86_64/cmux.app"; do
+          for app in "build-universal/Build/Products/Release/cmux W3Dev.app" "variants/arm64/cmux W3Dev.app" "variants/x86_64/cmux W3Dev.app"; do
             CMUX_SMOKE_DIRECT_EXEC=1 CMUX_SMOKE_DEBUG_LOGS=1 \
               ./scripts/smoke-launch-macos-app.sh "$app"
           done
@@ -614,7 +616,7 @@ jobs:
           # app through the CLI inside the same bundle (version, help, SSH
           # daemon manifest, ping, capabilities, workspace create/list/close).
           # The thin x86_64 variant skips when the runner has no Rosetta.
-          for app in "build-universal/Build/Products/Release/cmux.app" "variants/arm64/cmux.app" "variants/x86_64/cmux.app"; do
+          for app in "build-universal/Build/Products/Release/cmux W3Dev.app" "variants/arm64/cmux W3Dev.app" "variants/x86_64/cmux W3Dev.app"; do
             ./scripts/smoke-signed-app-cli.sh "$app"
           done
 
@@ -632,7 +634,7 @@ jobs:
           trap 'rm -rf "$NOTARY_TMP"' EXIT
           source ./scripts/ci/lib/notary-auth.sh
           notary_auth_init "$NOTARY_TMP"
-          APP_PATH="build-universal/Build/Products/Release/cmux.app"
+          APP_PATH="build-universal/Build/Products/Release/cmux W3Dev.app"
           ZIP_SUBMIT="cmux-notary.zip"
           DMG_RELEASE="cmux-macos.dmg"
           ./scripts/ci/notarize-computer-use-helper.sh \
@@ -710,7 +712,7 @@ jobs:
           for arch in arm64 x86_64; do
             CMUX_COMPUTER_USE_NOTARY_SUBMISSION_FILE="$RUNNER_TEMP/cmux-computer-use-notarization-$arch.state" \
               ./scripts/ci/notarize-nightly-dmg.sh \
-              "variants/$arch/cmux.app" \
+              "variants/$arch/cmux W3Dev.app" \
               "cmux-macos-$arch.dmg" \
               "$RUNNER_TEMP/cmux-macos-$arch-verified.dmg"
           done
@@ -719,7 +721,7 @@ jobs:
         if: steps.guard_release_assets.outputs.skip_all != 'true'
         run: |
           set -euo pipefail
-          for app in "build-universal/Build/Products/Release/cmux.app" "variants/arm64/cmux.app" "variants/x86_64/cmux.app"; do
+          for app in "build-universal/Build/Products/Release/cmux W3Dev.app" "variants/arm64/cmux W3Dev.app" "variants/x86_64/cmux W3Dev.app"; do
             syspolicy_check distribution "$app"
           done
 
@@ -727,8 +729,8 @@ jobs:
         if: steps.guard_release_assets.outputs.skip_all != 'true'
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: manaflow
-          SENTRY_PROJECT: cmuxterm-macos
+          SENTRY_ORG: ${{ vars.SENTRY_ORG }}
+          SENTRY_PROJECT: ${{ vars.SENTRY_PROJECT }}
         run: |
           if [ -z "$SENTRY_AUTH_TOKEN" ]; then
             echo "SENTRY_AUTH_TOKEN not set, skipping dSYM upload"
@@ -854,6 +856,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_R2_SECRET_ACCESS_KEY }}
           AWS_DEFAULT_REGION: auto
           R2_ENDPOINT: "https://${{ secrets.CF_R2_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+          CMUX_ARTIFACTS_R2_BUCKET: ${{ vars.CMUX_ARTIFACTS_R2_BUCKET }}
         run: |
           set -euo pipefail
 
@@ -876,7 +879,7 @@ jobs:
             python3 scripts/ci/upload-r2-object.py \
               --file "appcast-$arch.xml" \
               --endpoint-url "$R2_ENDPOINT" \
-              --bucket cmux-binaries \
+              --bucket "${CMUX_ARTIFACTS_R2_BUCKET:?CMUX_ARTIFACTS_R2_BUCKET is required}" \
               --key stable/appcast-$arch.xml \
               --content-type "application/xml" \
               --cache-control "no-cache, no-store, must-revalidate"
@@ -884,12 +887,12 @@ jobs:
           python3 scripts/ci/upload-r2-object.py \
             --file appcast.xml \
             --endpoint-url "$R2_ENDPOINT" \
-            --bucket cmux-binaries \
+            --bucket "${CMUX_ARTIFACTS_R2_BUCKET:?CMUX_ARTIFACTS_R2_BUCKET is required}" \
             --key stable/appcast.xml \
             --content-type "application/xml" \
             --cache-control "no-cache, no-store, must-revalidate"
 
-          echo "R2 appcast upload complete: https://files.cmux.com/stable/appcast.xml"
+          echo "R2 appcast upload complete: https://files.cmux.w3dev.app/stable/appcast.xml"
 
       - name: Cleanup keychain
         if: always()

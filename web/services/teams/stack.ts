@@ -1,8 +1,6 @@
 import { Effect } from "effect";
-import { env } from "../../app/env";
 import { getStackServerApp } from "../../app/lib/stack";
-import { stackApiBaseURL } from "../auth/stackApiBaseURL";
-import { TeamGoneError, TeamServiceUnavailableError } from "./errors";
+import { TeamApiError, TeamGoneError, TeamServiceUnavailableError } from "./errors";
 
 /**
  * The subset of the Stack server SDK the team services use. Method syntax
@@ -98,44 +96,8 @@ export function defaultTeamStackApp(): TeamStackApp {
  * nothing else from that user. Stack lists the primary email as a channel.
  */
 async function listStackUserContactChannels(userId: string): Promise<readonly StackContactChannel[] | null> {
-  const projectId = env.NEXT_PUBLIC_STACK_PROJECT_ID;
-  const secretServerKey = env.STACK_SECRET_SERVER_KEY;
-  if (!projectId || !secretServerKey) throw new Error("Stack Auth is not configured");
-  const base = stackApiBaseURL();
-  const url = new URL(`${/\/api\/v1$/u.test(base) ? base : `${base}/api/v1`}/contact-channels`);
-  url.searchParams.set("user_id", userId);
-  const response = await fetch(url, {
-    method: "GET",
-    headers: {
-      "x-hexclave-access-type": "server",
-      "x-hexclave-project-id": projectId,
-      "x-hexclave-secret-server-key": secretServerKey,
-    },
-    signal: AbortSignal.timeout(10_000),
-    cache: "no-store",
-  });
-  const knownError = response.headers.get("x-hexclave-known-error") ?? response.headers.get("x-stack-known-error");
-  if (knownError === "USER_NOT_FOUND") {
-    await response.body?.cancel();
-    return null;
-  }
-  if (!response.ok) {
-    await response.body?.cancel();
-    // No body in the error: Stack can echo account data. The status keeps a
-    // throttle recognizable to the auth error mapping.
-    throw Object.assign(new Error(`Stack contact-channel read failed: ${response.status}`), { status: response.status });
-  }
-  return parseContactChannels(await response.json());
-}
-
-function parseContactChannels(body: unknown): readonly StackContactChannel[] {
-  const items = (body as { items?: unknown } | null)?.items;
-  if (!Array.isArray(items)) throw new Error("Stack contact-channel read returned an unexpected shape");
-  return items.flatMap((item: unknown) => {
-    const channel = item as { type?: unknown; value?: unknown; is_verified?: unknown } | null;
-    if (typeof channel?.type !== "string" || typeof channel.value !== "string") return [];
-    return [{ type: channel.type, value: channel.value, isVerified: channel.is_verified === true }];
-  });
+  const user = await getStackServerApp().getUser(userId);
+  return user ? user.listContactChannels() : null;
 }
 
 const STACK_TIMEOUT = "10 seconds";
@@ -150,10 +112,11 @@ export async function withStackDeadline<T>(operation: () => Promise<T>): Promise
     Effect.tryPromise(operation).pipe(Effect.timeout(STACK_TIMEOUT), Effect.either),
   );
   if (result._tag === "Left") {
+    const cause = unwrapEffectCause(result.left);
+    // Owned team policy refusals are stable answers, including admission during deletion.
+    if (cause instanceof TeamApiError) throw cause;
     // A deleted team is an answer, not an outage: retrying cannot succeed.
-    if (isTeamNotFound(unwrapEffectCause(result.left))) throw new TeamGoneError("Stack team not found");
-    const failure = result.left;
-    const cause = failure && typeof failure === "object" && "error" in failure ? (failure as { error: unknown }).error : failure;
+    if (isTeamNotFound(cause)) throw new TeamGoneError("Stack team not found");
     // Only the error class and a bounded message: enough to tell a Stack
     // refusal (untrusted callback domain, disabled emails) from a timeout.
     console.error("stack team request failed", {

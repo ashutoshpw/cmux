@@ -43,8 +43,8 @@ private final class PrewarmPoolHarness {
     }
 }
 
-private let pricingURL = URL(string: "https://cmux.com/app-pricing?appearance=dark")!
-private let otherURL = URL(string: "https://cmux.com/docs")!
+private let pricingURL = URL(string: "https://cmux.w3dev.app/app-pricing?appearance=dark")!
+private let otherURL = URL(string: "https://cmux.w3dev.app/docs")!
 private let profileID = UUID()
 
 @MainActor

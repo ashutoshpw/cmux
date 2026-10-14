@@ -403,7 +403,7 @@ struct SSHDeepSleepReattachTests {
         var environment = ProcessInfo.processInfo.environment
         environment["PATH"] = "\(root.path):\(environment["PATH"] ?? "/usr/bin:/bin")"
         environment["CMUX_BUNDLED_CLI_PATH"] = fakeCLI.path
-        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-debug-test.sock"
+        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-w3dev-debug-test.sock"
         environment["CMUX_WORKSPACE_ID"] = "11111111-1111-1111-1111-111111111111"
         environment["CMUX_SURFACE_ID"] = "22222222-2222-2222-2222-222222222222"
         environment["CMUX_TEST_ATTEMPT_FILE"] = attemptFile.path
@@ -471,7 +471,7 @@ struct SSHDeepSleepReattachTests {
         var environment = ProcessInfo.processInfo.environment
         environment["PATH"] = "\(root.path):\(environment["PATH"] ?? "/usr/bin:/bin")"
         environment["CMUX_BUNDLED_CLI_PATH"] = fakeCLI.path
-        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-debug-test.sock"
+        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-w3dev-debug-test.sock"
         environment["CMUX_WORKSPACE_ID"] = "11111111-1111-1111-1111-111111111111"
         environment["CMUX_SURFACE_ID"] = "22222222-2222-2222-2222-222222222222"
         environment["CMUX_TEST_ATTEMPT_FILE"] = attemptFile.path
@@ -521,7 +521,7 @@ struct SSHDeepSleepReattachTests {
         var environment = ProcessInfo.processInfo.environment
         environment["PATH"] = "\(root.path):\(environment["PATH"] ?? "/usr/bin:/bin")"
         environment["CMUX_BUNDLED_CLI_PATH"] = fakeCLI.path
-        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-debug-test.sock"
+        environment["CMUX_SOCKET_PATH"] = "/tmp/cmux-w3dev-debug-test.sock"
         environment["CMUX_WORKSPACE_ID"] = "11111111-1111-1111-1111-111111111111"
         environment["CMUX_SURFACE_ID"] = "22222222-2222-2222-2222-222222222222"
         environment["CMUX_TEST_AUTH_ATTEMPT_FILE"] = authAttemptFile.path
@@ -558,7 +558,7 @@ struct SSHDeepSleepReattachTests {
             localProxyPort: nil, relayPort: 64007,
             relayID: String(repeating: "a", count: 16),
             relayToken: String(repeating: "b", count: 64),
-            localSocketPath: "/tmp/cmux-debug-test.sock",
+            localSocketPath: "/tmp/cmux-w3dev-debug-test.sock",
             terminalStartupCommand: SSHPTYAttachStartupCommandBuilder.command(requireExisting: false),
             configuredRemoteCommand: configuredRemoteCommand,
             foregroundAuthToken: foregroundAuthToken,

@@ -7,7 +7,7 @@ import { routing, type Locale } from "../../i18n/routing";
 import { loadMessages } from "../../i18n/messages";
 import { buildBlogRssFeed } from "./blog-feed";
 
-const siteUrl = "https://cmux.com";
+const siteUrl = "https://cmux.w3dev.app";
 
 export async function buildLocalizedBlogRssFeed(locale: Locale): Promise<string> {
   const t = createTranslator({
